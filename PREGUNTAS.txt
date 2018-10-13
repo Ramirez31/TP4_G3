@@ -1,0 +1,4 @@
+por qué cuando Ap<3dB deja de cumplir????
+que hacer si Ap<0?????(explota la raíz)
+por qué el pasabanda explota si le subo el orden???
+revisar un poco todo.
