@@ -285,7 +285,15 @@ class TP4:
             return False
 
     def set_entry_buttons(self,*args):
-        pass
+        self.aprox_figure.delete("all")
+        if  self.filter_string.get()=='LowPass':
+            self.aprox_figure.create_image(0,0,image=self.photoLP,anchor='nw')
+        elif  self.filter_string.get()=='HighPass':
+            self.aprox_figure.create_image(0,0,image=self.photoHP,anchor='nw')
+        elif  self.filter_string.get()=='BandPass':
+            self.aprox_figure.create_image(0,0,image=self.photoBP,anchor='nw')
+        elif  self.filter_string.get()=='StopBand':
+            self.aprox_figure.create_image(0,0,image=self.photoSB,anchor='nw')
 
     def __init__(self):
         self.root = Tk()
@@ -306,42 +314,51 @@ class TP4:
         filter_menu=OptionMenu(side_toolbar,self.filter_string, *filter_list)
         filter_menu.grid(row=0,column=0)
 
-        gain_label = Label( side_toolbar, text="Gain:").grid(row=1,column=0)
+        self.aprox_figure=Canvas(side_toolbar,width=222,height=124)
+        self.aprox_figure.grid(row=1,columnspan=3)
+        self.photoLP=PhotoImage(file="Images\\LowpassImg2.png")
+        self.photoHP=PhotoImage(file="Images\\HighpassImg2.png")
+        self.photoBP=PhotoImage(file='Images\\BandpassImg2.png')
+        self.photoSB=PhotoImage(file='Images\\StopbandImg2.png')
+
+        self.aprox_figure.create_image(0,0,image=self.photoLP,anchor='nw')
+
+        gain_label = Label( side_toolbar, text="Gain:").grid(row=2,column=0)
         self.gain_entry = Entry(side_toolbar,width=5)
-        self.gain_entry.grid(row=1,column=1)
-        gain_unit = Label( side_toolbar, text="[dB]").grid(row=1,column=2)
+        self.gain_entry.grid(row=2,column=1)
+        gain_unit = Label( side_toolbar, text="[dB]").grid(row=2,column=2)
 
-        fpl_label = Label( side_toolbar, text="Passband Freq(Fp-):").grid(row=2,column=0)
+        fpl_label = Label( side_toolbar, text="Passband Freq(Fp-):").grid(row=3,column=0)
         self.fpl_entry = Entry(side_toolbar,width=5)
-        self.fpl_entry.grid(row=2,column=1)
-        fpl_unit = Label( side_toolbar, text="[Hz]").grid(row=2,column=2)
+        self.fpl_entry.grid(row=3,column=1)
+        fpl_unit = Label( side_toolbar, text="[Hz]").grid(row=3,column=2)
 
-        fph_label = Label( side_toolbar, text="Passband Freq(Fp+):").grid(row=3,column=0)
+        fph_label = Label( side_toolbar, text="Passband Freq(Fp+):").grid(row=4,column=0)
         self.fph_entry = Entry(side_toolbar,width=5)
-        self.fph_entry.grid(row=3,column=1)
-        fph_unit = Label( side_toolbar, text="[Hz]").grid(row=3,column=2)
+        self.fph_entry.grid(row=4,column=1)
+        fph_unit = Label( side_toolbar, text="[Hz]").grid(row=4,column=2)
 
-        fal_label = Label( side_toolbar, text="Attenuation Freq(Fa-):").grid(row=4,column=0)
+        fal_label = Label( side_toolbar, text="Attenuation Freq(Fa-):").grid(row=5,column=0)
         self.fal_entry = Entry(side_toolbar,width=5)
-        self.fal_entry.grid(row=4,column=1)
-        fal_unit = Label( side_toolbar, text="[Hz]").grid(row=4,column=2)
+        self.fal_entry.grid(row=5,column=1)
+        fal_unit = Label( side_toolbar, text="[Hz]").grid(row=5,column=2)
 
-        fah_label = Label( side_toolbar, text="Attenuation Freq(Fa+):").grid(row=5,column=0)
+        fah_label = Label( side_toolbar, text="Attenuation Freq(Fa+):").grid(row=6,column=0)
         self.fah_entry = Entry(side_toolbar,width=5)
-        self.fah_entry.grid(row=5,column=1)
-        fah_unit = Label( side_toolbar, text="[Hz]").grid(row=5,column=2)
+        self.fah_entry.grid(row=6,column=1)
+        fah_unit = Label( side_toolbar, text="[Hz]").grid(row=6,column=2)
 
-        ap_label = Label( side_toolbar, text="Attenuation Atten.(Ap):").grid(row=6,column=0)
+        ap_label = Label( side_toolbar, text="Attenuation Atten.(Ap):").grid(row=7,column=0)
         self.ap_entry = Entry(side_toolbar,width=5)
-        self.ap_entry.grid(row=6,column=1)
-        ap_unit = Label( side_toolbar, text="[dB]").grid(row=6,column=2)
+        self.ap_entry.grid(row=7,column=1)
+        ap_unit = Label( side_toolbar, text="[dB]").grid(row=7,column=2)
 
-        aa_label = Label( side_toolbar, text="Stopband Atten(Aa):").grid(row=7,column=0)
+        aa_label = Label( side_toolbar, text="Stopband Atten(Aa):").grid(row=8,column=0)
         self.aa_entry = Entry(side_toolbar,width=5)
-        self.aa_entry.grid(row=7,column=1)
-        aa_unit = Label( side_toolbar, text="[dB]").grid(row=7,column=2)
+        self.aa_entry.grid(row=8,column=1)
+        aa_unit = Label( side_toolbar, text="[dB]").grid(row=8,column=2)
 
-        button_create_filter = Button(side_toolbar,text="Create Filter",command=self.create_filter).grid(row=8)
+        button_create_filter = Button(side_toolbar,text="Create Filter",command=self.create_filter).grid(row=9)
 
         graph_and_buttons = Frame(self.root)
         graph_and_buttons.pack(side=LEFT)
