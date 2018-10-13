@@ -22,30 +22,37 @@ class TP4:
             entries.append(float(self.ap_entry.get()))
         else:
             error=True
+            entries.append(0)
         if self.is_float(self.aa_entry.get()):
             entries.append(float(self.aa_entry.get()))
         else:
             error=True
+            entries.append(0)
         if self.is_float(self.fpl_entry.get()):
             entries.append(float(self.fpl_entry.get()))
         else:
             error=True
+            entries.append(0)
         if self.is_float(self.fph_entry.get()):
             entries.append(float(self.fph_entry.get()))
         else:
             error=True
+            entries.append(0)
         if self.is_float(self.fal_entry.get()):
             entries.append(float(self.fal_entry.get()))
         else:
             error=True
+            entries.append(0)
         if self.is_float(self.fah_entry.get()):
             entries.append(float(self.fah_entry.get()))
         else:
             error=True
+            entries.append(0)
         if self.is_float(self.gain_entry.get()):
             entries.append(float(self.gain_entry.get()))
         else:
             error=True
+            entries.append(0)
         entries.append(1)
         self.ap_entry.delete(0,END)
         self.aa_entry.delete(0,END)
@@ -61,7 +68,8 @@ class TP4:
         filter_instance = filters.create('butterworth', name='LowPass',Ap=float(entries[0]),Ao=float(entries[1]),wpl=float(entries[2]),wph=float(entries[3]),wal=float(entries[4]),wah=float(entries[5]),gain=float(entries[6]),n=int(entries[7]))
         
         self.w,self.mag,self.phase = filter_instance.get_bode()
-        self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah = filter_instance.get_template()
+        self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
+        self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan = filter_instance.get_template()
         self.filter_type = filter_instance.filter_is()
         
         self.atenua = -(self.mag)
@@ -78,9 +86,30 @@ class TP4:
         self.axis.set_xlabel("Radian Frequency [1/rad]$")
         self.axis.set_ylabel("$Phase [Deegres]$")
         self.data_plot.draw()
-       
+    
+    #Function plots current normalized filter's magnitude in atenuation in current subplot    
+    def plot_norm_atten(self):
+        xl=-100
+        yl=self.Ap
+        widthl=np.absolute(xl)+1
+        heightl=100
+        xr=self.wan
+        yr=-100
+        widthr=100
+        heightr=100+self.Ao
+        l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
+        r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
+        self.axis.clear()
+        self.axis.add_patch(l_rect)
+        self.axis.add_patch(r_rect)
+        self.axis.semilogx(self.wn,-self.magn)
+        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+        self.axis.set_xlabel("$Radian Frequency [1/rad]$")
+        self.axis.set_ylabel("$Attenuation [dB]$")
+        self.data_plot.draw()    
+
     #Function plots current filter's magnitude in atenuation in current subplot    
-    def plot_atenuacion(self):
+    def plot_atten(self):
         if self.filter_type == 'LowPass':
             xl=-100
             yl=self.Ap
@@ -146,7 +175,7 @@ class TP4:
         self.axis.set_ylabel("$Attenuation [dB]$")
         self.data_plot.draw()
 
-    def plot_ganancia(self):
+    def plot_gain(self):
         if self.filter_type == 'LowPass':
             xl=-100
             yl=-100
@@ -255,6 +284,9 @@ class TP4:
         except ValueError:
             return False
 
+    def set_entry_buttons(self,*args):
+        pass
+
     def __init__(self):
         self.root = Tk()
         self.root.title("Tc Example")
@@ -262,10 +294,17 @@ class TP4:
         side_toolbar=Frame(self.root)
         side_toolbar.pack(side=LEFT,fill=BOTH,expand=True,padx=2,pady=4)
 
+        approximation_list=('Butterworth','Chebyshev','Inverse Chebyshev','Legendre','Bessel','Gauss','Cauer')
+        self.aprox_string = StringVar()
+        self.aprox_string.set(approximation_list[0])
+        aproximation_menu=OptionMenu(side_toolbar,self.aprox_string, *approximation_list)
+        aproximation_menu.grid(row=0,column=1)
+
         filter_list = ('LowPass', 'HighPass', 'BandPass','StopBand')
-        v = StringVar()
-        v.set(filter_list[0])
-        dropdown_menu=OptionMenu(side_toolbar,v, *filter_list).grid(row=0,column=0)
+        self.filter_string = StringVar()
+        self.filter_string.set(filter_list[0])
+        filter_menu=OptionMenu(side_toolbar,self.filter_string, *filter_list)
+        filter_menu.grid(row=0,column=0)
 
         gain_label = Label( side_toolbar, text="Gain:").grid(row=1,column=0)
         self.gain_entry = Entry(side_toolbar,width=5)
@@ -309,15 +348,17 @@ class TP4:
         graph = Canvas(graph_and_buttons)
         graph.pack(side=TOP,fill=BOTH,expand=True,padx=2,pady=4)
         toolbar = Frame(graph_and_buttons)
-        button_phase = Button(toolbar,text="Bode Fase",command=self.plot_phase)
+        button_phase = Button(toolbar,text="Bode Phase",command=self.plot_phase)
         button_phase.pack(side=LEFT,padx=2,pady=2)
-        button_mag = Button(toolbar,text="Bode Ganancia",command=self.plot_ganancia)
+        button_mag = Button(toolbar,text="Bode Denorm Gain",command=self.plot_gain)
         button_mag.pack(side=LEFT,padx=2,pady=2)
-        button_aten = Button(toolbar,text="Bode Atenuación",command=self.plot_atenuacion)
+        button_aten = Button(toolbar,text="Bode Denorm Atten.",command=self.plot_atten)
         button_aten.pack(side=LEFT,padx=2,pady=2)
-        button_step = Button(toolbar,text="Escalón",command=self.plot_step)
+        button_aten_norm = Button(toolbar,text="Bode Norm Atten.",command=self.plot_norm_atten)
+        button_aten_norm.pack(side=LEFT,padx=2,pady=2)
+        button_step = Button(toolbar,text="Step Response",command=self.plot_step)
         button_step.pack(side=LEFT,padx=2,pady=2)
-        button_imp = Button(toolbar,text="Impulso",command=self.plot_imp)
+        button_imp = Button(toolbar,text="Impulse response",command=self.plot_imp)
         button_imp.pack(side=LEFT,padx=2,pady=4)
         button_zeros_and_poles = Button(toolbar,text="Zeroes and Poles",command=self.plot_zeroes_and_poles)
         button_zeros_and_poles.pack(side=LEFT,padx=2,pady=4)
@@ -328,8 +369,8 @@ class TP4:
         #-------------------------------------------------------------------------------
 
         f = Figure()
+        
         self.axis = f.add_subplot(111)
-
         self.data_plot = FigureCanvasTkAgg(f, master=graph)
         self.data_plot.draw()
         self.data_plot.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
@@ -337,6 +378,8 @@ class TP4:
         nav.pack(side=TOP,fill=BOTH,expand=True,padx=2,pady=4)
         nav.update()
         self.data_plot._tkcanvas.pack(side=LEFT, fill=X, expand=True)
+
+        self.filter_string.trace_add('write',self.set_entry_buttons)
         #-------------------------------------------------------------------------------
         self.root.mainloop()
 

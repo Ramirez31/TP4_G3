@@ -99,6 +99,11 @@ class base_filter(metaclass=ABCMeta):
         self.w,self.mag,self.phase = signal.bode(self.denorm_sys)
         return self.w, self.mag, self.phase
 
+    # Function returns current filter frequency response (frec,magnitude,phase)
+    def get_norm_bode(self):
+        self.w,self.mag,self.phase = signal.bode(self.norm_sys)
+        return self.w, self.mag, self.phase
+
     # Function returns current filter group delay
     def get_group_delay(self):
         return -np.gradient(self.phase)
@@ -109,7 +114,7 @@ class base_filter(metaclass=ABCMeta):
 
     # Function returns current filter template limitations
     def get_template(self):
-        return self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah
+        return self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan
 
     # Function returns current filter type:LP,HP,BP or SB
     def filter_is(self):
