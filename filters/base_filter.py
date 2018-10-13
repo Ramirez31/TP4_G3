@@ -87,38 +87,32 @@ class base_filter(metaclass=ABCMeta):
         self.denorm_sys = signal.TransferFunction(self.num,self.den) #Denormalized system is obtained
 
     # Function returns current denormalized filter step response
-    @abstractmethod
     def get_step(self):
-        pass
+        return signal.step(self.denorm_sys)
 
     # Function returns current denormalized filter impulse response
-    @abstractmethod
     def get_impulse(self):
-        pass
+        return signal.impulse(self.denorm_sys)
 
     # Function returns current filter frequency response (frec,magnitude,phase)
-    @abstractmethod
     def get_bode(self):
-        pass
+        self.w,self.mag,self.phase = signal.bode(self.denorm_sys)
+        return self.w, self.mag, self.phase
 
     # Function returns current filter group delay
-    @abstractmethod
     def get_group_delay(self):
-        pass
+        return -np.gradient(self.phase)
 
     # Function returns current filter zeroes and poles (zeroes, poles)
-    @abstractmethod
     def get_zeroes_poles(self):
-        pass
+        return self.zeroes, self.poles
 
     # Function returns current filter template limitations
-    @abstractmethod
     def get_template(self):
-        pass
+        return self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah
 
     # Function returns current filter type:LP,HP,BP or SB
-    @abstractmethod
     def filter_is(self):
-        pass
+        return self.name
 
 

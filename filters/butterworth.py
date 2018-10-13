@@ -36,31 +36,6 @@ class Butterworth(base_filter):
                 pol= np.poly1d([-1/root, 1])
                 self.den= self.den*pol
         self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
-               
-    def get_step(self):
-        return signal.step(self.denorm_sys)
-
-    def get_impulse(self):
-        return signal.impulse(self.denorm_sys)
-
-    def get_bode(self):
-        self.w,self.mag,self.phase = signal.bode(self.denorm_sys)
-
-        return self.w, self.gain+self.mag, self.phase
-
-    def get_group_delay(self):
-        return -np.gradient(self.phase)
-
-    def get_zeroes_poles(self):
-        return self.zeroes, self.poles
-
-    def get_template(self):
-        return self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah
-
-    def filter_is(self):
-        return self.name
-
-
 
 
 
