@@ -14,7 +14,6 @@ import filters
 
 class TP4:
     #Function creates filter according to user input
-
     def parse_entry(self):
         error=False
         entries=[]
@@ -22,38 +21,34 @@ class TP4:
             entries.append(float(self.ap_entry.get()))
         else:
             error=True
-            entries.append(0)
         if self.is_float(self.aa_entry.get()):
             entries.append(float(self.aa_entry.get()))
         else:
             error=True
-            entries.append(0)
-        if self.is_float(self.fpl_entry.get()):
+        if self.is_float(self.fpl_entry.get()) and (float(self.fpl_entry.get())>0):
             entries.append(float(self.fpl_entry.get()))
         else:
             error=True
-            entries.append(0)
-        if self.is_float(self.fph_entry.get()):
+        if self.is_float(self.fph_entry.get()) and (float(self.fph_entry.get())>0) :
             entries.append(float(self.fph_entry.get()))
         else:
             error=True
-            entries.append(0)
-        if self.is_float(self.fal_entry.get()):
+        if self.is_float(self.fal_entry.get()) and (float(self.fal_entry.get())>0):
             entries.append(float(self.fal_entry.get()))
         else:
             error=True
-            entries.append(0)
-        if self.is_float(self.fah_entry.get()):
+        if self.is_float(self.fah_entry.get()) and (float(self.fah_entry.get())>0):
             entries.append(float(self.fah_entry.get()))
         else:
             error=True
-            entries.append(0)
         if self.is_float(self.gain_entry.get()):
             entries.append(float(self.gain_entry.get()))
         else:
             error=True
-            entries.append(0)
-        entries.append(1)
+        entries.append(1)#ACA TIENE QUE IR EL BOTONCITO DE SI QUIERO FIJAR UN ORDEN N DE FILTRO
+        entries.append(self.filter_string.get())
+        error = self.check_template_entry()
+        
         self.ap_entry.delete(0,END)
         self.aa_entry.delete(0,END)
         self.fal_entry.delete(0,END)
@@ -61,22 +56,46 @@ class TP4:
         self.fpl_entry.delete(0,END)
         self.fph_entry.delete(0,END)
         self.gain_entry.delete(0,END)
-        return entries, error
+        return error,entries
 
+    #
+    def check_template_entry(self):
+        error=False
+        if float(self.aa_entry.get())>=float(self.ap_entry.get()):
+            if  self.filter_string.get()=='LowPass':
+                if float(self.fpl_entry.get())>= float(self.fal_entry.get()):
+                    error=True
+            elif  self.filter_string.get()=='HighPass':
+                if float(self.fal_entry.get())>= float(self.fpl_entry.get()):
+                    error=True
+            elif  self.filter_string.get()=='BandPass':
+                if ((float(self.fah_entry.get()) > float(self.fph_entry.get())) and (float(self.fph_entry.get()) > float(self.fpl_entry.get())) and (float(self.fpl_entry.get()) > float(self.fal_entry.get())) ) is False:
+                    error=True
+            elif  self.filter_string.get()=='StopBand':
+                if (((float(self.fph_entry.get()) > float(self.fah_entry.get())) and (float(self.fah_entry.get()) > float(self.fal_entry.get())) and (float(self.fal_entry.get()) > float(self.fpl_entry.get())))) is False:
+                    error=True
+        else:
+            error=True
+        return error
+
+    #Function creates filter according to user input
     def create_filter(self):
-        entries,error =self.parse_entry()
-        filter_instance = filters.create('butterworth', name='LowPass',Ap=float(entries[0]),Ao=float(entries[1]),wpl=float(entries[2]),wph=float(entries[3]),wal=float(entries[4]),wah=float(entries[5]),gain=float(entries[6]),n=int(entries[7]))
+        error,entries =self.parse_entry()
+        if error is False:
+            filter_instance = filters.create('butterworth', name=entries[8],Ap=entries[0],Ao=entries[1],wpl=entries[2],wph=entries[3],wal=entries[4],wah=entries[5],gain=entries[6],n=entries[7])
+            self.w,self.mag,self.phase = filter_instance.get_bode()
+            self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
+            self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan = filter_instance.get_template()
+            self.filter_type = filter_instance.filter_is()
         
-        self.w,self.mag,self.phase = filter_instance.get_bode()
-        self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
-        self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan = filter_instance.get_template()
-        self.filter_type = filter_instance.filter_is()
-        
-        self.atenua = -(self.mag)
-        self.stepT,self.step_mag = filter_instance.get_step()
-        self.impT,self.imp_mag = filter_instance.get_impulse()
-        self.zeroes, self.poles = filter_instance.get_zeroes_poles()
-        self.group_delay = filter_instance.get_group_delay()
+            self.atenua = -(self.mag)
+            self.stepT,self.step_mag = filter_instance.get_step()
+            self.impT,self.imp_mag = filter_instance.get_impulse()
+            self.zeroes, self.poles = filter_instance.get_zeroes_poles()
+            self.group_delay = filter_instance.get_group_delay()
+
+        elif True:
+            pass
 
     #Function plots current filter's phase in current subplot
     def plot_phase(self):
@@ -175,6 +194,7 @@ class TP4:
         self.axis.set_ylabel("$Attenuation [dB]$")
         self.data_plot.draw()
 
+    #Function creates filter according to user input
     def plot_gain(self):
         if self.filter_type == 'LowPass':
             xl=-100
@@ -192,7 +212,7 @@ class TP4:
         elif self.filter_type == 'HighPass':
             xl=-100
             yl=-self.Ao
-            widthl=nphase.absolute(xl)+self.wal
+            widthl=np.absolute(xl)+self.wal
             heightl=100
             xr=self.wpl
             yr=-100
@@ -268,7 +288,8 @@ class TP4:
         self.axis.set_xlabel("$Sigma$")
         self.axis.set_ylabel("$jw$")
         self.data_plot.draw()
-
+    
+    #Function creates filter according to user input
     def plot_group_delay(self):
         self.axis.clear()
         self.axis.semilogx(self.w,self.group_delay)
@@ -277,6 +298,7 @@ class TP4:
         self.axis.set_ylabel("$Group Delay [s]$")
         self.data_plot.draw()
 
+    #Function creates filter according to user input
     def is_float(self,value):
         try:
             float(value)
@@ -284,6 +306,7 @@ class TP4:
         except ValueError:
             return False
 
+    #Function creates filter according to user input
     def set_entry_buttons(self,*args):
         self.aprox_figure.delete("all")
         if  self.filter_string.get()=='LowPass':
@@ -295,6 +318,7 @@ class TP4:
         elif  self.filter_string.get()=='StopBand':
             self.aprox_figure.create_image(0,0,image=self.photoSB,anchor='nw')
 
+    #Function creates filter according to user input
     def __init__(self):
         self.root = Tk()
         self.root.title("Tc Example")

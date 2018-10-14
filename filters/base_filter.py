@@ -99,9 +99,9 @@ class base_filter(metaclass=ABCMeta):
         self.w,self.mag,self.phase = signal.bode(self.denorm_sys)
         return self.w, self.mag, self.phase
 
-    # Function returns current filter frequency response (frec,magnitude,phase)
+    # Function returns current filter normalized frequency response (frec,magnitude,phase)
     def get_norm_bode(self):
-        self.w,self.mag,self.phase = signal.bode(self.norm_sys)
+        self.w,self.mag,self.nphase = signal.bode(self.norm_sys)
         return self.w, self.mag, self.phase
 
     # Function returns current filter group delay
