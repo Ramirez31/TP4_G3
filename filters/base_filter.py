@@ -13,6 +13,7 @@ class base_filter(metaclass=ABCMeta):
     wo=
     n= Filter order
     """
+    #Function initializes class
     def __init__(self, name=None,Ap=None,Ao=None,wpl=None,wph=None,wal=None,wah=None,gain=None,n=None):
         if name:
             self.name = name

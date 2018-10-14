@@ -13,7 +13,7 @@ from tkinter import *
 import filters
 
 class TP4:
-    #Function creates filter according to user input
+    #Function parses user input returning an error if input is incorrect
     def parse_entry(self):
         error=False
         entries=[]
@@ -58,7 +58,7 @@ class TP4:
         self.gain_entry.delete(0,END)
         return error,entries
 
-    #
+    #Function checks if user input is correct related to desired template
     def check_template_entry(self):
         error=False
         if float(self.aa_entry.get())>=float(self.ap_entry.get()):
@@ -323,14 +323,15 @@ class TP4:
         self.root = Tk()
         self.root.title("Tc Example")
         #------------------------------------------------------------------------
-        side_toolbar=Frame(self.root)
+        side_toolbar=Frame(self.root,width=300)
         side_toolbar.pack(side=LEFT,fill=BOTH,expand=True,padx=2,pady=4)
+        side_toolbar.grid_propagate(0)
 
         approximation_list=('Butterworth','Chebyshev','Inverse Chebyshev','Legendre','Bessel','Gauss','Cauer')
         self.aprox_string = StringVar()
         self.aprox_string.set(approximation_list[0])
         aproximation_menu=OptionMenu(side_toolbar,self.aprox_string, *approximation_list)
-        aproximation_menu.grid(row=0,column=1)
+        aproximation_menu.grid(row=0,column=1,columnspan=2)
 
         filter_list = ('LowPass', 'HighPass', 'BandPass','StopBand')
         self.filter_string = StringVar()

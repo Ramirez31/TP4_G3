@@ -24,6 +24,7 @@ class Butterworth(base_filter):
             self.do_approximation()#Does normalized approximation and realizes
             self.denormalize()#Denormalizes the approximation to match desired template
 
+    #
     def do_approximation(self):
         self.epsilon=np.sqrt(np.power(10,self.Ap/10)-1)
         self.n = int(np.ceil(np.log10((np.power(10,self.Ao/10)-1)/np.power(self.epsilon,2))/(2*np.log10(self.wan))))
