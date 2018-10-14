@@ -53,32 +53,76 @@ class base_filter(metaclass=ABCMeta):
         self.num=np.poly1d([1])
 
         if self.name=='LowPass': #If required filter is LP
-            for i in range(0,len(self.poles)):
-                self.den= self.den*np.poly1d([-1/(self.wpl*self.poles[i]),1]) #Filter is denormalized by frequency scaling it S=Sn/wc
+            #Denormalize poles
+            for i in range(0,len(self.poles)):#For each pole denormalization is realized
+                if self.poles[i] != 0:#If pole is not zero
+                    self.den= self.den*np.poly1d([-1/(self.wpl*self.poles[i]),1]) #Filter is denormalized by frequency scaling it S=Sn/wc
+                else:
+                    self.den=self.den*np.poly1d([1/(self.wpl),0])
             self.poles =[i * self.wpl for i in self.poles]
+            #Denormalize zeroes
+            for i in range(0,len(self.zeroes)):#For each zero denormalization is realized
+                if self.zeroes[i] != 0:#If zero is not located in origin
+                    self.num= self.num*np.poly1d([1/(self.wpl*self.zeroes[i]),1]) #Filter is denormalized by frequency scaling it S=Sn/wc
+                else:
+                    self.num=self.num*np.poly1d([1/(self.wpl),0])
+                self.zeroes =[i * self.wpl for i in self.zeroes]
 
         elif self.name=='HighPass': #If required filter is HP
-            self.zeroes = np.zeros(self.n)
-            self.num=np.poly1d(self.zeroes,r=True)
+            #Denormalize poles
+            self.num=np.poly1d(np.zeros(len(self.poles)),r=True) #Zeroes created after doing HP denormalization to poles
             for i in range(0,len(self.poles)):
-                self.den= self.den*np.poly1d([1,-self.wpl/(self.poles[i])]) #Filter is denormalized by frequency scaling it S=wc/Sn
-            self.poles =[self.wpl/i for i in self.poles]
+                if self.poles[i] != 0:#If pole is not zero
+                    self.den= self.den*np.poly1d([1,-self.wpl/(self.poles[i])]) #Filter is denormalized by frequency scaling it S=wc/Sn
+                else:
+                    self.den= self.den*np.poly1d([-self.wpl]) #Filter is denormalized by frequency scaling it S=wc/Sn
+            #Denormalize zeroes
+            self.den=self.den*np.poly1d(np.zeros(len(self.zeroes)),r=True) #Poles created after doing HP denormalization to zeroes
+            for i in range(0,len(self.zeroes)):
+                if self.zeroes[i] != 0:#If zero is not located in origin
+                    self.num= self.num*np.poly1d([1,self.wpl/(self.zeroes[i])]) #Filter is denormalized by frequency scaling it S=wc/Sn
+                else:
+                    self.num= self.num*np.poly1d([self.wpl]) #Filter is denormalized by frequency scaling it S=wc/Sn
+            self.zeroes=np.roots(self.num)
+            self.poles=np.roots(self.den)
 
         elif self.name=='BandPass': #If required filter is BP
-            self.zeroes = np.zeros(self.n)
-            self.num=np.poly1d(self.zeroes,r=True)
             wo=np.sqrt(self.wpl*self.wph)
             B=(self.wph-self.wpl)/wo
+            #Denormalize poles
+            self.num=np.poly1d(np.zeros(len(self.poles)),r=True) #Zeroes created after doing HP denormalization to poles
             for i in range (0,len(self.poles)):
-                self.den=self.den*np.poly1d([-1/(wo*B*self.poles[i]), 1, -wo/(B*self.poles[i])])
+                if self.poles[i] != 0:#If pole is not zero
+                    self.den=self.den*np.poly1d([-1/(wo*B*self.poles[i]), 1, -wo/(B*self.poles[i])])
+                else:
+                    self.den=self.den*np.poly1d([-1/(wo*B), 0, -wo/B])
+            #Denormalize zeroes
+            self.den=self.den*np.poly1d(np.zeros(len(self.zeroes)),r=True) #Zeroes created after doing HP denormalization to poles
+            for i in range (0,len(self.zeroes)):
+                if self.zeroes[i] != 0:#If zero is not located in origin
+                    self.num=self.num*np.poly1d([1/(wo*B*self.zeroes[i]), 1, wo/(B*self.zeroes[i])])
+                else:
+                    self.num=self.num*np.poly1d([1/(wo*B), 0, wo/B])
             self.poles=np.roots(self.den)
+            self.zeroes=np.roots(self.num)
 
         elif self.name=='StopBand': #If required filter is SB
             wo=np.sqrt(self.wpl*self.wph)
             B=(self.wph-self.wpl)/wo
+            #Denormalize poles
             for i in range (0,len(self.poles)):
-                self.den=self.den*np.poly1d([1/wo, B/(-self.poles[i]), wo])
+                if self.poles[i] != 0:#If pole is not zero
+                    self.den=self.den*np.poly1d([1/wo, B/(-self.poles[i]), wo])
+                else:
+                    self.den=self.den*np.poly1d([B,0])
                 self.num=self.num*np.poly1d([1/wo,0,wo])
+            #Denormalize zeroes
+            for i in range (0,len(self.zeroes)):
+                if self.zeroes[i] != 0:#If pole is not zero
+                    self.num=self.num*np.poly1d([1/wo, B/(self.poles[i]), wo])
+                else:
+                    self.num=self.num*np.poly1d([B,0])
+                self.den=self.den*np.poly1d([1/wo,0,wo])
             self.poles=np.roots(self.den)
             self.zeroes=np.roots(self.num)
 
@@ -89,20 +133,20 @@ class base_filter(metaclass=ABCMeta):
 
     # Function returns current denormalized filter step response
     def get_step(self):
-        return signal.step(self.denorm_sys)
+        return signal.step(self.denorm_sys,N=500)
 
     # Function returns current denormalized filter impulse response
     def get_impulse(self):
-        return signal.impulse(self.denorm_sys)
+        return signal.impulse(self.denorm_sys,N=500)
 
     # Function returns current filter frequency response (frec,magnitude,phase)
     def get_bode(self):
-        self.w,self.mag,self.phase = signal.bode(self.denorm_sys)
+        self.w,self.mag,self.phase = signal.bode(self.denorm_sys,n=500)
         return self.w, self.mag, self.phase
 
     # Function returns current filter normalized frequency response (frec,magnitude,phase)
     def get_norm_bode(self):
-        self.w,self.mag,self.nphase = signal.bode(self.norm_sys)
+        self.w,self.mag,self.nphase = signal.bode(self.norm_sys,n=500)
         return self.w, self.mag, self.phase
 
     # Function returns current filter group delay
