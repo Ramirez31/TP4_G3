@@ -59,15 +59,14 @@ class base_filter(metaclass=ABCMeta):
                     self.den= self.den*np.poly1d([-1/(self.wpl*self.poles[i]),1]) #Filter is denormalized by frequency scaling it S=Sn/wc
                 else:
                     self.den=self.den*np.poly1d([1/(self.wpl),0])
-            self.poles =[i * self.wpl for i in self.poles]
             #Denormalize zeroes
             for i in range(0,len(self.zeroes)):#For each zero denormalization is realized
                 if self.zeroes[i] != 0:#If zero is not located in origin
                     self.num= self.num*np.poly1d([1/(self.wpl*self.zeroes[i]),1]) #Filter is denormalized by frequency scaling it S=Sn/wc
                 else:
                     self.num=self.num*np.poly1d([1/(self.wpl),0])
-                self.zeroes =[i * self.wpl for i in self.zeroes]
-
+            self.zeroes=np.roots(self.num)
+            self.poles=np.roots(self.den)
         elif self.name=='HighPass': #If required filter is HP
             #Denormalize poles
             self.num=np.poly1d(np.zeros(len(self.poles)),r=True) #Zeroes created after doing HP denormalization to poles
@@ -133,20 +132,20 @@ class base_filter(metaclass=ABCMeta):
 
     # Function returns current denormalized filter step response
     def get_step(self):
-        return signal.step(self.denorm_sys,N=500)
+        return signal.step(self.denorm_sys,N=1000)
 
     # Function returns current denormalized filter impulse response
     def get_impulse(self):
-        return signal.impulse(self.denorm_sys,N=500)
+        return signal.impulse(self.denorm_sys,N=1000)
 
     # Function returns current filter frequency response (frec,magnitude,phase)
     def get_bode(self):
-        self.w,self.mag,self.phase = signal.bode(self.denorm_sys,n=500)
+        self.w,self.mag,self.phase = signal.bode(self.denorm_sys,n=1000)
         return self.w, self.mag, self.phase
 
     # Function returns current filter normalized frequency response (frec,magnitude,phase)
     def get_norm_bode(self):
-        self.w,self.mag,self.nphase = signal.bode(self.norm_sys,n=500)
+        self.w,self.mag,self.nphase = signal.bode(self.norm_sys,n=1000)
         return self.w, self.mag, self.phase
 
     # Function returns current filter group delay

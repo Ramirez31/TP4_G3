@@ -27,36 +27,22 @@ class Invchebyshev(base_filter):
     def do_approximation(self):
        self.epsilon=1/np.sqrt(np.power(10,self.Ao/10)-1)
        self.n = int(np.ceil(np.arccosh(1/(self.epsilon*np.sqrt(np.power(10,self.Ap/10)-1)))/np.arccosh(self.wan)))
-       for i in range(1,self.n+1):
-            alfa=(2*i-1)*np.pi/(2*self.n)
-            beta1=np.arcsinh(1/self.epsilon)/self.n
-            beta2=-np.arcsinh(1/self.epsilon)/self.n
-            pole1=self.wan*(1/(np.sin(alfa)*np.sinh(beta1)+1j*np.cos(alfa)*np.cosh(beta1)))
-            pole2=self.wan*(1/(np.sin(alfa)*np.sinh(beta2)+1j*np.cos(alfa)*np.cosh(beta2)))
-            if(np.real(pole1)<=0):
-                self.poles.append(pole1)
-                pol= np.poly1d([-1/pole1, 1])
+       if self.n is 1:
+           self.n=2
+       for i in range(1,2*self.n+1):
+           alfa=(2*i-1)*np.pi/(2*self.n)
+           beta=np.absolute(np.arcsinh(1/self.epsilon)/self.n)
+           pole=self.wan/(np.sin(alfa)*np.sinh(beta)+1j*np.cos(alfa)*np.cosh(beta))
+           if np.real(pole)<=0:
+                pol= np.poly1d([-1/pole, 1])
                 self.den= self.den*pol
-            if(np.real(pole2)<=0):
-                self.poles.append(pole2)
-                pol= np.poly1d([-1/pole2, 1])
-                self.den= self.den*pol
-            zero1=self.wan*1j/np.cos(alfa)
-            zero2=-self.wan*1j/np.cos(alfa)
-            if zero1 not in self.zeroes:
-                if(self.is_odd(self.n) and (np.floor(self.n/2)+1 ==i)):
-                    self.den=self.den*np.poly1d([1, 0])
-                    self.poles.append(0)
-                    bool=True
-                else:
-                    self.zeroes.append(zero1)
-                    pol= np.poly1d([-1/zero1, 1])
-                    self.num= self.num*pol
-            if zero2 not in self.zeroes:
-                    self.zeroes.append(zero2)
-                    pol= np.poly1d([-1/zero2, 1])
-                    self.num= self.num*pol
-       self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
+           if i<=self.n:
+                zero=self.wan*1j/np.cos(alfa)
+                pol= np.poly1d([-1/zero, 1])
+                self.num= self.num*pol
+       self.zeroes=np.roots(self.num)
+       self.poles=np.roots(self.den) 
+       self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained 
 
     def is_odd(self,num):
         return num & 0x1
