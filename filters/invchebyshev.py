@@ -27,8 +27,6 @@ class Invchebyshev(base_filter):
     def do_approximation(self):
        self.epsilon=1/np.sqrt(np.power(10,self.Ao/10)-1)
        self.n = int(np.ceil(np.arccosh(1/(self.epsilon*np.sqrt(np.power(10,self.Ap/10)-1)))/np.arccosh(self.wan)))
-       if self.n is 1:
-           self.n=2
        for i in range(1,2*self.n+1):
            alfa=(2*i-1)*np.pi/(2*self.n)
            beta=np.absolute(np.arcsinh(1/self.epsilon)/self.n)
@@ -37,6 +35,9 @@ class Invchebyshev(base_filter):
                 pol= np.poly1d([-1/pole, 1])
                 self.den= self.den*pol
            if i<=self.n:
+               if self.is_odd(self.n) and (i == (np.floor(self.n/2)+1)):
+                   pass
+               else:
                 zero=self.wan*1j/np.cos(alfa)
                 pol= np.poly1d([-1/zero, 1])
                 self.num= self.num*pol

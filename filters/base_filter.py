@@ -118,7 +118,7 @@ class base_filter(metaclass=ABCMeta):
             #Denormalize zeroes
             for i in range (0,len(self.zeroes)):
                 if self.zeroes[i] != 0:#If pole is not zero
-                    self.num=self.num*np.poly1d([1/wo, B/(self.poles[i]), wo])
+                    self.num=self.num*np.poly1d([1/wo, B/(self.zeroes[i]), wo])
                 else:
                     self.num=self.num*np.poly1d([B,0])
                 self.den=self.den*np.poly1d([1/wo,0,wo])
