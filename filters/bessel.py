@@ -25,4 +25,22 @@ class Bessel(base_filter):
             self.denormalize()#Denormalizes the approximation to match desired template
 
     def do_approximation(self):
-       pass
+        self.n=0    #caso que tampoco se va a cumplir
+        Tn_Wrgn=0   #caso que nunca se va a cumplir ya que palm va entre 0 y 1
+        while Tn_Wrgn >= (1-palm): #condicion para obtener n
+            self.n += 1
+            k = np.linspace(0, self.n, num=(self.n + 1))  #k siempre va desde cero hasta n
+            Wrgn, Tn_Wrgn = signal.group_delay((bessel_coef(self,0), bessel_coef(self,k)),[Wrgn])
+            # me devuelve en Tn_Wrgn el retardo evaluado en Wrgn. Le pase los parametros de la funcion normalizada
+            
+
+
+    def bessel_coef (self,k):   #calculo coeficientes bessel
+        b_k = (math.factorial(2*self.n-k))/((math.factorial(k))*(math.factorial(self.n-k))*(2^(self.n-k)))
+        #b_k es un vector con todos los coeficientes
+        return b_k
+
+    def bessel_tf(self,k):
+        num = [bessel_coef(self,0)] #el numerador siempre esta compuesto por b_0
+        den = [bessel_coef(self,k)]   #el denominador coincide con los coeficientes de bessel
+        return signal.TransferFunction(num, den)     #funcion transferencia normalizada
