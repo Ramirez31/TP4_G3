@@ -6,7 +6,7 @@ from scipy import special
 class Cauer(base_filter):
 
     #Filter initialization with initial parameters received
-    def __init__(self, name,Ap,Ao,wpl,wph,wal,wah,gain,n):
+    def __init__(self, name,Ap,Ao,wpl,wph,wal,wah,gain,n,tao0=None,wrg=None,palm=None):
         if name:
             self.name = name
             self.Ap=Ap
@@ -17,6 +17,9 @@ class Cauer(base_filter):
             self.wah=wah
             self.n=n
             self.gain=gain
+            self.tao0=tao0
+            self.wrg=wrg
+            self.palm=palm
             self.poles=[]
             self.zeroes=[]
             self.den=np.poly1d([1])

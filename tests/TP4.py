@@ -84,7 +84,7 @@ class TP4:
     def create_filter(self):
         error,entries =self.parse_entry()
         if error is False:
-            filter_instance = filters.create('chebyshev', name=entries[8],Ap=entries[0],Ao=entries[1],wpl=entries[2],wph=entries[3],wal=entries[4],wah=entries[5],gain=entries[6],n=entries[7])
+            filter_instance = filters.create('chebyshev', name=entries[8],Ap=entries[0],Ao=entries[1],wpl=entries[2],wph=entries[3],wal=entries[4],wah=entries[5],gain=entries[6],n=entries[7],tao0=0,wrg=0,palm=0)
             self.w,self.mag,self.phase = filter_instance.get_bode()
             self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
             self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan,self.gain = filter_instance.get_template()
