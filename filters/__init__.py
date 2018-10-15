@@ -2,7 +2,6 @@ from importlib import import_module
 
 from .base_filter import base_filter
 
-
 def create(filter_name, *args, **kwargs):
 
     try:

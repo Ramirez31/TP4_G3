@@ -47,14 +47,3 @@ class Invchebyshev(base_filter):
 
     def is_odd(self,num):
         return num & 0x1
-
-
-
-
-
-
-
-
-
-
-

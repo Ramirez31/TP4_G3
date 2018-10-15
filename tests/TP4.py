@@ -82,7 +82,7 @@ class TP4:
     def create_filter(self):
         error,entries =self.parse_entry()
         if error is False:
-            filter_instance = filters.create('invchebyshev', name=entries[8],Ap=entries[0],Ao=entries[1],wpl=entries[2],wph=entries[3],wal=entries[4],wah=entries[5],gain=entries[6],n=entries[7])
+            filter_instance = filters.create('chebyshev', name=entries[8],Ap=entries[0],Ao=entries[1],wpl=entries[2],wph=entries[3],wal=entries[4],wah=entries[5],gain=entries[6],n=entries[7])
             self.w,self.mag,self.phase = filter_instance.get_bode()
             self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
             self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan = filter_instance.get_template()
@@ -327,13 +327,13 @@ class TP4:
         side_toolbar.pack(side=LEFT,fill=BOTH,expand=True,padx=2,pady=4)
         side_toolbar.grid_propagate(0)
 
-        approximation_list=('Butterworth','Chebyshev','Inverse Chebyshev','Legendre','Bessel','Gauss','Cauer')
+        approximation_list=('Butterworth','Chebyshev','Inverse Chebyshev','Legendre','Cauer','Bessel','Gauss')
         self.aprox_string = StringVar()
         self.aprox_string.set(approximation_list[0])
         aproximation_menu=OptionMenu(side_toolbar,self.aprox_string, *approximation_list)
         aproximation_menu.grid(row=0,column=1,columnspan=2)
 
-        filter_list = ('LowPass', 'HighPass', 'BandPass','StopBand')
+        filter_list = ('LowPass', 'HighPass', 'BandPass','StopBand','Group Delay')
         self.filter_string = StringVar()
         self.filter_string.set(filter_list[0])
         filter_menu=OptionMenu(side_toolbar,self.filter_string, *filter_list)
