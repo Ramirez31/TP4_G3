@@ -67,6 +67,7 @@ class base_filter(metaclass=ABCMeta):
                     self.num=self.num*np.poly1d([1/(self.wpl),0])
             self.zeroes=np.roots(self.num)
             self.poles=np.roots(self.den)
+
         elif self.name=='HighPass': #If required filter is HP
             #Denormalize poles
             self.num=np.poly1d(np.zeros(len(self.poles)),r=True) #Zeroes created after doing HP denormalization to poles
@@ -125,9 +126,12 @@ class base_filter(metaclass=ABCMeta):
             self.poles=np.roots(self.den)
             self.zeroes=np.roots(self.num)
 
+        elif self.name=='Group Delay':
+            pass
         else:
             pass
         K=np.power(10,self.gain/20)
+        self.num=self.num*K
         self.denorm_sys = signal.TransferFunction(self.num,self.den) #Denormalized system is obtained
 
     # Function returns current denormalized filter step response
@@ -158,7 +162,7 @@ class base_filter(metaclass=ABCMeta):
 
     # Function returns current filter template limitations
     def get_template(self):
-        return self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan
+        return self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan,self.gain
 
     # Function returns current filter type:LP,HP,BP or SB
     def filter_is(self):

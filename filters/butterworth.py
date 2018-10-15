@@ -26,10 +26,9 @@ class Butterworth(base_filter):
 
     #
     def do_approximation(self):
-        self.epsilon=np.sqrt(np.power(10,self.Ap/10)-1)
-        self.n = int(np.ceil(np.log10((np.power(10,self.Ao/10)-1)/np.power(self.epsilon,2))/(2*np.log10(self.wan))))
+        self.epsilon=np.sqrt(np.power(10,(self.Ap)/10)-1)
+        self.n = int(np.ceil(np.log10((np.power(10,(self.Ao)/10)-1)/np.power(self.epsilon,2))/(2*np.log10(self.wan))))
         ro=np.power(self.epsilon,-1/self.n)
-        self.poles= []
         for i in range(1,self.n+1):
             root= ro*(-np.sin(np.pi*(2*i-1)/(2*self.n))+1j*np.cos(np.pi*(2*i-1)/(2*self.n)))
             if np.real(root)<=0: #Only left-plane poles are utilized
@@ -37,6 +36,3 @@ class Butterworth(base_filter):
                 pol= np.poly1d([-1/root, 1])
                 self.den= self.den*pol
         self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
-
-
-
