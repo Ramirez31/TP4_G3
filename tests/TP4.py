@@ -74,6 +74,8 @@ class TP4:
             elif  self.filter_string.get()=='StopBand':
                 if (((float(self.fph_entry.get()) > float(self.fah_entry.get())) and (float(self.fah_entry.get()) > float(self.fal_entry.get())) and (float(self.fal_entry.get()) > float(self.fpl_entry.get())))) is False:
                     error=True
+            elif self.filter_string.get()=='Group Delay':
+                pass
         else:
             error=True
         return error
@@ -82,10 +84,10 @@ class TP4:
     def create_filter(self):
         error,entries =self.parse_entry()
         if error is False:
-            filter_instance = filters.create('chebyshev', name=entries[8],Ap=entries[0],Ao=entries[1],wpl=entries[2],wph=entries[3],wal=entries[4],wah=entries[5],gain=entries[6],n=entries[7])
+            filter_instance = filters.create('chebyshev', name=entries[8],Ap=entries[0],Ao=entries[1],wpl=entries[2],wph=entries[3],wal=entries[4],wah=entries[5],gain=entries[6],n=entries[7],tao0=0,wrg=0,palm=0)
             self.w,self.mag,self.phase = filter_instance.get_bode()
             self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
-            self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan = filter_instance.get_template()
+            self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan,self.gain = filter_instance.get_template()
             self.filter_type = filter_instance.filter_is()
         
             self.atenua = -(self.mag)
@@ -93,7 +95,6 @@ class TP4:
             self.impT,self.imp_mag = filter_instance.get_impulse()
             self.zeroes, self.poles = filter_instance.get_zeroes_poles()
             self.group_delay = filter_instance.get_group_delay()
-
         elif True:
             pass
 
@@ -131,13 +132,13 @@ class TP4:
     def plot_atten(self):
         if self.filter_type == 'LowPass':
             xl=-100
-            yl=self.Ap
+            yl=self.Ap-self.gain
             widthl=np.absolute(xl)+self.wpl
             heightl=100
             xr=self.wal
             yr=-100
             widthr=100
-            heightr=100+self.Ao
+            heightr=100+self.Ao-self.gain
             xc=0
             yc=0
             widthc=0
@@ -146,9 +147,9 @@ class TP4:
             xl=-100
             yl=-100
             widthl=-xl + self.wal
-            heightl=np.absolute(yl) + self.Ao
+            heightl=np.absolute(yl) + self.Ao-self.gain
             xr=self.wpl
-            yr=self.Ap
+            yr=self.Ap-self.gain
             widthr=100
             heightr=100
             xc=0
@@ -159,28 +160,28 @@ class TP4:
             xl=-100
             yl=-100
             widthl=np.absolute(xl)+self.wal
-            heightl=np.absolute(yl)+self.Ao
+            heightl=np.absolute(yl)+self.Ao-self.gain
             xr=self.wah
             yr=-100
             widthr=100
-            heightr=np.absolute(yr)+self.Ao
+            heightr=np.absolute(yr)+self.Ao-self.gain
             xc=self.wpl
-            yc=self.Ap
+            yc=self.Ap-self.gain
             widthc=self.wph-self.wpl
             heightc=100
         elif self.filter_type == 'StopBand':
             xl=-100
-            yl=self.Ap
+            yl=self.Ap-self.gain
             widthl=np.absolute(xl)+self.wpl
             heightl=100
             xr=self.wph
-            yr=self.Ap
+            yr=self.Ap-self.gain
             widthr=100
             heightr=100
             xc=self.wal
             yc=-100
             widthc=self.wah-self.wal
-            heightc=np.absolute(yc)+self.Ao
+            heightc=np.absolute(yc)+self.Ao-self.gain
         c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
         l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
         r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
@@ -200,9 +201,9 @@ class TP4:
             xl=-100
             yl=-100
             widthl=np.absolute(xl)+self.wpl
-            heightl=np.absolute(yl)-self.Ap
+            heightl=np.absolute(yl)-self.Ap+self.gain
             xr=self.wal
-            yr=-self.Ao
+            yr=-self.Ao+self.gain
             widthr=100
             heightr=100
             xc=0
@@ -211,41 +212,41 @@ class TP4:
             heightc=0
         elif self.filter_type == 'HighPass':
             xl=-100
-            yl=-self.Ao
+            yl=-self.Ao+self.gain
             widthl=np.absolute(xl)+self.wal
             heightl=100
             xr=self.wpl
             yr=-100
             widthr=100
-            heightr=np.absolute(yr)-self.Ap
+            heightr=np.absolute(yr)-self.Ap+self.gain
             xc=0
             yc=0
             widthc=0
             heightc=0
         elif self.filter_type == 'BandPass':
             xl=-100
-            yl=-self.Ao
+            yl=-self.Ao+self.gain
             widthl=np.absolute(xl)+self.wal
             heightl=100
             xr=self.wah
-            yr=-self.Ao
+            yr=-self.Ao+self.gain
             widthr=100
             heightr=100
             xc=self.wpl
             yc=-100
             widthc=self.wph-self.wpl
-            heightc=np.absolute(yc)-self.Ap
+            heightc=np.absolute(yc)-self.Ap+self.gain
         elif self.filter_type == 'StopBand':
             xl=-100
             yl=-100
             widthl=np.absolute(xl)+self.wpl
-            heightl=np.absolute(yl)-self.Ap
+            heightl=np.absolute(yl)-self.Ap+self.gain
             xr=self.wph
             yr=-100
             widthr=100
-            heightr=np.absolute(yr)-self.Ap
+            heightr=np.absolute(yr)-self.Ap+self.gain
             xc=self.wal
-            yc=-self.Ao
+            yc=-self.Ao+self.gain
             widthc=self.wah-self.wal
             heightc=100
         c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted

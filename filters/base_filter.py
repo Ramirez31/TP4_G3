@@ -14,7 +14,7 @@ class base_filter(metaclass=ABCMeta):
     n= Filter order
     """
     #Function initializes class
-    def __init__(self, name=None,Ap=None,Ao=None,wpl=None,wph=None,wal=None,wah=None,gain=None,n=None):
+    def __init__(self, name=None,Ap=None,Ao=None,wpl=None,wph=None,wal=None,wah=None,gain=None,n=None,tao0=None,wrg=None,palm=None):
         if name:
             self.name = name
             self.Ap=Ap
@@ -25,6 +25,9 @@ class base_filter(metaclass=ABCMeta):
             self._wah=wah
             self.n=n
             self.gain=gain
+            self.tao0=tao0
+            self.wrg=wrg
+            self.palm=palm
             self.zeros=None
             self.poles=None
             self.system=None
@@ -46,6 +49,8 @@ class base_filter(metaclass=ABCMeta):
             self.wan=(self.wah-self.wal)/(self.wph-self.wpl)
         elif self.name=='StopBand':
             self.wan=(self.wph-self.wpl)/(self.wah-self.wal)
+        elif self.name=='Group Delay':
+            self.wrgn=self.wrg*self.tao0
 
     # Function denormalizes the approximation realized previously, it can denormalize to: LP, HP, BP, BS.
     def denormalize(self):
@@ -67,6 +72,7 @@ class base_filter(metaclass=ABCMeta):
                     self.num=self.num*np.poly1d([1/(self.wpl),0])
             self.zeroes=np.roots(self.num)
             self.poles=np.roots(self.den)
+
         elif self.name=='HighPass': #If required filter is HP
             #Denormalize poles
             self.num=np.poly1d(np.zeros(len(self.poles)),r=True) #Zeroes created after doing HP denormalization to poles
@@ -125,9 +131,25 @@ class base_filter(metaclass=ABCMeta):
             self.poles=np.roots(self.den)
             self.zeroes=np.roots(self.num)
 
+        elif self.name=='Group Delay':
+            #Denormalize poles
+            for i in range(0,len(self.poles)):#For each pole denormalization is realized
+                if self.poles[i] != 0:#If pole is not zero
+                    self.den= self.den*np.poly1d([-self.tao0/(self.poles[i]),1]) #Filter is denormalized by frequency scaling it S=Sn/wc
+                else:
+                    self.den=self.den*np.poly1d([self.tao0,0])
+            #Denormalize zeroes
+            for i in range(0,len(self.zeroes)):#For each zero denormalization is realized
+                if self.zeroes[i] != 0:#If zero is not located in origin
+                    self.num= self.num*np.poly1d([self.tao0/self.zeroes[i],1]) #Filter is denormalized by frequency scaling it S=Sn/wc
+                else:
+                    self.num=self.num*np.poly1d([self.tao0,0])
+            self.zeroes=np.roots(self.num)
+            self.poles=np.roots(self.den)
         else:
             pass
         K=np.power(10,self.gain/20)
+        self.num=self.num*K
         self.denorm_sys = signal.TransferFunction(self.num,self.den) #Denormalized system is obtained
 
     # Function returns current denormalized filter step response
@@ -158,7 +180,7 @@ class base_filter(metaclass=ABCMeta):
 
     # Function returns current filter template limitations
     def get_template(self):
-        return self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan
+        return self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan,self.gain
 
     # Function returns current filter type:LP,HP,BP or SB
     def filter_is(self):
