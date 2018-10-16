@@ -1,6 +1,7 @@
 from . import base_filter
 import numpy as np
 from scipy import signal
+from scipy import special
 
 class Bessel(base_filter):
 
@@ -19,6 +20,7 @@ class Bessel(base_filter):
             self.tao0=tao0
             self.wrg=wrg
             self.palm=palm
+            self.wan=1
             self.poles=[]
             self.zeroes=[]
             self.den=np.poly1d([1])
@@ -30,20 +32,23 @@ class Bessel(base_filter):
     def do_approximation(self):
         self.n=0    #caso que tampoco se va a cumplir
         Tn_Wrgn=0   #caso que nunca se va a cumplir ya que palm va entre 0 y 1
-        while Tn_Wrgn >= (1-palm): #condicion para obtener n
+        while Tn_Wrgn <= (1-self.palm): #condicion para obtener n
             self.n += 1
             k = np.linspace(0, self.n, num=(self.n + 1))  #k siempre va desde cero hasta n
-            Wrgn, Tn_Wrgn = signal.group_delay((bessel_coef(self,0), bessel_coef(self,k)),[Wrgn])
+            wrgn, Tn_Wrgn = signal.group_delay((self.bessel_coef(0), self.bessel_coef(k)),[self.wrgn])
+            Tn_Wrgn=-Tn_Wrgn
             # me devuelve en Tn_Wrgn el retardo evaluado en Wrgn. Le pase los parametros de la funcion normalizada
+        self.norm_sys = signal.TransferFunction(np.poly1d(self.bessel_coef(0)),np.poly1d(self.bessel_coef(k))) #Filter system is obtained
+        self.poles=np.roots(np.poly1d(self.bessel_coef(k)))
             
 
 
     def bessel_coef (self,k):   #calculo coeficientes bessel
-        b_k = (math.factorial(2*self.n-k))/((math.factorial(k))*(math.factorial(self.n-k))*(2^(self.n-k)))
+        b_k = (special.factorial(2*self.n-k))/((special.factorial(k))*(special.factorial(self.n-k))*(np.power(2,(self.n-k))))
         #b_k es un vector con todos los coeficientes
         return b_k
 
-    def bessel_tf(self,k):
-        num = [bessel_coef(self,0)] #el numerador siempre esta compuesto por b_0
-        den = [bessel_coef(self,k)]   #el denominador coincide con los coeficientes de bessel
-        return signal.TransferFunction(num, den)     #funcion transferencia normalizada
+    #def bessel_tf(self,k):
+    #    num = [self.bessel_coef(0)] #el numerador siempre esta compuesto por b_0
+    #    den = [self.bessel_coef(k)]   #el denominador coincide con los coeficientes de bessel
+    #    return signal.TransferFunction(num, den)     #funcion transferencia normalizada
