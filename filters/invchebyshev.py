@@ -46,6 +46,7 @@ class Invchebyshev(base_filter):
                 self.num= self.num*pol
        self.zeroes=np.roots(self.num)
        self.poles=np.roots(self.den) 
+       self.aprox_gain=1
        self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained 
 
     def is_odd(self,num):

@@ -39,3 +39,4 @@ class Butterworth(base_filter):
                 pol= np.poly1d([-1/root, 1])
                 self.den= self.den*pol
         self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
+        self.aprox_gain=1

@@ -42,6 +42,12 @@ class Chebyshev(base_filter):
            if np.real(pole2)<=0:
                 pol= np.poly1d([-1/pole2, 1])
                 self.den= self.den*pol
+       if np.mod(self.n,2) == 0:
+           self.aprox_gain=1/np.power(10,self.Ap/20)
+           self.num=self.num*self.aprox_gain
+       else:
+           self.aprox_gain=1
+       
        self.zeroes=np.roots(self.num)
        self.poles=np.roots(self.den)
        self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained

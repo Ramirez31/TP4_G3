@@ -149,7 +149,7 @@ class base_filter(metaclass=ABCMeta):
         else:
             pass
         K=np.power(10,self.gain/20)
-        self.num=self.num*K
+        self.num=self.num*K*self.aprox_gain
         self.denorm_sys = signal.TransferFunction(self.num,self.den) #Denormalized system is obtained
 
     # Function returns current denormalized filter step response
@@ -172,7 +172,11 @@ class base_filter(metaclass=ABCMeta):
 
     # Function returns current filter group delay
     def get_group_delay(self):
-        return -np.gradient(self.phase)
+        dphase=np.ediff1d(self.phase)
+        dw=np.ediff1d(self.w)
+        gd=np.append(-dphase/dw,0)
+        return gd
+        #return -np.gradient(self.phase,self.w)
 
     # Function returns current filter zeroes and poles (zeroes, poles)
     def get_zeroes_poles(self):

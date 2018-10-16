@@ -31,12 +31,16 @@ class Bessel(base_filter):
 
     def do_approximation(self):
         self.n=0    #caso que tampoco se va a cumplir
-        Tn_Wrgn=0   #caso que nunca se va a cumplir ya que palm va entre 0 y 1
-        while Tn_Wrgn <= (1-self.palm): #condicion para obtener n
+        Tn_Wrgn=1   #caso que nunca se va a cumplir ya que palm va entre 0 y 1
+        while  ((1-self.palm) <= Tn_Wrgn) : #condicion para obtener n
             self.n += 1
+            self.n=7
             k = np.linspace(0, self.n, num=(self.n + 1))  #k siempre va desde cero hasta n
-            wrgn, Tn_Wrgn = signal.group_delay((self.bessel_coef(0), self.bessel_coef(k)),[self.wrgn])
-            Tn_Wrgn=-Tn_Wrgn
+            k=np.flip(k)
+            w, h = signal.freqs(np.poly1d(self.bessel_coef(0)),np.poly1d(self.bessel_coef(k)))
+            group_delay = -np.diff(np.unwrap(np.angle(h)))/np.diff(w)
+            Tn_Wrgn=3
+            #wrgn, Tn_Wrgn = signal.group_delay((self.bessel_coef(0), self.bessel_coef(k)),[self.wrgn])
             # me devuelve en Tn_Wrgn el retardo evaluado en Wrgn. Le pase los parametros de la funcion normalizada
         self.norm_sys = signal.TransferFunction(np.poly1d(self.bessel_coef(0)),np.poly1d(self.bessel_coef(k))) #Filter system is obtained
         self.poles=np.roots(np.poly1d(self.bessel_coef(k)))
