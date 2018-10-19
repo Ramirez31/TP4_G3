@@ -30,29 +30,20 @@ class Bessel(base_filter):
             self.denormalize()#Denormalizes the approximation to match desired template
 
     def do_approximation(self):
-        self.n=0    #caso que tampoco se va a cumplir
-        Tn_Wrgn=1   #caso que nunca se va a cumplir ya que palm va entre 0 y 1
-        while  ((1-self.palm) <= Tn_Wrgn) : #condicion para obtener n
+        self.n=0    #N is calculated through iterations, starting from 0
+        Tn_Wrgn=0   #Group Delay at normalized frequency(wrgn)(starting value is fixed for algorithmic purposes)
+        while  ((1-self.palm)<= Tn_Wrgn)==False: #Check if tolerance limits are met
             self.n += 1
-            self.n=7
-            k = np.linspace(0, self.n, num=(self.n + 1))  #k siempre va desde cero hasta n
+            k = np.linspace(0, self.n, num=(self.n + 1))  #vector of increasing integers from 0 to n is created
             k=np.flip(k)
-            w, h = signal.freqs(np.poly1d(self.bessel_coef(0)),np.poly1d(self.bessel_coef(k)))
-            group_delay = -np.diff(np.unwrap(np.angle(h)))/np.diff(w)
-            Tn_Wrgn=3
-            #wrgn, Tn_Wrgn = signal.group_delay((self.bessel_coef(0), self.bessel_coef(k)),[self.wrgn])
-            # me devuelve en Tn_Wrgn el retardo evaluado en Wrgn. Le pase los parametros de la funcion normalizada
-        self.norm_sys = signal.TransferFunction(np.poly1d(self.bessel_coef(0)),np.poly1d(self.bessel_coef(k))) #Filter system is obtained
-        self.poles=np.roots(np.poly1d(self.bessel_coef(k)))
-            
+            bess_coef=np.poly1d(self.bessel_coef(k))# K-th Bessel of N-th order is calculated
+            w, h = signal.freqs(np.poly1d(self.bessel_coef(0)),bess_coef,self.wrgn)#Transfer function is calculated for wrgn
+            Tn_Wrgn = 1-np.power(np.abs(h),2)*np.power(self.wrgn,2*self.n)/np.power(self.bessel_coef(0),2)#Group delay is calculated for wrgn
+        self.aprox_gain=self.bessel_coef(0)#Transfer function has a gain constant
+        self.norm_sys = signal.TransferFunction([1],bess_coef) #Filter system is obtained
+        self.poles=np.roots(bess_coef)#Poles are obtained
 
-
-    def bessel_coef (self,k):   #calculo coeficientes bessel
+    def bessel_coef (self,k):#Function calculates k-th bessel coefficients for a n-order bessel polynomial. Receives a vector of decreasing integers starting from n
         b_k = (special.factorial(2*self.n-k))/((special.factorial(k))*(special.factorial(self.n-k))*(np.power(2,(self.n-k))))
-        #b_k es un vector con todos los coeficientes
+        #b_k is a vector with all of the polynomial coefficients, with decreasing order from left to right
         return b_k
-
-    #def bessel_tf(self,k):
-    #    num = [self.bessel_coef(0)] #el numerador siempre esta compuesto por b_0
-    #    den = [self.bessel_coef(k)]   #el denominador coincide con los coeficientes de bessel
-    #    return signal.TransferFunction(num, den)     #funcion transferencia normalizada

@@ -167,15 +167,16 @@ class base_filter(metaclass=ABCMeta):
 
     # Function returns current filter normalized frequency response (frec,magnitude,phase)
     def get_norm_bode(self):
-        self.w,self.mag,self.nphase = signal.bode(self.norm_sys,n=1000)
-        return self.w, self.mag, self.phase
+        self.nw,self.nmag,self.nphase = signal.bode(self.norm_sys,n=1000)
+        return self.nw,self.nmag,self.nphase
 
     # Function returns current filter group delay
     def get_group_delay(self):
-        dphase=np.ediff1d(self.phase)
+        dphase=np.ediff1d(self.phase)#Phase is in deegres
         dw=np.ediff1d(self.w)
-        gd=np.append(-dphase/dw,0)
-        return gd
+        gd=-dphase/dw
+        gd=np.append(gd,gd[len(gd)-1])
+        return gd/(180/np.pi)#Group delay is -dphi/dw, phi being in radians. Deegres are transformed to rads.
         #return -np.gradient(self.phase,self.w)
 
     # Function returns current filter zeroes and poles (zeroes, poles)
