@@ -84,7 +84,7 @@ class TP4:
     def create_filter(self):
         error,entries =self.parse_entry()
         if error is False:
-            filter_instance = filters.create('gauss', name=entries[8],Ap=entries[0],Ao=entries[1],wpl=entries[2],wph=entries[3],wal=entries[4],wah=entries[5],gain=entries[6],n=entries[7],tao0=0.01,wrg=600,palm=0.6)
+            filter_instance = filters.create('papoulis', name=entries[8],Ap=entries[0],Ao=entries[1],wpl=entries[2],wph=entries[3],wal=entries[4],wah=entries[5],gain=entries[6],n=entries[7],tao0=0.01,wrg=600,palm=0.6)
             self.w,self.mag,self.phase = filter_instance.get_bode()
             self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
             self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan,self.gain = filter_instance.get_template()
@@ -328,7 +328,7 @@ class TP4:
         side_toolbar.pack(side=LEFT,fill=BOTH,expand=True,padx=2,pady=4)
         side_toolbar.grid_propagate(0)
 
-        approximation_list=('Butterworth','Chebyshev','Inverse Chebyshev','Legendre','Cauer','Bessel','Gauss')
+        approximation_list=('Butterworth','Chebyshev','Inverse Chebyshev','Legendre','Papoulis','Cauer','Bessel','Gauss')
         self.aprox_string = StringVar()
         self.aprox_string.set(approximation_list[0])
         aproximation_menu=OptionMenu(side_toolbar,self.aprox_string, *approximation_list)

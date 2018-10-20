@@ -39,6 +39,9 @@
     <Compile Include="filters\invchebyshev.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="filters\papoulis.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="filters\__init__.py" />
     <Compile Include="tests\TP4.py" />
   </ItemGroup>

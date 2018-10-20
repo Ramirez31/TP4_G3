@@ -28,4 +28,5 @@ class Legendre(base_filter):
             self.denormalize()#Denormalizes the approximation to match desired template
 
     def do_approximation(self):
-       pass
+       self.epsilon=np.sqrt(np.power(10,self.Ap/10)-1)
+       self.n=0
