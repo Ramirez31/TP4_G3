@@ -32,7 +32,7 @@ class Papoulis(base_filter):
        self.epsilon=np.sqrt(np.power(10,self.Ap/10)-1)
        self.n=0
        Ln2_wan=0
-       while (Ln2_wan >= (np.power(10,self.Ao/10)-1)/np.power(self.epsilon,2))==False:
+       while (Ln2_wan >= ((np.power(10,self.Ao/10)-1)/np.power(self.epsilon,2)))==False:
            self.n+=1
            Ln=np.poly1d([1])
            if np.mod(self.n,2)==1:#If n is odd 
@@ -44,20 +44,25 @@ class Papoulis(base_filter):
                     vr=ar*special.legendre(r)
                     v=np.polyadd(v,vr)
                 v2=np.polymul(v,v)#Function to be integrated is calculated
+                Ln=np.polyint(v2)#Primitive is calculated, Barrow will be applied to this function
            else:#If n is even
                 k=(self.n-2)/2
                 p_legendre=special.legendre(k+1)
                 temp_pol=np.polymul(np.polyder(p_legendre),np.polyder(p_legendre))
                 phi=np.polymul(temp_pol,np.poly1d([1,1]))
-           Ln=np.polyint(v2)#Primitive is calculated, Barrow will be applied to this function
+                Ln=np.polyint(phi)#Primitive is calculated, Barrow will be applied to this function
+           
            Ln2=np.poly1d([0])
+           poly2mul=np.poly1d([-2,0,-1])#First (-S^2-1) is replaced in the obtained primitive
            for i in range(0,len(Ln)+1):
-               poly2mul=np.poly1d([-2,0,-1])#First (-S^2-1) is replaced in the obtained primitive
+               polybeingmul=poly2mul#First (-S^2-1) is replaced in the obtained primitive
                for j in range(0,i-1):
-                    poly2mul=np.polymul(poly2mul,poly2mul) 
-               Ln2=np.polyadd(Ln2,Ln[i]*poly2mul)
+                    polybeingmul=np.polymul(polybeingmul,poly2mul)
+               a=Ln[i]*polybeingmul
+               Ln2=np.polyadd(Ln2,a)
            Ln2=np.polyadd(Ln2,-np.poly1d([np.polyval(Ln,-1)]))
-           Ln2=Ln2/np.polyval(Ln2,1)
+           if np.mod(self.n,2)==0:#If n is even 
+               Ln2=Ln2/np.polyval(Ln2,-1j)
            Ln2_wan=np.polyval(Ln2,self.wan)
        roots=np.roots(np.polyadd(Ln2*np.power(self.epsilon,2),np.poly1d([1])))
        for i in range(0,len(roots)):
