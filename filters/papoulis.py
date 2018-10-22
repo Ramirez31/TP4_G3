@@ -15,6 +15,7 @@ class Papoulis(base_filter):
             self.Ap=args[4]
             self.Ao=args[5]
             self.n=args[6]
+            self.qmax=args[7]
         elif (args[0]=='BandPass')|(args[0]=='StopBand'):
             self.name = args[0]
             self.gain=args[1]
@@ -25,50 +26,84 @@ class Papoulis(base_filter):
             self.Ap=args[6]
             self.Ao=args[7]
             self.n=args[8]
+            self.qmax=args[9]
         if self.name:
-            self.poles=[]
-            self.zeroes=[]
-            self.den=np.poly1d([1])
-            self.num=np.poly1d([1])
-            self.normalize()#Normalizes current template
-            self.do_approximation()#Does normalized approximation and realizes
-            self.denormalize()#Denormalizes the approximation to match desired template
+            self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
+            self.error=self.check_input()
+            if self.error is False:
+                self.poles=[]
+                self.zeroes=[]
+                self.den=np.poly1d([1])
+                self.num=np.poly1d([1])
+                self.normalize()#Normalizes current template
+                self.do_approximation()#Does normalized approximation and realizes
+                self.denormalize()#Denormalizes the approximation to match desired template
 
     def do_approximation(self):
        self.epsilon=np.sqrt(np.power(10,self.Ap/10)-1)
-       self.n=0
-       Ln2_wan=0
-       while (Ln2_wan >= ((np.power(10,self.Ao/10)-1)/np.power(self.epsilon,2)))==False: #While template specifications are not met, order increases
-           self.n+=1
-           Ln=np.poly1d([1])
-           if np.mod(self.n,2)==1:#If n is odd 
-                k=(self.n-1)/2
-                ao=1/(np.sqrt(2)*(k+1))
-                v=np.poly1d([ao])
-                for r in range(1,int(k)+1):
-                    ar=ao*(2*r+1)
-                    vr=ar*special.legendre(r)
-                    v=np.polyadd(v,vr)
-                v2=np.polymul(v,v)#Function to be integrated is calculated
-                Ln=np.polyint(v2)#Primitive is calculated, Barrow will be applied to this function
-           else:#If n is even
-                k=(self.n-2)/2
-                p_legendre=special.legendre(k+1)
-                temp_pol=np.polymul(np.polyder(p_legendre),np.polyder(p_legendre))
-                phi=np.polymul(temp_pol,np.poly1d([1,1]))#Function to be integrated is calculated
-                Ln=np.polyint(phi)#Primitive is calculated, Barrow will be applied to this function with integration bounds(-S^2-1),-1
-           
-           Ln2=np.poly1d([0])
-           poly2mul=np.poly1d([-2,0,-1])#First (-S^2-1) is replaced in the obtained primitive (upper bound Barrow)
-           for i in range(0,len(Ln)+1):
-               polybeingmul=poly2mul
-               for j in range(0,i-1):#Loop used to get the n-th power of polymul
-                    polybeingmul=np.polymul(polybeingmul,poly2mul)
-               Ln2=np.polyadd(Ln2,Ln[i]*polybeingmul)
-           Ln2=np.polyadd(Ln2,-np.poly1d([np.polyval(Ln,-1)]))#Finally polynomial is evualated in -1 and this is substracted to previos value (lower bound Barrow)
-           if np.mod(self.n,2)==0:#If n is even Ln2(w=1)=1, so knowing that S=wj->w=-jS
-               Ln2=Ln2/np.polyval(Ln2,-1j)#So as to make Ln2(w=1)=1
-           Ln2_wan=np.polyval(Ln2,self.wan)#Ln2 is evaulated in Wan, so as to see if template condition is met
+       if self.n == None:
+            self.n=0
+            Ln2_wan=0
+            while (Ln2_wan >= ((np.power(10,self.Ao/10)-1)/np.power(self.epsilon,2)))==False: #While template specifications are not met, order increases
+                self.n+=1
+                Ln=np.poly1d([1])
+                if np.mod(self.n,2)==1:#If n is odd 
+                     k=(self.n-1)/2
+                     ao=1/(np.sqrt(2)*(k+1))
+                     v=np.poly1d([ao])
+                     for r in range(1,int(k)+1):
+                         ar=ao*(2*r+1)
+                         vr=ar*special.legendre(r)
+                         v=np.polyadd(v,vr)
+                     v2=np.polymul(v,v)#Function to be integrated is calculated
+                     Ln=np.polyint(v2)#Primitive is calculated, Barrow will be applied to this function
+                else:#If n is even
+                     k=(self.n-2)/2
+                     p_legendre=special.legendre(k+1)
+                     temp_pol=np.polymul(np.polyder(p_legendre),np.polyder(p_legendre))
+                     phi=np.polymul(temp_pol,np.poly1d([1,1]))#Function to be integrated is calculated
+                     Ln=np.polyint(phi)#Primitive is calculated, Barrow will be applied to this function with integration bounds(-S^2-1),-1
+                
+                Ln2=np.poly1d([0])
+                poly2mul=np.poly1d([-2,0,-1])#First (-S^2-1) is replaced in the obtained primitive (upper bound Barrow)
+                for i in range(0,len(Ln)+1):
+                    polybeingmul=poly2mul
+                    for j in range(0,i-1):#Loop used to get the n-th power of polymul
+                         polybeingmul=np.polymul(polybeingmul,poly2mul)
+                    Ln2=np.polyadd(Ln2,Ln[i]*polybeingmul)
+                Ln2=np.polyadd(Ln2,-np.poly1d([np.polyval(Ln,-1)]))#Finally polynomial is evualated in -1 and this is substracted to previos value (lower bound Barrow)
+                if np.mod(self.n,2)==0:#If n is even Ln2(w=1)=1, so knowing that S=wj->w=-jS
+                    Ln2=Ln2/np.polyval(Ln2,-1j)#So as to make Ln2(w=1)=1
+                Ln2_wan=np.polyval(Ln2,-1j*self.wan)#Ln2 is evaulated in Wan, so as to see if template condition is met
+       else:
+            Ln=np.poly1d([1])
+            if np.mod(self.n,2)==1:#If n is odd 
+                 k=(self.n-1)/2
+                 ao=1/(np.sqrt(2)*(k+1))
+                 v=np.poly1d([ao])
+                 for r in range(1,int(k)+1):
+                     ar=ao*(2*r+1)
+                     vr=ar*special.legendre(r)
+                     v=np.polyadd(v,vr)
+                 v2=np.polymul(v,v)#Function to be integrated is calculated
+                 Ln=np.polyint(v2)#Primitive is calculated, Barrow will be applied to this function
+            else:#If n is even
+                 k=(self.n-2)/2
+                 p_legendre=special.legendre(k+1)
+                 temp_pol=np.polymul(np.polyder(p_legendre),np.polyder(p_legendre))
+                 phi=np.polymul(temp_pol,np.poly1d([1,1]))#Function to be integrated is calculated
+                 Ln=np.polyint(phi)#Primitive is calculated, Barrow will be applied to this function with integration bounds(-S^2-1),-1
+            
+            Ln2=np.poly1d([0])
+            poly2mul=np.poly1d([-2,0,-1])#First (-S^2-1) is replaced in the obtained primitive (upper bound Barrow)
+            for i in range(0,len(Ln)+1):
+                polybeingmul=poly2mul
+                for j in range(0,i-1):#Loop used to get the n-th power of polymul
+                     polybeingmul=np.polymul(polybeingmul,poly2mul)
+                Ln2=np.polyadd(Ln2,Ln[i]*polybeingmul)
+            Ln2=np.polyadd(Ln2,-np.poly1d([np.polyval(Ln,-1)]))#Finally polynomial is evualated in -1 and this is substracted to previos value (lower bound Barrow)
+            if np.mod(self.n,2)==0:#If n is even Ln2(w=1)=1, so knowing that S=wj->w=-jS
+                Ln2=Ln2/np.polyval(Ln2,-1j)#So as to make Ln2(w=1)=1
        roots=np.roots(np.polyadd(Ln2*np.power(self.epsilon,2),np.poly1d([1])))#Roots of the denominator are found
        for i in range(0,len(roots)):#If they are in the left plane, they are kept
            if np.real(roots[i])<=0:

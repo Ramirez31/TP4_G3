@@ -10,10 +10,11 @@ import matplotlib.path as mpath
 import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 from tkinter import *
+from tkinter import messagebox
 import filters
 
 class TP4:
-    #Function parses user input returning an error if input is incorrect
+    #Function parses user input returning an error if input is not numeric
     def parse_entry(self):
         error=False
         entries=[]
@@ -38,295 +39,322 @@ class TP4:
         for entry in self.curr_buttons:
             if self.is_float(entry.get()):
                 entries.append(float(entry.get()))
-                entry.delete(0,END)
             else:
                 error = True
-        entries.append(1)#ACA TIENE QUE IR EL BOTONCITO DE SI QUIERO FIJAR UN ORDEN N DE FILTRO
-
-        #error = self.check_template_entry()
-        return error,entries,aprox
-
-    #Function checks if user input is correct related to desired template
-    def check_template_entry(self):
-        error=False
-        if float(self.aa_entry.get())>=float(self.ap_entry.get()):
-            if  self.filter_string.get()=='LowPass':
-                if float(self.fpl_entry.get())>= float(self.fal_entry.get()):
-                    error=True
-            elif  self.filter_string.get()=='HighPass':
-                if float(self.fal_entry.get())>= float(self.fpl_entry.get()):
-                    error=True
-            elif  self.filter_string.get()=='BandPass':
-                if ((float(self.fah_entry.get()) > float(self.fph_entry.get())) and (float(self.fph_entry.get()) > float(self.fpl_entry.get())) and (float(self.fpl_entry.get()) > float(self.fal_entry.get())) ) is False:
-                    error=True
-            elif  self.filter_string.get()=='StopBand':
-                if (((float(self.fph_entry.get()) > float(self.fah_entry.get())) and (float(self.fah_entry.get()) > float(self.fal_entry.get())) and (float(self.fal_entry.get()) > float(self.fpl_entry.get())))) is False:
-                    error=True
-            elif self.filter_string.get()=='Group Delay':
-                pass
+            entry.delete(0,END)
+        a=self.nvar.get()
+        if self.nvar.get() == 1:
+            if self.is_int(self.n_entry.get()):
+                entries.append(int(self.n_entry.get()))
+            else:
+                error = True
         else:
-            error=True
-        return error
+            entries.append(None)
+        self.n_entry.delete(0,END)
+        if self.qvar.get() == 1:
+            if self.is_float(self.q_entry.get()):
+                entries.append(float(self.q_entry.get()))
+            else:
+                error = True
+        else:
+            entries.append(None)
+        self.q_entry.delete(0,END)
+        return error,entries,aprox
 
     #Function creates filter according to user input
     def create_filter(self):
         error,entries,aproximation =self.parse_entry()
         if error is False:
             filter_instance = filters.create(aproximation, *entries)
-            self.w,self.mag,self.phase = filter_instance.get_bode()
-            self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
-            self.template_params = filter_instance.get_template()
-            self.filter_type = filter_instance.filter_is()
+            if filter_instance.error_was() is False:
+                self.filter_ready=True
+                self.w,self.mag,self.phase = filter_instance.get_bode()
+                self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
+                self.template_params = filter_instance.get_template()
+                self.filter_type = filter_instance.filter_is()
         
-            self.atenua = -(self.mag)
-            self.stepT,self.step_mag = filter_instance.get_step()
-            self.impT,self.imp_mag = filter_instance.get_impulse()
-            self.zeroes, self.poles = filter_instance.get_zeroes_poles()
-            self.group_delay = filter_instance.get_group_delay()
+                self.atenua = -(self.mag)
+                self.stepT,self.step_mag = filter_instance.get_step()
+                self.impT,self.imp_mag = filter_instance.get_impulse()
+                self.zeroes, self.poles = filter_instance.get_zeroes_poles()
+                self.group_delay = filter_instance.get_group_delay()
+            else:
+                messagebox.showerror("Input Error", "Input does not meet template requirements or order limit was exceeded. Please check recent input")
         elif True:
-            pass
+            messagebox.showerror("Input Error", "Check if any active entry box is empty. Input has to be numeric")
 
     #Function plots current filter's phase in current subplot
     def plot_phase(self):
-        self.axis.clear()
-        self.axis.semilogx(self.w,self.phase)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("Radian Frequency [1/rad]$")
-        self.axis.set_ylabel("$Phase [Deegres]$")
-        self.data_plot.draw()
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.semilogx(self.w,self.phase)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("Radian Frequency [1/rad]$")
+            self.axis.set_ylabel("$Phase [Deegres]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
     
     #Function plots current normalized filter's magnitude in atenuation in current subplot    
     def plot_norm_atten(self):
-        if self.filter_type == 'Group Delay':
-            xl=0
-            yl=0
-            widthl=0
-            heightl=0
-            xr=0
-            yr=0
-            widthr=0
-            heightr=0
+        if self.filter_ready is True:
+            if self.filter_type == 'Group Delay':
+                xl=0
+                yl=0
+                widthl=0
+                heightl=0
+                xr=0
+                yr=0
+                widthr=0
+                heightr=0
+            else:
+                xl=-100
+                yl=self.template_params[0]
+                widthl=np.absolute(xl)+1
+                heightl=100
+                xr=self.template_params[2]
+                yr=-100
+                widthr=100
+                heightr=100+self.template_params[1]
+            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
+            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
+            self.axis.clear()
+            self.axis.add_patch(l_rect)
+            self.axis.add_patch(r_rect)
+            self.axis.semilogx(self.wn,-self.magn)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Radian Frequency [1/rad]$")
+            self.axis.set_ylabel("$Attenuation [dB]$")
+            self.data_plot.draw()  
         else:
-            xl=-100
-            yl=self.template_params[0]
-            widthl=np.absolute(xl)+1
-            heightl=100
-            xr=self.template_params[2]
-            yr=-100
-            widthr=100
-            heightr=100+self.template_params[1]
-        l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
-        r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
-        self.axis.clear()
-        self.axis.add_patch(l_rect)
-        self.axis.add_patch(r_rect)
-        self.axis.semilogx(self.wn,-self.magn)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("$Radian Frequency [1/rad]$")
-        self.axis.set_ylabel("$Attenuation [dB]$")
-        self.data_plot.draw()    
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's magnitude in atenuation in current subplot    
     def plot_atten(self):
-        if self.filter_type == 'LowPass':
-            xl=-100
-            yl=self.template_params[0]-self.template_params[5]
-            widthl=np.absolute(xl)+self.template_params[3]
-            heightl=100
-            xr=self.template_params[4]
-            yr=-100
-            widthr=100
-            heightr=100+self.template_params[1]-self.template_params[5]
-            xc=0
-            yc=0
-            widthc=0
-            heightc=0
-        elif self.filter_type == 'HighPass':
-            xl=-100
-            yl=-100
-            widthl=-xl + self.template_params[4]
-            heightl=np.absolute(yl) + self.template_params[1]-self.template_params[5]
-            xr=self.template_params[3]
-            yr=self.template_params[0]-self.template_params[5]
-            widthr=100
-            heightr=100
-            xc=0
-            yc=0
-            widthc=0
-            heightc=0
-        elif self.filter_type == 'BandPass':
-            xl=-100
-            yl=-100
-            widthl=np.absolute(xl)+self.template_params[5]
-            heightl=np.absolute(yl)+self.template_params[1]-self.template_params[7]
-            xr=self.template_params[6]
-            yr=-100
-            widthr=100
-            heightr=np.absolute(yr)+self.template_params[1]-self.template_params[7]
-            xc=self.template_params[3]
-            yc=self.template_params[0]-self.template_params[7]
-            widthc=self.template_params[4]-self.template_params[3]
-            heightc=100
-        elif self.filter_type == 'StopBand':
-            xl=-100
-            yl=self.template_params[0]-self.template_params[7]
-            widthl=np.absolute(xl)+self.template_params[3]
-            heightl=100
-            xr=self.template_params[4]
-            yr=self.template_params[0]-self.template_params[7]
-            widthr=100
-            heightr=100
-            xc=self.template_params[5]
-            yc=-100
-            widthc=self.template_params[6]-self.template_params[5]
-            heightc=np.absolute(yc)+self.template_params[1]-self.template_params[7]
-        elif self.filter_type == 'Group Delay':
-            xl=0
-            yl=0
-            widthl=0
-            heightl=0
-            xr=0
-            yr=0
-            widthr=0
-            heightr=0
-            xc=0
-            yc=0
-            widthc=0
-            heightc=0
-        c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
-        l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
-        r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
-        self.axis.clear()
-        self.axis.add_patch(l_rect)
-        self.axis.add_patch(r_rect)
-        self.axis.add_patch(c_rect)
-        self.axis.semilogx(self.w,self.atenua)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("$Radian Frequency [1/rad]$")
-        self.axis.set_ylabel("$Attenuation [dB]$")
-        self.data_plot.draw()
+        if self.filter_ready is True:
+            if self.filter_type == 'LowPass':
+                xl=-100
+                yl=self.template_params[0]-self.template_params[5]
+                widthl=np.absolute(xl)+self.template_params[3]
+                heightl=100
+                xr=self.template_params[4]
+                yr=-100
+                widthr=100
+                heightr=100+self.template_params[1]-self.template_params[5]
+                xc=0
+                yc=0
+                widthc=0
+                heightc=0
+            elif self.filter_type == 'HighPass':
+                xl=-100
+                yl=-100
+                widthl=-xl + self.template_params[4]
+                heightl=np.absolute(yl) + self.template_params[1]-self.template_params[5]
+                xr=self.template_params[3]
+                yr=self.template_params[0]-self.template_params[5]
+                widthr=100
+                heightr=100
+                xc=0
+                yc=0
+                widthc=0
+                heightc=0
+            elif self.filter_type == 'BandPass':
+                xl=-100
+                yl=-100
+                widthl=np.absolute(xl)+self.template_params[5]
+                heightl=np.absolute(yl)+self.template_params[1]-self.template_params[7]
+                xr=self.template_params[6]
+                yr=-100
+                widthr=100
+                heightr=np.absolute(yr)+self.template_params[1]-self.template_params[7]
+                xc=self.template_params[3]
+                yc=self.template_params[0]-self.template_params[7]
+                widthc=self.template_params[4]-self.template_params[3]
+                heightc=100
+            elif self.filter_type == 'StopBand':
+                xl=-100
+                yl=self.template_params[0]-self.template_params[7]
+                widthl=np.absolute(xl)+self.template_params[3]
+                heightl=100
+                xr=self.template_params[4]
+                yr=self.template_params[0]-self.template_params[7]
+                widthr=100
+                heightr=100
+                xc=self.template_params[5]
+                yc=-100
+                widthc=self.template_params[6]-self.template_params[5]
+                heightc=np.absolute(yc)+self.template_params[1]-self.template_params[7]
+            elif self.filter_type == 'Group Delay':
+                xl=0
+                yl=0
+                widthl=0
+                heightl=0
+                xr=0
+                yr=0
+                widthr=0
+                heightr=0
+                xc=0
+                yc=0
+                widthc=0
+                heightc=0
+            c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
+            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
+            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
+            self.axis.clear()
+            self.axis.add_patch(l_rect)
+            self.axis.add_patch(r_rect)
+            self.axis.add_patch(c_rect)
+            self.axis.semilogx(self.w,self.atenua)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Radian Frequency [1/rad]$")
+            self.axis.set_ylabel("$Attenuation [dB]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function creates filter according to user input
     def plot_gain(self):
-        if self.filter_type == 'LowPass':
-            xl=-100
-            yl=-100
-            widthl=np.absolute(xl)+self.template_params[3]
-            heightl=np.absolute(yl)-self.template_params[0]+self.template_params[5]
-            xr=self.template_params[4]
-            yr=-self.template_params[1]+self.template_params[5]
-            widthr=100
-            heightr=100
-            xc=0
-            yc=0
-            widthc=0
-            heightc=0
-        elif self.filter_type == 'HighPass':
-            xl=-100
-            yl=-self.template_params[1]+self.template_params[5]
-            widthl=np.absolute(xl)+self.template_params[4]
-            heightl=100
-            xr=self.template_params[3]
-            yr=-100
-            widthr=100
-            heightr=np.absolute(yr)-self.template_params[0]+self.template_params[5]
-            xc=0
-            yc=0
-            widthc=0
-            heightc=0
-        elif self.filter_type == 'BandPass':
-            xl=-100
-            yl=-self.template_params[1]+self.template_params[7]
-            widthl=np.absolute(xl)+self.template_params[5]
-            heightl=100
-            xr=self.template_params[6]
-            yr=-self.template_params[1]+self.template_params[7]
-            widthr=100
-            heightr=100
-            xc=self.template_params[3]
-            yc=-100
-            widthc=self.template_params[4]-self.template_params[3]
-            heightc=np.absolute(yc)-self.template_params[0]+self.template_params[7]
-        elif self.filter_type == 'StopBand':
-            xl=-100
-            yl=-100
-            widthl=np.absolute(xl)+self.template_params[3]
-            heightl=np.absolute(yl)-self.template_params[0]+self.template_params[7]
-            xr=self.template_params[4]
-            yr=-100
-            widthr=100
-            heightr=np.absolute(yr)-self.template_params[0]+self.template_params[7]
-            xc=self.template_params[5]
-            yc=-self.template_params[1]+self.template_params[7]
-            widthc=self.template_params[6]-self.template_params[5]
-            heightc=100
-        elif self.filter_type == 'Group Delay':
-            xl=0
-            yl=0
-            widthl=0
-            heightl=0
-            xr=0
-            yr=0
-            widthr=0
-            heightr=0
-            xc=0
-            yc=0
-            widthc=0
-            heightc=0
-        c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
-        l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
-        r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
-        self.axis.clear()
-        self.axis.add_patch(l_rect)
-        self.axis.add_patch(r_rect)
-        self.axis.add_patch(c_rect)
-        self.axis.semilogx(self.w,self.mag)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("$Radian Frequency [1/rad]$")
-        self.axis.set_ylabel("$Gain [dB]$")
-        self.data_plot.draw()
+        if self.filter_ready is True:
+            if self.filter_type == 'LowPass':
+                xl=-100
+                yl=-100
+                widthl=np.absolute(xl)+self.template_params[3]
+                heightl=np.absolute(yl)-self.template_params[0]+self.template_params[5]
+                xr=self.template_params[4]
+                yr=-self.template_params[1]+self.template_params[5]
+                widthr=100
+                heightr=100
+                xc=0
+                yc=0
+                widthc=0
+                heightc=0
+            elif self.filter_type == 'HighPass':
+                xl=-100
+                yl=-self.template_params[1]+self.template_params[5]
+                widthl=np.absolute(xl)+self.template_params[4]
+                heightl=100
+                xr=self.template_params[3]
+                yr=-100
+                widthr=100
+                heightr=np.absolute(yr)-self.template_params[0]+self.template_params[5]
+                xc=0
+                yc=0
+                widthc=0
+                heightc=0
+            elif self.filter_type == 'BandPass':
+                xl=-100
+                yl=-self.template_params[1]+self.template_params[7]
+                widthl=np.absolute(xl)+self.template_params[5]
+                heightl=100
+                xr=self.template_params[6]
+                yr=-self.template_params[1]+self.template_params[7]
+                widthr=100
+                heightr=100
+                xc=self.template_params[3]
+                yc=-100
+                widthc=self.template_params[4]-self.template_params[3]
+                heightc=np.absolute(yc)-self.template_params[0]+self.template_params[7]
+            elif self.filter_type == 'StopBand':
+                xl=-100
+                yl=-100
+                widthl=np.absolute(xl)+self.template_params[3]
+                heightl=np.absolute(yl)-self.template_params[0]+self.template_params[7]
+                xr=self.template_params[4]
+                yr=-100
+                widthr=100
+                heightr=np.absolute(yr)-self.template_params[0]+self.template_params[7]
+                xc=self.template_params[5]
+                yc=-self.template_params[1]+self.template_params[7]
+                widthc=self.template_params[6]-self.template_params[5]
+                heightc=100
+            elif self.filter_type == 'Group Delay':
+                xl=0
+                yl=0
+                widthl=0
+                heightl=0
+                xr=0
+                yr=0
+                widthr=0
+                heightr=0
+                xc=0
+                yc=0
+                widthc=0
+                heightc=0
+            c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
+            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
+            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
+            self.axis.clear()
+            self.axis.add_patch(l_rect)
+            self.axis.add_patch(r_rect)
+            self.axis.add_patch(c_rect)
+            self.axis.semilogx(self.w,self.mag)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Radian Frequency [1/rad]$")
+            self.axis.set_ylabel("$Gain [dB]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's step response in current subplot
     def plot_step(self):
-        self.axis.clear()
-        self.axis.plot(self.stepT,self.step_mag)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("$Time [s]$")
-        self.axis.set_ylabel("$V_{out} [Volts]$")
-        self.data_plot.draw()
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.plot(self.stepT,self.step_mag)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Time [s]$")
+            self.axis.set_ylabel("$V_{out} [Volts]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's impulse response in current subplot
     def plot_imp(self):
-        self.axis.clear()
-        self.axis.plot(self.impT,self.imp_mag)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("$Time [s]$")
-        self.axis.set_ylabel("$V_{out} [Volts]$")
-        self.data_plot.draw()
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.plot(self.impT,self.imp_mag)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Time [s]$")
+            self.axis.set_ylabel("$V_{out} [Volts]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's zeroes and poles
     def plot_zeroes_and_poles(self):
-        self.axis.clear()
-        self.axis.scatter(np.real(self.poles),np.imag(self.poles),marker="x")
-        self.axis.scatter(np.real(self.zeroes),np.imag(self.zeroes),marker="o")
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("$Sigma$")
-        self.axis.set_ylabel("$jw$")
-        self.data_plot.draw()
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.scatter(np.real(self.poles),np.imag(self.poles),marker="x")
+            self.axis.scatter(np.real(self.zeroes),np.imag(self.zeroes),marker="o")
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Sigma$")
+            self.axis.set_ylabel("$jw$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
     
     #Function creates filter according to user input
     def plot_group_delay(self):
-        self.axis.clear()
-        self.axis.semilogx(self.w,self.group_delay*1000)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("Radian Frequency [1/rad]$")
-        self.axis.set_ylabel("$Group Delay [ms]$")
-        self.data_plot.draw()
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.semilogx(self.w,self.group_delay*1000)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("Radian Frequency [1/rad]$")
+            self.axis.set_ylabel("$Group Delay [ms]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function creates filter according to user input
     def is_float(self,value):
         try:
             float(value)
+            return True
+        except ValueError:
+            return False
+
+    def is_int(self,value):
+        try:
+            int(value)
             return True
         except ValueError:
             return False
@@ -377,7 +405,16 @@ class TP4:
             self.entry_buttons[6][1].grid(row=6,column=1)
             self.entry_buttons[6][2].grid(row=6,column=2)
             self.curr_buttons.append(self.entry_buttons[6][1])
-            self.button_create_filter.grid(row=7)
+
+            self.entry_buttons[10][0].grid(row=7,column=0)
+            self.entry_buttons[10][2].grid(row=7,column=1)
+
+
+            self.entry_buttons[11][0].grid(row=8,column=0)
+            self.entry_buttons[11][2].grid(row=8,column=1)
+
+
+            self.button_create_filter.grid(row=9)
         elif  self.filter_string.get()=='HighPass':
             self.aprox_figure.create_image(0,0,image=self.photoHP,anchor='nw')
             self.entry_buttons[0][0].grid(row=2,column=0)
@@ -404,7 +441,14 @@ class TP4:
             self.entry_buttons[6][1].grid(row=6,column=1)
             self.entry_buttons[6][2].grid(row=6,column=2)
             self.curr_buttons.append(self.entry_buttons[6][1])
-            self.button_create_filter.grid(row=7)
+
+            self.entry_buttons[10][0].grid(row=7,column=0)
+            self.entry_buttons[10][2].grid(row=7,column=1)
+
+            self.entry_buttons[11][0].grid(row=8,column=0)
+            self.entry_buttons[11][2].grid(row=8,column=1)
+
+            self.button_create_filter.grid(row=9)
         elif  self.filter_string.get()=='BandPass':
             self.aprox_figure.create_image(0,0,image=self.photoBP,anchor='nw')
             self.entry_buttons[0][0].grid(row=2,column=0)
@@ -441,7 +485,14 @@ class TP4:
             self.entry_buttons[6][1].grid(row=8,column=1)
             self.entry_buttons[6][2].grid(row=8,column=2)
             self.curr_buttons.append(self.entry_buttons[6][1])
-            self.button_create_filter.grid(row=9)
+
+            self.entry_buttons[10][0].grid(row=9,column=0)
+            self.entry_buttons[10][2].grid(row=9,column=1)
+
+            self.entry_buttons[11][0].grid(row=10,column=0)
+            self.entry_buttons[11][2].grid(row=10,column=1)
+
+            self.button_create_filter.grid(row=11)
         elif  self.filter_string.get()=='StopBand':
             self.aprox_figure.create_image(0,0,image=self.photoSB,anchor='nw')
             self.entry_buttons[0][0].grid(row=2,column=0)
@@ -478,7 +529,14 @@ class TP4:
             self.entry_buttons[6][1].grid(row=8,column=1)
             self.entry_buttons[6][2].grid(row=8,column=2)
             self.curr_buttons.append(self.entry_buttons[6][1])
-            self.button_create_filter.grid(row=9)
+
+            self.entry_buttons[10][0].grid(row=9,column=0)
+            self.entry_buttons[10][2].grid(row=9,column=1)
+
+            self.entry_buttons[11][0].grid(row=10,column=0)
+            self.entry_buttons[11][2].grid(row=10,column=1)
+
+            self.button_create_filter.grid(row=11)
         elif  self.filter_string.get()=='Group Delay':
             self.entry_buttons[0][0].grid(row=2,column=0)
             self.entry_buttons[0][1].grid(row=2,column=1)
@@ -499,7 +557,14 @@ class TP4:
             self.entry_buttons[9][1].grid(row=5,column=1)
             self.entry_buttons[9][2].grid(row=5,column=2)
             self.curr_buttons.append(self.entry_buttons[9][1])
-            self.button_create_filter.grid(row=6)
+
+            self.entry_buttons[10][0].grid(row=6,column=0)
+            self.entry_buttons[10][2].grid(row=6,column=1)
+
+            self.entry_buttons[11][0].grid(row=7,column=0)
+            self.entry_buttons[11][2].grid(row=7,column=1)
+
+            self.button_create_filter.grid(row=8)
     #Function creates filter according to user input
     def __init__(self):
         self.root = Tk()
@@ -602,8 +667,22 @@ class TP4:
         self.tol_unit = Label( self.side_toolbar, text="[%]")
         self.entry_buttons.append([self.tol_label,self.tol_entry,self.tol_unit])
 
+        self.nvar = IntVar()
+        self.n_entry= Entry(self.side_toolbar,width=5)
+        self.n_entry.grid(row=9,column=1)
+        self.n_check= Checkbutton(self.side_toolbar, text="Fixed order n°", variable=self.nvar)
+        self.n_check.grid(row=9,column=0)
+        self.entry_buttons.append([self.n_check,0,self.n_entry])
+
+        self.qvar = IntVar()
+        self.q_entry= Entry(self.side_toolbar,width=5)
+        self.q_entry.grid(row=10,column=1)
+        self.q_check=Checkbutton(self.side_toolbar, text="Max Q", variable=self.qvar)
+        self.q_check.grid(row=10,column=0)
+        self.entry_buttons.append([self.q_check,0,self.q_entry])
+
         self.button_create_filter = Button(self.side_toolbar,text="Create Filter",command=self.create_filter)
-        self.button_create_filter.grid(row=9)
+        self.button_create_filter.grid(row=11)
 
         graph_and_buttons = Frame(self.root)
         graph_and_buttons.pack(side=LEFT)
@@ -631,7 +710,7 @@ class TP4:
         #-------------------------------------------------------------------------------
 
         f = Figure()
-        
+        self.filter_ready=False
         self.axis = f.add_subplot(111)
         self.data_plot = FigureCanvasTkAgg(f, master=graph)
         self.data_plot.draw()

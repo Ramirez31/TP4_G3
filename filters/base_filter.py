@@ -207,4 +207,37 @@ class base_filter(metaclass=ABCMeta):
     def filter_is(self):
         return self.name
 
+    def check_input(self):
+        error=False
+        if (self.gain>=0) or (self.n>self.nmax):
+            if self.name == 'Group delay':
+                if (self.palm<=0) or (self.palm>=1):
+                    error = True
+                if (error is False) and (self.tao0<=0):
+                    error = True
+                if (error is False) and (self.wrg<=0):
+                    error = True
+
+            elif (self.Ao>0) and (self.Ap>0) and (self.Ao>=self.Ap):
+                if self.name == 'LowPass':
+                    if(self.wpl>=self.wal):
+                        error=True
+                elif self.name == 'HighPass':
+                    if(self.wal>=self.wpl):
+                        error=True
+                elif self.name == 'BandPass':
+                    if ((self.wah > self.wph) and (self.wph > self.wpl) and (self.wpl > self.wal) ) is False:
+                        error=True
+                elif self.name == 'StopBand':
+                    if ((self.wph > self.wah) and (self.wah > self.wal) and (self.wal > self.wpl)) is False:
+                        error=True
+            else:
+                error=True
+        else:
+            error = True
+        return error
+
+    def error_was(self):
+        return self.error
+
 

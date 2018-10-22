@@ -14,6 +14,7 @@ class Invchebyshev(base_filter):
             self.Ap=args[4]
             self.Ao=args[5]
             self.n=args[6]
+            self.qmax=args[7]
         elif (args[0]=='BandPass')|(args[0]=='StopBand'):
             self.name = args[0]
             self.gain=args[1]
@@ -24,18 +25,23 @@ class Invchebyshev(base_filter):
             self.Ap=args[6]
             self.Ao=args[7]
             self.n=args[8]
+            self.qmax=args[9]
         if self.name:
-            self.poles=[]
-            self.zeroes=[]
-            self.den=np.poly1d([1])
-            self.num=np.poly1d([1])
-            self.normalize()#Normalizes current template
-            self.do_approximation()#Does normalized approximation and realizes
-            self.denormalize()#Denormalizes the approximation to match desired template
+            self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
+            self.error=self.check_input()
+            if self.error is False:
+                self.poles=[]
+                self.zeroes=[]
+                self.den=np.poly1d([1])
+                self.num=np.poly1d([1])
+                self.normalize()#Normalizes current template
+                self.do_approximation()#Does normalized approximation and realizes
+                self.denormalize()#Denormalizes the approximation to match desired template
 
     def do_approximation(self):
        self.epsilon=1/np.sqrt(np.power(10,self.Ao/10)-1)
-       self.n = int(np.ceil(np.arccosh(1/(self.epsilon*np.sqrt(np.power(10,self.Ap/10)-1)))/np.arccosh(self.wan)))
+       if self.n == None:
+           self.n = int(np.ceil(np.arccosh(1/(self.epsilon*np.sqrt(np.power(10,self.Ap/10)-1)))/np.arccosh(self.wan)))
        for i in range(1,2*self.n+1):
            alfa=(2*i-1)*np.pi/(2*self.n)
            beta=np.absolute(np.arcsinh(1/self.epsilon)/self.n)
