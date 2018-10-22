@@ -14,10 +14,10 @@ class Gauss(base_filter):
             self.wrg=args[3]
             self.palm=args[4]/100
             self.n=args[5]
-            self.qmax=args[6]
+            self.input_qmax=args[6]
             self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
-            self.error=self.check_input()
-            if self.error is False:
+            self.errormsg=self.check_input()
+            if self.errormsg == '':
                 self.poles=[]
                 self.zeroes=[]
                 self.den=np.poly1d([1])

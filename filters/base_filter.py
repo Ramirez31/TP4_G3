@@ -208,36 +208,44 @@ class base_filter(metaclass=ABCMeta):
         return self.name
 
     def check_input(self):
-        error=False
-        if (self.gain>=0) or (self.n>self.nmax):
+        errormsg=''
+        if (self.gain >=0) and ((self.n==None) or (self.n<self.nmax)):
             if self.name == 'Group delay':
                 if (self.palm<=0) or (self.palm>=1):
-                    error = True
-                if (error is False) and (self.tao0<=0):
-                    error = True
-                if (error is False) and (self.wrg<=0):
-                    error = True
+                    errormsg=errormsg+'Error: Tolerance must be a real number higher than 0 and smaller than 1\n'
+                if (errormsg =='') and (self.tao0<=0):
+                    errormsg =errormsg+'Error: Group delay at 0 must be a positive value\n'
+                if (errormsg =='') and (self.wrg<=0):
+                    errormsg = errormsg +'Error:Wrg must be a positive real number\n'
 
             elif (self.Ao>0) and (self.Ap>0) and (self.Ao>=self.Ap):
                 if self.name == 'LowPass':
                     if(self.wpl>=self.wal):
-                        error=True
+                        errormsg=errormsg+'Error: Template requiermentes not met, Wp must be smaller than Wa\n'
                 elif self.name == 'HighPass':
                     if(self.wal>=self.wpl):
-                        error=True
+                        errormsg=errormsg+'Error: Template requirements not met, Wa must be smaller than Wp\n'
                 elif self.name == 'BandPass':
                     if ((self.wah > self.wph) and (self.wph > self.wpl) and (self.wpl > self.wal) ) is False:
-                        error=True
+                        errormsg=errormsg+'Error: Template requirements not met.(Remember, Wa+>Wp+>Wp->Wa-)\n'
                 elif self.name == 'StopBand':
                     if ((self.wph > self.wah) and (self.wah > self.wal) and (self.wal > self.wpl)) is False:
-                        error=True
+                        errormsg=errormsg+'Error: Template requirements not met.(Remember, Wp+>Wa+>Wa->Wp-)\n'
             else:
-                error=True
+                if(self.Ao<0) or (self.Ap<0):
+                    errormsg=errormsg+'Error: Ao and Ap must be positive valued real numbers\n'
+                elif (self.Ao<self.Ap):
+                    errormsg=errormsg+'Error: Ap must be smaller than Ao\n'
+                else:
+                    errormsg=errormsg+'Error: Filter type was not found in our selection\n'
         else:
-            error = True
-        return error
+            if self.gain<0:
+                errormsg=errormsg+'Error: Gain must be a positive real value.\n'
+            if ((self.n!=None) and (self.n>self.nmax)):
+                errormsg=errormsg+'Error: Fixed order surpasses maximum order limit for this approximation type.\n'
+        return errormsg
 
     def error_was(self):
-        return self.error
+        return self.errormsg
 
 

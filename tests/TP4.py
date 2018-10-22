@@ -66,7 +66,7 @@ class TP4:
         error,entries,aproximation =self.parse_entry()
         if error is False:
             filter_instance = filters.create(aproximation, *entries)
-            if filter_instance.error_was() is False:
+            if filter_instance.error_was() == '':
                 self.filter_ready=True
                 self.w,self.mag,self.phase = filter_instance.get_bode()
                 self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
@@ -79,8 +79,8 @@ class TP4:
                 self.zeroes, self.poles = filter_instance.get_zeroes_poles()
                 self.group_delay = filter_instance.get_group_delay()
             else:
-                messagebox.showerror("Input Error", "Input does not meet template requirements or order limit was exceeded. Please check recent input")
-        elif True:
+                messagebox.showerror("Input Error", filter_instance.error_was())
+        else:
             messagebox.showerror("Input Error", "Check if any active entry box is empty. Input has to be numeric")
 
     #Function plots current filter's phase in current subplot
@@ -381,196 +381,197 @@ class TP4:
                 widget.grid_forget()
         if  self.filter_string.get()=='LowPass':
             self.aprox_figure.create_image(0,0,image=self.photoLP,anchor='nw')
-            self.entry_buttons[0][0].grid(row=2,column=0)
+            self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
             self.entry_buttons[0][1].grid(row=2,column=1)
             self.entry_buttons[0][2].grid(row=2,column=2)
             self.curr_buttons.append(self.entry_buttons[0][1])
             
-            self.entry_buttons[1][0].grid(row=3,column=0)
+            self.entry_buttons[1][0].grid(row=3,column=0,sticky=W)
             self.entry_buttons[1][1].grid(row=3,column=1)
             self.entry_buttons[1][2].grid(row=3,column=2)
             self.curr_buttons.append(self.entry_buttons[1][1])
 
-            self.entry_buttons[3][0].grid(row=4,column=0)
+            self.entry_buttons[3][0].grid(row=4,column=0,sticky=W)
             self.entry_buttons[3][1].grid(row=4,column=1)
             self.entry_buttons[3][2].grid(row=4,column=2)
             self.curr_buttons.append(self.entry_buttons[3][1])
 
-            self.entry_buttons[5][0].grid(row=5,column=0)
+            self.entry_buttons[5][0].grid(row=5,column=0,sticky=W)
             self.entry_buttons[5][1].grid(row=5,column=1)
             self.entry_buttons[5][2].grid(row=5,column=2)
             self.curr_buttons.append(self.entry_buttons[5][1])
 
-            self.entry_buttons[6][0].grid(row=6,column=0)
+            self.entry_buttons[6][0].grid(row=6,column=0,sticky=W)
             self.entry_buttons[6][1].grid(row=6,column=1)
             self.entry_buttons[6][2].grid(row=6,column=2)
             self.curr_buttons.append(self.entry_buttons[6][1])
 
-            self.entry_buttons[10][0].grid(row=7,column=0)
+            self.entry_buttons[10][0].grid(row=7,column=0,sticky=W)
             self.entry_buttons[10][2].grid(row=7,column=1)
 
 
-            self.entry_buttons[11][0].grid(row=8,column=0)
+            self.entry_buttons[11][0].grid(row=8,column=0,sticky=W)
             self.entry_buttons[11][2].grid(row=8,column=1)
 
 
-            self.button_create_filter.grid(row=9)
+            self.button_create_filter.grid(row=9,column=0,sticky=W)
         elif  self.filter_string.get()=='HighPass':
             self.aprox_figure.create_image(0,0,image=self.photoHP,anchor='nw')
-            self.entry_buttons[0][0].grid(row=2,column=0)
+            self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
             self.entry_buttons[0][1].grid(row=2,column=1)
             self.entry_buttons[0][2].grid(row=2,column=2)
             self.curr_buttons.append(self.entry_buttons[0][1])
             
-            self.entry_buttons[1][0].grid(row=3,column=0)
+            self.entry_buttons[1][0].grid(row=3,column=0,sticky=W)
             self.entry_buttons[1][1].grid(row=3,column=1)
             self.entry_buttons[1][2].grid(row=3,column=2)
             self.curr_buttons.append(self.entry_buttons[1][1])
 
-            self.entry_buttons[3][0].grid(row=4,column=0)
+            self.entry_buttons[3][0].grid(row=4,column=0,sticky=W)
             self.entry_buttons[3][1].grid(row=4,column=1)
             self.entry_buttons[3][2].grid(row=4,column=2)
             self.curr_buttons.append(self.entry_buttons[3][1])
 
-            self.entry_buttons[5][0].grid(row=5,column=0)
+            self.entry_buttons[5][0].grid(row=5,column=0,sticky=W)
             self.entry_buttons[5][1].grid(row=5,column=1)
             self.entry_buttons[5][2].grid(row=5,column=2)
             self.curr_buttons.append(self.entry_buttons[5][1])
 
-            self.entry_buttons[6][0].grid(row=6,column=0)
+            self.entry_buttons[6][0].grid(row=6,column=0,sticky=W)
             self.entry_buttons[6][1].grid(row=6,column=1)
             self.entry_buttons[6][2].grid(row=6,column=2)
             self.curr_buttons.append(self.entry_buttons[6][1])
 
-            self.entry_buttons[10][0].grid(row=7,column=0)
+            self.entry_buttons[10][0].grid(row=7,column=0,sticky=W)
             self.entry_buttons[10][2].grid(row=7,column=1)
 
-            self.entry_buttons[11][0].grid(row=8,column=0)
+            self.entry_buttons[11][0].grid(row=8,column=0,sticky=W)
             self.entry_buttons[11][2].grid(row=8,column=1)
 
-            self.button_create_filter.grid(row=9)
+            self.button_create_filter.grid(row=9,column=0,sticky=W)
         elif  self.filter_string.get()=='BandPass':
             self.aprox_figure.create_image(0,0,image=self.photoBP,anchor='nw')
-            self.entry_buttons[0][0].grid(row=2,column=0)
+            self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
             self.entry_buttons[0][1].grid(row=2,column=1)
             self.entry_buttons[0][2].grid(row=2,column=2)
             self.curr_buttons.append(self.entry_buttons[0][1])
             
-            self.entry_buttons[1][0].grid(row=3,column=0)
+            self.entry_buttons[1][0].grid(row=3,column=0,sticky=W)
             self.entry_buttons[1][1].grid(row=3,column=1)
             self.entry_buttons[1][2].grid(row=3,column=2)
             self.curr_buttons.append(self.entry_buttons[1][1])
 
-            self.entry_buttons[2][0].grid(row=4,column=0)
+            self.entry_buttons[2][0].grid(row=4,column=0,sticky=W)
             self.entry_buttons[2][1].grid(row=4,column=1)
             self.entry_buttons[2][2].grid(row=4,column=2)
             self.curr_buttons.append(self.entry_buttons[2][1])
 
-            self.entry_buttons[3][0].grid(row=5,column=0)
+            self.entry_buttons[3][0].grid(row=5,column=0,sticky=W)
             self.entry_buttons[3][1].grid(row=5,column=1)
             self.entry_buttons[3][2].grid(row=5,column=2)
             self.curr_buttons.append(self.entry_buttons[3][1])
 
-            self.entry_buttons[4][0].grid(row=6,column=0)
+            self.entry_buttons[4][0].grid(row=6,column=0,sticky=W)
             self.entry_buttons[4][1].grid(row=6,column=1)
             self.entry_buttons[4][2].grid(row=6,column=2)
             self.curr_buttons.append(self.entry_buttons[4][1])
 
-            self.entry_buttons[5][0].grid(row=7,column=0)
+            self.entry_buttons[5][0].grid(row=7,column=0,sticky=W)
             self.entry_buttons[5][1].grid(row=7,column=1)
             self.entry_buttons[5][2].grid(row=7,column=2)
             self.curr_buttons.append(self.entry_buttons[5][1])
 
-            self.entry_buttons[6][0].grid(row=8,column=0)
+            self.entry_buttons[6][0].grid(row=8,column=0,sticky=W)
             self.entry_buttons[6][1].grid(row=8,column=1)
             self.entry_buttons[6][2].grid(row=8,column=2)
             self.curr_buttons.append(self.entry_buttons[6][1])
 
-            self.entry_buttons[10][0].grid(row=9,column=0)
+            self.entry_buttons[10][0].grid(row=9,column=0,sticky=W)
             self.entry_buttons[10][2].grid(row=9,column=1)
 
-            self.entry_buttons[11][0].grid(row=10,column=0)
+            self.entry_buttons[11][0].grid(row=10,column=0,sticky=W)
             self.entry_buttons[11][2].grid(row=10,column=1)
 
-            self.button_create_filter.grid(row=11)
+            self.button_create_filter.grid(row=11,column=0,sticky=W)
         elif  self.filter_string.get()=='StopBand':
             self.aprox_figure.create_image(0,0,image=self.photoSB,anchor='nw')
-            self.entry_buttons[0][0].grid(row=2,column=0)
+            self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
             self.entry_buttons[0][1].grid(row=2,column=1)
             self.entry_buttons[0][2].grid(row=2,column=2)
             self.curr_buttons.append(self.entry_buttons[0][1])
 
-            self.entry_buttons[1][0].grid(row=3,column=0)
+            self.entry_buttons[1][0].grid(row=3,column=0,sticky=W)
             self.entry_buttons[1][1].grid(row=3,column=1)
             self.entry_buttons[1][2].grid(row=3,column=2)
             self.curr_buttons.append(self.entry_buttons[1][1])
 
-            self.entry_buttons[2][0].grid(row=4,column=0)
+            self.entry_buttons[2][0].grid(row=4,column=0,sticky=W)
             self.entry_buttons[2][1].grid(row=4,column=1)
             self.entry_buttons[2][2].grid(row=4,column=2)
             self.curr_buttons.append(self.entry_buttons[2][1])
 
-            self.entry_buttons[3][0].grid(row=5,column=0)
+            self.entry_buttons[3][0].grid(row=5,column=0,sticky=W)
             self.entry_buttons[3][1].grid(row=5,column=1)
             self.entry_buttons[3][2].grid(row=5,column=2)
             self.curr_buttons.append(self.entry_buttons[3][1])
 
-            self.entry_buttons[4][0].grid(row=6,column=0)
+            self.entry_buttons[4][0].grid(row=6,column=0,sticky=W)
             self.entry_buttons[4][1].grid(row=6,column=1)
             self.entry_buttons[4][2].grid(row=6,column=2)
             self.curr_buttons.append(self.entry_buttons[4][1])
 
-            self.entry_buttons[5][0].grid(row=7,column=0)
+            self.entry_buttons[5][0].grid(row=7,column=0,sticky=W)
             self.entry_buttons[5][1].grid(row=7,column=1)
             self.entry_buttons[5][2].grid(row=7,column=2)
             self.curr_buttons.append(self.entry_buttons[5][1])
 
-            self.entry_buttons[6][0].grid(row=8,column=0)
+            self.entry_buttons[6][0].grid(row=8,column=0,sticky=W)
             self.entry_buttons[6][1].grid(row=8,column=1)
             self.entry_buttons[6][2].grid(row=8,column=2)
             self.curr_buttons.append(self.entry_buttons[6][1])
 
-            self.entry_buttons[10][0].grid(row=9,column=0)
+            self.entry_buttons[10][0].grid(row=9,column=0,sticky=W)
             self.entry_buttons[10][2].grid(row=9,column=1)
 
-            self.entry_buttons[11][0].grid(row=10,column=0)
+            self.entry_buttons[11][0].grid(row=10,column=0,sticky=W)
             self.entry_buttons[11][2].grid(row=10,column=1)
 
-            self.button_create_filter.grid(row=11)
+            self.button_create_filter.grid(row=11,column=0,sticky=W)
         elif  self.filter_string.get()=='Group Delay':
-            self.entry_buttons[0][0].grid(row=2,column=0)
+            self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
             self.entry_buttons[0][1].grid(row=2,column=1)
             self.entry_buttons[0][2].grid(row=2,column=2)
             self.curr_buttons.append(self.entry_buttons[0][1])
 
-            self.entry_buttons[7][0].grid(row=3,column=0)
+            self.entry_buttons[7][0].grid(row=3,column=0,sticky=W)
             self.entry_buttons[7][1].grid(row=3,column=1)
             self.entry_buttons[7][2].grid(row=3,column=2)
             self.curr_buttons.append(self.entry_buttons[7][1])
 
-            self.entry_buttons[8][0].grid(row=4,column=0)
+            self.entry_buttons[8][0].grid(row=4,column=0,sticky=W)
             self.entry_buttons[8][1].grid(row=4,column=1)
             self.entry_buttons[8][2].grid(row=4,column=2)
             self.curr_buttons.append(self.entry_buttons[8][1])
 
-            self.entry_buttons[9][0].grid(row=5,column=0)
+            self.entry_buttons[9][0].grid(row=5,column=0,sticky=W)
             self.entry_buttons[9][1].grid(row=5,column=1)
             self.entry_buttons[9][2].grid(row=5,column=2)
             self.curr_buttons.append(self.entry_buttons[9][1])
 
-            self.entry_buttons[10][0].grid(row=6,column=0)
+            self.entry_buttons[10][0].grid(row=6,column=0,sticky=W)
             self.entry_buttons[10][2].grid(row=6,column=1)
 
-            self.entry_buttons[11][0].grid(row=7,column=0)
+            self.entry_buttons[11][0].grid(row=7,column=0,sticky=W)
             self.entry_buttons[11][2].grid(row=7,column=1)
 
-            self.button_create_filter.grid(row=8)
+            self.button_create_filter.grid(row=8,column=0,sticky=W)
     #Function creates filter according to user input
     def __init__(self):
         self.root = Tk()
         self.root.title("Tc Example")
+        self.root.resizable(False, False)
         #------------------------------------------------------------------------
-        self.side_toolbar=Frame(self.root,width=300)
+        self.side_toolbar=Frame(self.root,width=270)
         self.side_toolbar.pack(side=LEFT,fill=BOTH,expand=True,padx=2,pady=4)
         self.side_toolbar.grid_propagate(0)
 
@@ -598,7 +599,7 @@ class TP4:
         self.curr_buttons=[]
 
         self.gain_label = Label( self.side_toolbar, text="Gain:")
-        self.gain_label.grid(row=2,column=0)
+        self.gain_label.grid(row=2,column=0,sticky=W)
         self.gain_entry = Entry(self.side_toolbar,width=5)
         self.gain_entry.grid(row=2,column=1)
         self.gain_unit = Label( self.side_toolbar, text="[dB]")
@@ -607,7 +608,7 @@ class TP4:
         self.curr_buttons.append(self.gain_entry)
 
         self.fpl_label = Label( self.side_toolbar, text="Passband Freq(Fp-):")
-        self.fpl_label.grid(row=3,column=0)
+        self.fpl_label.grid(row=3,column=0,sticky=W)
         self.fpl_entry = Entry(self.side_toolbar,width=5)
         self.fpl_entry.grid(row=3,column=1)
         self.fpl_unit = Label( self.side_toolbar, text="[Hz]")
@@ -621,7 +622,7 @@ class TP4:
         self.entry_buttons.append([self.fph_label,self.fph_entry,self.fph_unit])
 
         self.fal_label = Label( self.side_toolbar, text="Attenuation Freq(Fa-):")
-        self.fal_label.grid(row=5,column=0)
+        self.fal_label.grid(row=5,column=0,sticky=W)
         self.fal_entry = Entry(self.side_toolbar,width=5)
         self.fal_entry.grid(row=5,column=1)
         self.fal_unit = Label( self.side_toolbar, text="[Hz]")
@@ -635,7 +636,7 @@ class TP4:
         self.entry_buttons.append([self.fah_label,self.fah_entry,self.fah_unit])
 
         self.ap_label = Label( self.side_toolbar, text="Attenuation Atten.(Ap):")
-        self.ap_label.grid(row=7,column=0)
+        self.ap_label.grid(row=7,column=0,sticky=W)
         self.ap_entry = Entry(self.side_toolbar,width=5)
         self.ap_entry.grid(row=7,column=1)
         self.ap_unit = Label( self.side_toolbar, text="[dB]")
@@ -644,7 +645,7 @@ class TP4:
         self.curr_buttons.append(self.ap_entry)
 
         self.aa_label = Label( self.side_toolbar, text="Stopband Atten(Aa):")
-        self.aa_label.grid(row=8,column=0)
+        self.aa_label.grid(row=8,column=0,sticky=W)
         self.aa_entry = Entry(self.side_toolbar,width=5)
         self.aa_entry.grid(row=8,column=1)
         self.aa_unit = Label( self.side_toolbar, text="[dB]")
@@ -670,19 +671,19 @@ class TP4:
         self.nvar = IntVar()
         self.n_entry= Entry(self.side_toolbar,width=5)
         self.n_entry.grid(row=9,column=1)
-        self.n_check= Checkbutton(self.side_toolbar, text="Fixed order n°", variable=self.nvar)
-        self.n_check.grid(row=9,column=0)
+        self.n_check= Checkbutton(self.side_toolbar, text="Fixed  n order ", variable=self.nvar)
+        self.n_check.grid(row=9,column=0,sticky=W)
         self.entry_buttons.append([self.n_check,0,self.n_entry])
 
         self.qvar = IntVar()
         self.q_entry= Entry(self.side_toolbar,width=5)
         self.q_entry.grid(row=10,column=1)
-        self.q_check=Checkbutton(self.side_toolbar, text="Max Q", variable=self.qvar)
-        self.q_check.grid(row=10,column=0)
+        self.q_check=Checkbutton(self.side_toolbar, text="Maximum Q", variable=self.qvar)
+        self.q_check.grid(row=10,column=0,sticky=W)
         self.entry_buttons.append([self.q_check,0,self.q_entry])
 
         self.button_create_filter = Button(self.side_toolbar,text="Create Filter",command=self.create_filter)
-        self.button_create_filter.grid(row=11)
+        self.button_create_filter.grid(row=11,column=0,sticky=W)
 
         graph_and_buttons = Frame(self.root)
         graph_and_buttons.pack(side=LEFT)

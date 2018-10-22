@@ -14,7 +14,7 @@ class Butterworth(base_filter):
             self.Ap=args[4]
             self.Ao=args[5]
             self.n=args[6]
-            self.qmax=args[7]
+            self.input_qmax=args[7]
         elif (args[0]=='BandPass')|(args[0]=='StopBand'):
             self.name = args[0]
             self.gain=args[1]
@@ -25,11 +25,11 @@ class Butterworth(base_filter):
             self.Ap=args[6]
             self.Ao=args[7]
             self.n=args[8]
-            self.qmax=args[9]
+            self.input_qmax=args[9]
         if self.name:
             self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
-            self.error=self.check_input()
-            if self.error is False:
+            self.errormsg=self.check_input()
+            if self.errormsg == '':
                 self.poles=[]
                 self.zeroes=[]
                 self.den=np.poly1d([1])
@@ -41,14 +41,18 @@ class Butterworth(base_filter):
     #
     def do_approximation(self):
         self.epsilon=np.sqrt(np.power(10,(self.Ap)/10)-1)
+        self.maxq=0
         if self.n==None:
             self.n = int(np.ceil(np.log10((np.power(10,(self.Ao)/10)-1)/np.power(self.epsilon,2))/(2*np.log10(self.wan))))
-        ro=np.power(self.epsilon,-1/self.n)
-        for i in range(1,self.n+1):
-            root= ro*(-np.sin(np.pi*(2*i-1)/(2*self.n))+1j*np.cos(np.pi*(2*i-1)/(2*self.n)))
-            if np.real(root)<=0: #Only left-plane poles are utilized
-                self.poles.append(root)
-                pol= np.poly1d([-1/root, 1])
-                self.den= self.den*pol
-        self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
-        self.aprox_gain=1
+        if (self.n>self.nmax) is False:
+            ro=np.power(self.epsilon,-1/self.n)
+            for i in range(1,self.n+1):
+                root= ro*(-np.sin(np.pi*(2*i-1)/(2*self.n))+1j*np.cos(np.pi*(2*i-1)/(2*self.n)))
+                if np.real(root)<=0: #Only left-plane poles are utilized
+                    self.poles.append(root)
+                    pol= np.poly1d([-1/root, 1])
+                    self.den= self.den*pol
+            self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
+            self.aprox_gain=1
+        else:
+            self.errormsg='Required order surpasses maximum order limit for this approximation type.'

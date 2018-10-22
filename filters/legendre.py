@@ -14,7 +14,7 @@ class Legendre(base_filter):
             self.Ap=args[4]
             self.Ao=args[5]
             self.n=args[6]
-            self.qmax=args[7]
+            self.input_qmax=args[7]
         elif (args[0]=='BandPass')|(args[0]=='StopBand'):
             self.name = args[0]
             self.gain=args[1]
@@ -25,11 +25,11 @@ class Legendre(base_filter):
             self.Ap=args[6]
             self.Ao=args[7]
             self.n=args[8]
-            self.qmax=args[9]
+            self.input_qmax=args[9]
         if self.name:
             self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
-            self.error=self.check_input()
-            if self.error is False:
+            self.errormsg=self.check_input()
+            if self.errormsg == '':
                 self.poles=[]
                 self.zeroes=[]
                 self.den=np.poly1d([1])
