@@ -6,20 +6,26 @@ from scipy import special
 class Papoulis(base_filter):
 
     #Filter initialization with initial parameters received
-    def __init__(self, name,Ap,Ao,wpl,wph,wal,wah,gain,n,tao0=None,wrg=None,palm=None):
-        if name:
-            self.name = name
-            self.Ap=Ap
-            self.Ao=Ao
-            self.wpl=wpl
-            self.wph=wph
-            self.wal=wal
-            self.wah=wah
-            self.n=n
-            self.gain=gain
-            self.tao0=tao0
-            self.wrg=wrg
-            self.palm=palm
+    def __init__(self, *args):
+        if (args[0]=='LowPass')|(args[0]=='HighPass'):
+            self.name = args[0]
+            self.gain=args[1]
+            self.wpl=args[2]
+            self.wal=args[3]
+            self.Ap=args[4]
+            self.Ao=args[5]
+            self.n=args[6]
+        elif (args[0]=='BandPass')|(args[0]=='StopBand'):
+            self.name = args[0]
+            self.gain=args[1]
+            self.wpl=args[2]
+            self.wph=args[3]
+            self.wal=args[4]
+            self.wah=args[5]
+            self.Ap=args[6]
+            self.Ao=args[7]
+            self.n=args[8]
+        if self.name:
             self.poles=[]
             self.zeroes=[]
             self.den=np.poly1d([1])
@@ -32,7 +38,7 @@ class Papoulis(base_filter):
        self.epsilon=np.sqrt(np.power(10,self.Ap/10)-1)
        self.n=0
        Ln2_wan=0
-       while (Ln2_wan >= ((np.power(10,self.Ao/10)-1)/np.power(self.epsilon,2)))==False:
+       while (Ln2_wan >= ((np.power(10,self.Ao/10)-1)/np.power(self.epsilon,2)))==False: #While template specifications are not met, order increases
            self.n+=1
            Ln=np.poly1d([1])
            if np.mod(self.n,2)==1:#If n is odd 
@@ -49,26 +55,25 @@ class Papoulis(base_filter):
                 k=(self.n-2)/2
                 p_legendre=special.legendre(k+1)
                 temp_pol=np.polymul(np.polyder(p_legendre),np.polyder(p_legendre))
-                phi=np.polymul(temp_pol,np.poly1d([1,1]))
-                Ln=np.polyint(phi)#Primitive is calculated, Barrow will be applied to this function
+                phi=np.polymul(temp_pol,np.poly1d([1,1]))#Function to be integrated is calculated
+                Ln=np.polyint(phi)#Primitive is calculated, Barrow will be applied to this function with integration bounds(-S^2-1),-1
            
            Ln2=np.poly1d([0])
-           poly2mul=np.poly1d([-2,0,-1])#First (-S^2-1) is replaced in the obtained primitive
+           poly2mul=np.poly1d([-2,0,-1])#First (-S^2-1) is replaced in the obtained primitive (upper bound Barrow)
            for i in range(0,len(Ln)+1):
-               polybeingmul=poly2mul#First (-S^2-1) is replaced in the obtained primitive
-               for j in range(0,i-1):
+               polybeingmul=poly2mul
+               for j in range(0,i-1):#Loop used to get the n-th power of polymul
                     polybeingmul=np.polymul(polybeingmul,poly2mul)
-               a=Ln[i]*polybeingmul
-               Ln2=np.polyadd(Ln2,a)
-           Ln2=np.polyadd(Ln2,-np.poly1d([np.polyval(Ln,-1)]))
-           if np.mod(self.n,2)==0:#If n is even 
-               Ln2=Ln2/np.polyval(Ln2,-1j)
-           Ln2_wan=np.polyval(Ln2,self.wan)
-       roots=np.roots(np.polyadd(Ln2*np.power(self.epsilon,2),np.poly1d([1])))
-       for i in range(0,len(roots)):
+               Ln2=np.polyadd(Ln2,Ln[i]*polybeingmul)
+           Ln2=np.polyadd(Ln2,-np.poly1d([np.polyval(Ln,-1)]))#Finally polynomial is evualated in -1 and this is substracted to previos value (lower bound Barrow)
+           if np.mod(self.n,2)==0:#If n is even Ln2(w=1)=1, so knowing that S=wj->w=-jS
+               Ln2=Ln2/np.polyval(Ln2,-1j)#So as to make Ln2(w=1)=1
+           Ln2_wan=np.polyval(Ln2,self.wan)#Ln2 is evaulated in Wan, so as to see if template condition is met
+       roots=np.roots(np.polyadd(Ln2*np.power(self.epsilon,2),np.poly1d([1])))#Roots of the denominator are found
+       for i in range(0,len(roots)):#If they are in the left plane, they are kept
            if np.real(roots[i])<=0:
                 if roots[i]!=0:
-                    pol=np.poly1d([-1/roots[i],1])
+                    pol=np.poly1d([-1/roots[i],1])#H(s) polynomial is constructed
                 else:
                     pol=np.poly1d([1,0])
                 self.den=self.den*pol

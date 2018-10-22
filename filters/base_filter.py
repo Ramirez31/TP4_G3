@@ -14,23 +14,8 @@ class base_filter(metaclass=ABCMeta):
     n= Filter order
     """
     #Function initializes class
-    def __init__(self, name=None,Ap=None,Ao=None,wpl=None,wph=None,wal=None,wah=None,gain=None,n=None,tao0=None,wrg=None,palm=None):
-        if name:
-            self.name = name
-            self.Ap=Ap
-            self.Ao=Ao
-            self.wpl=wpl
-            self.wph=wph
-            self.wal=wal
-            self._wah=wah
-            self.n=n
-            self.gain=gain
-            self.tao0=tao0
-            self.wrg=wrg
-            self.palm=palm
-            self.zeros=None
-            self.poles=None
-            self.system=None
+    def __init__(self,*args,):
+        pass
 
     # Function does normalized approximation       
     @abstractmethod
@@ -39,8 +24,9 @@ class base_filter(metaclass=ABCMeta):
 
     # Function does normalized approximation, and denormalizes it with initial parameters provided (used for instanciating object)       
     def normalize(self):
-        self.Ap=self.Ap+self.gain
-        self.Ao=self.Ao+self.gain
+        if self.name != 'Group Delay':
+            self.Ap=self.Ap+self.gain
+            self.Ao=self.Ao+self.gain
         if self.name=='LowPass':
             self.wan=self.wal/self.wpl
         elif self.name=='HighPass':
@@ -162,12 +148,36 @@ class base_filter(metaclass=ABCMeta):
 
     # Function returns current filter frequency response (frec,magnitude,phase)
     def get_bode(self):
-        self.w,self.mag,self.phase = signal.bode(self.denorm_sys,n=1000)
+        if self.name=='Group Delay':
+            self.w,self.mag,self.phase = signal.bode(self.denorm_sys)
+            return self.w, self.mag, self.phase
+        if self.name=='LowPass': #If required filter is LP
+            w=np.hstack((np.logspace(np.log10(self.wpl/1000),np.log10(self.wpl),num=500),np.logspace(np.log10(self.wpl*1.01),np.log10(self.wal*0.99),num=500)))
+            w=np.hstack((w,np.logspace(np.log10(self.wal),np.log10(self.wal*1000),num=500)))
+        elif self.name=='HighPass': #If required filter is HP
+            w=np.hstack((np.logspace(np.log10(self.wal/1000),np.log10(self.wal),num=500),np.logspace(np.log10(self.wal*1.01),np.log10(self.wpl*0.99),num=500)))
+            w=np.hstack((w,np.logspace(np.log10(self.wpl),np.log10(self.wpl*1000),num=500)))
+        elif self.name=='BandPass': #If required filter is BP
+            w=np.hstack((np.logspace(np.log10(self.wal/1000),np.log10(self.wal),num=500),np.logspace(np.log10(self.wal*1.01),np.log10(self.wpl*0.99),num=500)))
+            w=np.hstack((w,np.logspace(np.log10(self.wpl),np.log10(self.wph),num=500)))
+            w=np.hstack((w,np.logspace(np.log10(self.wph*1.01),np.log10(self.wah),num=500)))
+            w=np.hstack((w,np.logspace(np.log10(self.wah*1.01),np.log10(self.wah*1000),num=500)))
+        elif self.name=='StopBand': #If required filter is SB
+            w=np.hstack((np.logspace(np.log10(self.wpl/1000),np.log10(self.wpl),num=500),np.logspace(np.log10(self.wpl*1.01),np.log10(self.wal*0.99),num=500)))
+            w=np.hstack((w,np.logspace(np.log10(self.wal),np.log10(self.wah),num=500)))
+            w=np.hstack((w,np.logspace(np.log10(self.wah*1.01),np.log10(self.wph),num=500)))
+            w=np.hstack((w,np.logspace(np.log10(self.wph*1.01),np.log10(self.wph*1000),num=500)))
+        self.w,self.mag,self.phase = signal.bode(self.denorm_sys,w)
         return self.w, self.mag, self.phase
 
     # Function returns current filter normalized frequency response (frec,magnitude,phase)
     def get_norm_bode(self):
-        self.nw,self.nmag,self.nphase = signal.bode(self.norm_sys,n=1000)
+        if self.name!='Group Delay':
+            w=np.hstack((np.logspace(-3,0,num=500),np.logspace(0.01,np.log10(self.wan*0.99),num=500)))
+            w=np.hstack((w,np.logspace(np.log10(self.wan),np.log10(self.wan*1000),num=500)))
+            self.nw,self.nmag,self.nphase = signal.bode(self.norm_sys,w)
+        else:
+            self.nw,self.nmag,self.nphase = signal.bode(self.norm_sys)
         return self.nw,self.nmag,self.nphase
 
     # Function returns current filter group delay
@@ -185,7 +195,13 @@ class base_filter(metaclass=ABCMeta):
 
     # Function returns current filter template limitations
     def get_template(self):
-        return self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan,self.gain
+        if (self.name=='LowPass')|(self.name=='HighPass'):
+            return [self.Ap,self.Ao,self.wan,self.wpl,self.wal,self.gain]
+        if (self.name=='BandPass')|(self.name=='StopBand'):
+            return [self.Ap,self.Ao,self.wan,self.wpl,self.wph,self.wal,self.wah,self.gain]
+        if (self.name=='Group Delay'):
+            return [self.tao0,self.wrg,self.palm,self.gain]
+        
 
     # Function returns current filter type:LP,HP,BP or SB
     def filter_is(self):

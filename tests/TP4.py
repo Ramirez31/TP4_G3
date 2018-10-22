@@ -17,46 +17,34 @@ class TP4:
     def parse_entry(self):
         error=False
         entries=[]
-        if self.is_float(self.ap_entry.get()):
-            entries.append(float(self.ap_entry.get()))
-        else:
-            error=True
-        if self.is_float(self.aa_entry.get()):
-            entries.append(float(self.aa_entry.get()))
-        else:
-            error=True
-        if self.is_float(self.fpl_entry.get()) and (float(self.fpl_entry.get())>0):
-            entries.append(float(self.fpl_entry.get()))
-        else:
-            error=True
-        if self.is_float(self.fph_entry.get()) and (float(self.fph_entry.get())>0) :
-            entries.append(float(self.fph_entry.get()))
-        else:
-            error=True
-        if self.is_float(self.fal_entry.get()) and (float(self.fal_entry.get())>0):
-            entries.append(float(self.fal_entry.get()))
-        else:
-            error=True
-        if self.is_float(self.fah_entry.get()) and (float(self.fah_entry.get())>0):
-            entries.append(float(self.fah_entry.get()))
-        else:
-            error=True
-        if self.is_float(self.gain_entry.get()):
-            entries.append(float(self.gain_entry.get()))
-        else:
-            error=True
-        entries.append(1)#ACA TIENE QUE IR EL BOTONCITO DE SI QUIERO FIJAR UN ORDEN N DE FILTRO
+        aprox=''
+        if self.aprox_string.get()=='Butterworth':
+            aprox='butterworth'
+        elif self.aprox_string.get()=='Chebyshev':
+            aprox='chebyshev'
+        elif self.aprox_string.get()=='Inverse Chebyshev':
+            aprox='invchebyshev'
+        elif self.aprox_string.get()=='Legendre':
+            aprox='legendre'
+        elif self.aprox_string.get()=='Papoulis':
+            aprox='papoulis'
+        elif self.aprox_string.get()=='Cauer':
+            aprox='cauer'
+        elif self.aprox_string.get()=='Bessel':
+            aprox='bessel'
+        elif self.aprox_string.get()=='Gauss':
+            aprox='gauss'
         entries.append(self.filter_string.get())
-        error = self.check_template_entry()
-        
-        self.ap_entry.delete(0,END)
-        self.aa_entry.delete(0,END)
-        self.fal_entry.delete(0,END)
-        self.fah_entry.delete(0,END)
-        self.fpl_entry.delete(0,END)
-        self.fph_entry.delete(0,END)
-        self.gain_entry.delete(0,END)
-        return error,entries
+        for entry in self.curr_buttons:
+            if self.is_float(entry.get()):
+                entries.append(float(entry.get()))
+                entry.delete(0,END)
+            else:
+                error = True
+        entries.append(1)#ACA TIENE QUE IR EL BOTONCITO DE SI QUIERO FIJAR UN ORDEN N DE FILTRO
+
+        #error = self.check_template_entry()
+        return error,entries,aprox
 
     #Function checks if user input is correct related to desired template
     def check_template_entry(self):
@@ -82,12 +70,12 @@ class TP4:
 
     #Function creates filter according to user input
     def create_filter(self):
-        error,entries =self.parse_entry()
+        error,entries,aproximation =self.parse_entry()
         if error is False:
-            filter_instance = filters.create('papoulis', name=entries[8],Ap=entries[0],Ao=entries[1],wpl=entries[2],wph=entries[3],wal=entries[4],wah=entries[5],gain=entries[6],n=entries[7],tao0=0.01,wrg=600,palm=0.6)
+            filter_instance = filters.create(aproximation, *entries)
             self.w,self.mag,self.phase = filter_instance.get_bode()
             self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
-            self.Ap,self.Ao,self.wpl,self.wph,self.wal,self.wah,self.wan,self.gain = filter_instance.get_template()
+            self.template_params = filter_instance.get_template()
             self.filter_type = filter_instance.filter_is()
         
             self.atenua = -(self.mag)
@@ -109,14 +97,24 @@ class TP4:
     
     #Function plots current normalized filter's magnitude in atenuation in current subplot    
     def plot_norm_atten(self):
-        xl=-100
-        yl=self.Ap
-        widthl=np.absolute(xl)+1
-        heightl=100
-        xr=self.wan
-        yr=-100
-        widthr=100
-        heightr=100+self.Ao
+        if self.filter_type == 'Group Delay':
+            xl=0
+            yl=0
+            widthl=0
+            heightl=0
+            xr=0
+            yr=0
+            widthr=0
+            heightr=0
+        else:
+            xl=-100
+            yl=self.template_params[0]
+            widthl=np.absolute(xl)+1
+            heightl=100
+            xr=self.template_params[2]
+            yr=-100
+            widthr=100
+            heightr=100+self.template_params[1]
         l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
         r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
         self.axis.clear()
@@ -132,13 +130,13 @@ class TP4:
     def plot_atten(self):
         if self.filter_type == 'LowPass':
             xl=-100
-            yl=self.Ap-self.gain
-            widthl=np.absolute(xl)+self.wpl
+            yl=self.template_params[0]-self.template_params[5]
+            widthl=np.absolute(xl)+self.template_params[3]
             heightl=100
-            xr=self.wal
+            xr=self.template_params[4]
             yr=-100
             widthr=100
-            heightr=100+self.Ao-self.gain
+            heightr=100+self.template_params[1]-self.template_params[5]
             xc=0
             yc=0
             widthc=0
@@ -146,10 +144,10 @@ class TP4:
         elif self.filter_type == 'HighPass':
             xl=-100
             yl=-100
-            widthl=-xl + self.wal
-            heightl=np.absolute(yl) + self.Ao-self.gain
-            xr=self.wpl
-            yr=self.Ap-self.gain
+            widthl=-xl + self.template_params[4]
+            heightl=np.absolute(yl) + self.template_params[1]-self.template_params[5]
+            xr=self.template_params[3]
+            yr=self.template_params[0]-self.template_params[5]
             widthr=100
             heightr=100
             xc=0
@@ -159,29 +157,42 @@ class TP4:
         elif self.filter_type == 'BandPass':
             xl=-100
             yl=-100
-            widthl=np.absolute(xl)+self.wal
-            heightl=np.absolute(yl)+self.Ao-self.gain
-            xr=self.wah
+            widthl=np.absolute(xl)+self.template_params[5]
+            heightl=np.absolute(yl)+self.template_params[1]-self.template_params[7]
+            xr=self.template_params[6]
             yr=-100
             widthr=100
-            heightr=np.absolute(yr)+self.Ao-self.gain
-            xc=self.wpl
-            yc=self.Ap-self.gain
-            widthc=self.wph-self.wpl
+            heightr=np.absolute(yr)+self.template_params[1]-self.template_params[7]
+            xc=self.template_params[3]
+            yc=self.template_params[0]-self.template_params[7]
+            widthc=self.template_params[4]-self.template_params[3]
             heightc=100
         elif self.filter_type == 'StopBand':
             xl=-100
-            yl=self.Ap-self.gain
-            widthl=np.absolute(xl)+self.wpl
+            yl=self.template_params[0]-self.template_params[7]
+            widthl=np.absolute(xl)+self.template_params[3]
             heightl=100
-            xr=self.wph
-            yr=self.Ap-self.gain
+            xr=self.template_params[4]
+            yr=self.template_params[0]-self.template_params[7]
             widthr=100
             heightr=100
-            xc=self.wal
+            xc=self.template_params[5]
             yc=-100
-            widthc=self.wah-self.wal
-            heightc=np.absolute(yc)+self.Ao-self.gain
+            widthc=self.template_params[6]-self.template_params[5]
+            heightc=np.absolute(yc)+self.template_params[1]-self.template_params[7]
+        elif self.filter_type == 'Group Delay':
+            xl=0
+            yl=0
+            widthl=0
+            heightl=0
+            xr=0
+            yr=0
+            widthr=0
+            heightr=0
+            xc=0
+            yc=0
+            widthc=0
+            heightc=0
         c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
         l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
         r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
@@ -200,10 +211,10 @@ class TP4:
         if self.filter_type == 'LowPass':
             xl=-100
             yl=-100
-            widthl=np.absolute(xl)+self.wpl
-            heightl=np.absolute(yl)-self.Ap+self.gain
-            xr=self.wal
-            yr=-self.Ao+self.gain
+            widthl=np.absolute(xl)+self.template_params[3]
+            heightl=np.absolute(yl)-self.template_params[0]+self.template_params[5]
+            xr=self.template_params[4]
+            yr=-self.template_params[1]+self.template_params[5]
             widthr=100
             heightr=100
             xc=0
@@ -212,43 +223,56 @@ class TP4:
             heightc=0
         elif self.filter_type == 'HighPass':
             xl=-100
-            yl=-self.Ao+self.gain
-            widthl=np.absolute(xl)+self.wal
+            yl=-self.template_params[1]+self.template_params[5]
+            widthl=np.absolute(xl)+self.template_params[4]
             heightl=100
-            xr=self.wpl
+            xr=self.template_params[3]
             yr=-100
             widthr=100
-            heightr=np.absolute(yr)-self.Ap+self.gain
+            heightr=np.absolute(yr)-self.template_params[0]+self.template_params[5]
             xc=0
             yc=0
             widthc=0
             heightc=0
         elif self.filter_type == 'BandPass':
             xl=-100
-            yl=-self.Ao+self.gain
-            widthl=np.absolute(xl)+self.wal
+            yl=-self.template_params[1]+self.template_params[7]
+            widthl=np.absolute(xl)+self.template_params[5]
             heightl=100
-            xr=self.wah
-            yr=-self.Ao+self.gain
+            xr=self.template_params[6]
+            yr=-self.template_params[1]+self.template_params[7]
             widthr=100
             heightr=100
-            xc=self.wpl
+            xc=self.template_params[3]
             yc=-100
-            widthc=self.wph-self.wpl
-            heightc=np.absolute(yc)-self.Ap+self.gain
+            widthc=self.template_params[4]-self.template_params[3]
+            heightc=np.absolute(yc)-self.template_params[0]+self.template_params[7]
         elif self.filter_type == 'StopBand':
             xl=-100
             yl=-100
-            widthl=np.absolute(xl)+self.wpl
-            heightl=np.absolute(yl)-self.Ap+self.gain
-            xr=self.wph
+            widthl=np.absolute(xl)+self.template_params[3]
+            heightl=np.absolute(yl)-self.template_params[0]+self.template_params[7]
+            xr=self.template_params[4]
             yr=-100
             widthr=100
-            heightr=np.absolute(yr)-self.Ap+self.gain
-            xc=self.wal
-            yc=-self.Ao+self.gain
-            widthc=self.wah-self.wal
+            heightr=np.absolute(yr)-self.template_params[0]+self.template_params[7]
+            xc=self.template_params[5]
+            yc=-self.template_params[1]+self.template_params[7]
+            widthc=self.template_params[6]-self.template_params[5]
             heightc=100
+        elif self.filter_type == 'Group Delay':
+            xl=0
+            yl=0
+            widthl=0
+            heightl=0
+            xr=0
+            yr=0
+            widthr=0
+            heightr=0
+            xc=0
+            yc=0
+            widthc=0
+            heightc=0
         c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
         l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
         r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
@@ -306,41 +330,198 @@ class TP4:
             return True
         except ValueError:
             return False
+    
+    def set_aproxs(self,*args):
+        self.filter_menu['menu'].delete(0, 'end')
+        if (self.aprox_string.get()=='Bessel') | (self.aprox_string.get()=='Gauss'):
+            filter='Group Delay'
+            self.filter_string.set(filter)
+            self.filter_menu=OptionMenu(self.side_toolbar,self.filter_string, filter)
+            self.filter_menu.grid(row=0,column=0)
+        else:
+            filter_list = ('LowPass', 'HighPass', 'BandPass','StopBand')
+            self.filter_string.set(filter_list[0])
+            self.filter_menu=OptionMenu(self.side_toolbar,self.filter_string, *filter_list)
+            self.filter_menu.grid(row=0,column=0)
 
     #Function creates filter according to user input
     def set_entry_buttons(self,*args):
+        self.curr_buttons=[]
         self.aprox_figure.delete("all")
+        for widget in self.side_toolbar.grid_slaves():
+            if int(widget.grid_info()["row"]) > 1:
+                widget.grid_forget()
         if  self.filter_string.get()=='LowPass':
             self.aprox_figure.create_image(0,0,image=self.photoLP,anchor='nw')
+            self.entry_buttons[0][0].grid(row=2,column=0)
+            self.entry_buttons[0][1].grid(row=2,column=1)
+            self.entry_buttons[0][2].grid(row=2,column=2)
+            self.curr_buttons.append(self.entry_buttons[0][1])
+            
+            self.entry_buttons[1][0].grid(row=3,column=0)
+            self.entry_buttons[1][1].grid(row=3,column=1)
+            self.entry_buttons[1][2].grid(row=3,column=2)
+            self.curr_buttons.append(self.entry_buttons[1][1])
+
+            self.entry_buttons[3][0].grid(row=4,column=0)
+            self.entry_buttons[3][1].grid(row=4,column=1)
+            self.entry_buttons[3][2].grid(row=4,column=2)
+            self.curr_buttons.append(self.entry_buttons[3][1])
+
+            self.entry_buttons[5][0].grid(row=5,column=0)
+            self.entry_buttons[5][1].grid(row=5,column=1)
+            self.entry_buttons[5][2].grid(row=5,column=2)
+            self.curr_buttons.append(self.entry_buttons[5][1])
+
+            self.entry_buttons[6][0].grid(row=6,column=0)
+            self.entry_buttons[6][1].grid(row=6,column=1)
+            self.entry_buttons[6][2].grid(row=6,column=2)
+            self.curr_buttons.append(self.entry_buttons[6][1])
+            self.button_create_filter.grid(row=7)
         elif  self.filter_string.get()=='HighPass':
             self.aprox_figure.create_image(0,0,image=self.photoHP,anchor='nw')
+            self.entry_buttons[0][0].grid(row=2,column=0)
+            self.entry_buttons[0][1].grid(row=2,column=1)
+            self.entry_buttons[0][2].grid(row=2,column=2)
+            self.curr_buttons.append(self.entry_buttons[0][1])
+            
+            self.entry_buttons[1][0].grid(row=3,column=0)
+            self.entry_buttons[1][1].grid(row=3,column=1)
+            self.entry_buttons[1][2].grid(row=3,column=2)
+            self.curr_buttons.append(self.entry_buttons[1][1])
+
+            self.entry_buttons[3][0].grid(row=4,column=0)
+            self.entry_buttons[3][1].grid(row=4,column=1)
+            self.entry_buttons[3][2].grid(row=4,column=2)
+            self.curr_buttons.append(self.entry_buttons[3][1])
+
+            self.entry_buttons[5][0].grid(row=5,column=0)
+            self.entry_buttons[5][1].grid(row=5,column=1)
+            self.entry_buttons[5][2].grid(row=5,column=2)
+            self.curr_buttons.append(self.entry_buttons[5][1])
+
+            self.entry_buttons[6][0].grid(row=6,column=0)
+            self.entry_buttons[6][1].grid(row=6,column=1)
+            self.entry_buttons[6][2].grid(row=6,column=2)
+            self.curr_buttons.append(self.entry_buttons[6][1])
+            self.button_create_filter.grid(row=7)
         elif  self.filter_string.get()=='BandPass':
             self.aprox_figure.create_image(0,0,image=self.photoBP,anchor='nw')
+            self.entry_buttons[0][0].grid(row=2,column=0)
+            self.entry_buttons[0][1].grid(row=2,column=1)
+            self.entry_buttons[0][2].grid(row=2,column=2)
+            self.curr_buttons.append(self.entry_buttons[0][1])
+            
+            self.entry_buttons[1][0].grid(row=3,column=0)
+            self.entry_buttons[1][1].grid(row=3,column=1)
+            self.entry_buttons[1][2].grid(row=3,column=2)
+            self.curr_buttons.append(self.entry_buttons[1][1])
+
+            self.entry_buttons[2][0].grid(row=4,column=0)
+            self.entry_buttons[2][1].grid(row=4,column=1)
+            self.entry_buttons[2][2].grid(row=4,column=2)
+            self.curr_buttons.append(self.entry_buttons[2][1])
+
+            self.entry_buttons[3][0].grid(row=5,column=0)
+            self.entry_buttons[3][1].grid(row=5,column=1)
+            self.entry_buttons[3][2].grid(row=5,column=2)
+            self.curr_buttons.append(self.entry_buttons[3][1])
+
+            self.entry_buttons[4][0].grid(row=6,column=0)
+            self.entry_buttons[4][1].grid(row=6,column=1)
+            self.entry_buttons[4][2].grid(row=6,column=2)
+            self.curr_buttons.append(self.entry_buttons[4][1])
+
+            self.entry_buttons[5][0].grid(row=7,column=0)
+            self.entry_buttons[5][1].grid(row=7,column=1)
+            self.entry_buttons[5][2].grid(row=7,column=2)
+            self.curr_buttons.append(self.entry_buttons[5][1])
+
+            self.entry_buttons[6][0].grid(row=8,column=0)
+            self.entry_buttons[6][1].grid(row=8,column=1)
+            self.entry_buttons[6][2].grid(row=8,column=2)
+            self.curr_buttons.append(self.entry_buttons[6][1])
+            self.button_create_filter.grid(row=9)
         elif  self.filter_string.get()=='StopBand':
             self.aprox_figure.create_image(0,0,image=self.photoSB,anchor='nw')
+            self.entry_buttons[0][0].grid(row=2,column=0)
+            self.entry_buttons[0][1].grid(row=2,column=1)
+            self.entry_buttons[0][2].grid(row=2,column=2)
+            self.curr_buttons.append(self.entry_buttons[0][1])
 
+            self.entry_buttons[1][0].grid(row=3,column=0)
+            self.entry_buttons[1][1].grid(row=3,column=1)
+            self.entry_buttons[1][2].grid(row=3,column=2)
+            self.curr_buttons.append(self.entry_buttons[1][1])
+
+            self.entry_buttons[2][0].grid(row=4,column=0)
+            self.entry_buttons[2][1].grid(row=4,column=1)
+            self.entry_buttons[2][2].grid(row=4,column=2)
+            self.curr_buttons.append(self.entry_buttons[2][1])
+
+            self.entry_buttons[3][0].grid(row=5,column=0)
+            self.entry_buttons[3][1].grid(row=5,column=1)
+            self.entry_buttons[3][2].grid(row=5,column=2)
+            self.curr_buttons.append(self.entry_buttons[3][1])
+
+            self.entry_buttons[4][0].grid(row=6,column=0)
+            self.entry_buttons[4][1].grid(row=6,column=1)
+            self.entry_buttons[4][2].grid(row=6,column=2)
+            self.curr_buttons.append(self.entry_buttons[4][1])
+
+            self.entry_buttons[5][0].grid(row=7,column=0)
+            self.entry_buttons[5][1].grid(row=7,column=1)
+            self.entry_buttons[5][2].grid(row=7,column=2)
+            self.curr_buttons.append(self.entry_buttons[5][1])
+
+            self.entry_buttons[6][0].grid(row=8,column=0)
+            self.entry_buttons[6][1].grid(row=8,column=1)
+            self.entry_buttons[6][2].grid(row=8,column=2)
+            self.curr_buttons.append(self.entry_buttons[6][1])
+            self.button_create_filter.grid(row=9)
+        elif  self.filter_string.get()=='Group Delay':
+            self.entry_buttons[0][0].grid(row=2,column=0)
+            self.entry_buttons[0][1].grid(row=2,column=1)
+            self.entry_buttons[0][2].grid(row=2,column=2)
+            self.curr_buttons.append(self.entry_buttons[0][1])
+
+            self.entry_buttons[7][0].grid(row=3,column=0)
+            self.entry_buttons[7][1].grid(row=3,column=1)
+            self.entry_buttons[7][2].grid(row=3,column=2)
+            self.curr_buttons.append(self.entry_buttons[7][1])
+
+            self.entry_buttons[8][0].grid(row=4,column=0)
+            self.entry_buttons[8][1].grid(row=4,column=1)
+            self.entry_buttons[8][2].grid(row=4,column=2)
+            self.curr_buttons.append(self.entry_buttons[8][1])
+
+            self.entry_buttons[9][0].grid(row=5,column=0)
+            self.entry_buttons[9][1].grid(row=5,column=1)
+            self.entry_buttons[9][2].grid(row=5,column=2)
+            self.curr_buttons.append(self.entry_buttons[9][1])
+            self.button_create_filter.grid(row=6)
     #Function creates filter according to user input
     def __init__(self):
         self.root = Tk()
         self.root.title("Tc Example")
         #------------------------------------------------------------------------
-        side_toolbar=Frame(self.root,width=300)
-        side_toolbar.pack(side=LEFT,fill=BOTH,expand=True,padx=2,pady=4)
-        side_toolbar.grid_propagate(0)
+        self.side_toolbar=Frame(self.root,width=300)
+        self.side_toolbar.pack(side=LEFT,fill=BOTH,expand=True,padx=2,pady=4)
+        self.side_toolbar.grid_propagate(0)
 
         approximation_list=('Butterworth','Chebyshev','Inverse Chebyshev','Legendre','Papoulis','Cauer','Bessel','Gauss')
         self.aprox_string = StringVar()
         self.aprox_string.set(approximation_list[0])
-        aproximation_menu=OptionMenu(side_toolbar,self.aprox_string, *approximation_list)
+        aproximation_menu=OptionMenu(self.side_toolbar,self.aprox_string, *approximation_list)
         aproximation_menu.grid(row=0,column=1,columnspan=2)
 
-        filter_list = ('LowPass', 'HighPass', 'BandPass','StopBand','Group Delay')
+        filter_list = ('LowPass', 'HighPass', 'BandPass','StopBand')
         self.filter_string = StringVar()
         self.filter_string.set(filter_list[0])
-        filter_menu=OptionMenu(side_toolbar,self.filter_string, *filter_list)
-        filter_menu.grid(row=0,column=0)
+        self.filter_menu=OptionMenu(self.side_toolbar,self.filter_string, *filter_list)
+        self.filter_menu.grid(row=0,column=0)
 
-        self.aprox_figure=Canvas(side_toolbar,width=222,height=124)
+        self.aprox_figure=Canvas(self.side_toolbar,width=222,height=124)
         self.aprox_figure.grid(row=1,columnspan=3)
         self.photoLP=PhotoImage(file="Images\\LowpassImg2.png")
         self.photoHP=PhotoImage(file="Images\\HighpassImg2.png")
@@ -348,43 +529,81 @@ class TP4:
         self.photoSB=PhotoImage(file='Images\\StopbandImg2.png')
 
         self.aprox_figure.create_image(0,0,image=self.photoLP,anchor='nw')
+        self.entry_buttons=[]
+        self.curr_buttons=[]
 
-        gain_label = Label( side_toolbar, text="Gain:").grid(row=2,column=0)
-        self.gain_entry = Entry(side_toolbar,width=5)
+        self.gain_label = Label( self.side_toolbar, text="Gain:")
+        self.gain_label.grid(row=2,column=0)
+        self.gain_entry = Entry(self.side_toolbar,width=5)
         self.gain_entry.grid(row=2,column=1)
-        gain_unit = Label( side_toolbar, text="[dB]").grid(row=2,column=2)
+        self.gain_unit = Label( self.side_toolbar, text="[dB]")
+        self.gain_unit.grid(row=2,column=2)
+        self.entry_buttons.append([self.gain_label,self.gain_entry,self.gain_unit])
+        self.curr_buttons.append(self.gain_entry)
 
-        fpl_label = Label( side_toolbar, text="Passband Freq(Fp-):").grid(row=3,column=0)
-        self.fpl_entry = Entry(side_toolbar,width=5)
+        self.fpl_label = Label( self.side_toolbar, text="Passband Freq(Fp-):")
+        self.fpl_label.grid(row=3,column=0)
+        self.fpl_entry = Entry(self.side_toolbar,width=5)
         self.fpl_entry.grid(row=3,column=1)
-        fpl_unit = Label( side_toolbar, text="[Hz]").grid(row=3,column=2)
+        self.fpl_unit = Label( self.side_toolbar, text="[Hz]")
+        self.fpl_unit.grid(row=3,column=2)
+        self.entry_buttons.append([self.fpl_label,self.fpl_entry,self.fpl_unit])
+        self.curr_buttons.append(self.fpl_entry)
 
-        fph_label = Label( side_toolbar, text="Passband Freq(Fp+):").grid(row=4,column=0)
-        self.fph_entry = Entry(side_toolbar,width=5)
-        self.fph_entry.grid(row=4,column=1)
-        fph_unit = Label( side_toolbar, text="[Hz]").grid(row=4,column=2)
+        self.fph_label = Label( self.side_toolbar, text="Passband Freq(Fp+):")
+        self.fph_entry = Entry(self.side_toolbar,width=5)
+        self.fph_unit = Label( self.side_toolbar, text="[Hz]")
+        self.entry_buttons.append([self.fph_label,self.fph_entry,self.fph_unit])
 
-        fal_label = Label( side_toolbar, text="Attenuation Freq(Fa-):").grid(row=5,column=0)
-        self.fal_entry = Entry(side_toolbar,width=5)
+        self.fal_label = Label( self.side_toolbar, text="Attenuation Freq(Fa-):")
+        self.fal_label.grid(row=5,column=0)
+        self.fal_entry = Entry(self.side_toolbar,width=5)
         self.fal_entry.grid(row=5,column=1)
-        fal_unit = Label( side_toolbar, text="[Hz]").grid(row=5,column=2)
+        self.fal_unit = Label( self.side_toolbar, text="[Hz]")
+        self.fal_unit.grid(row=5,column=2)
+        self.entry_buttons.append([self.fal_label,self.fal_entry,self.fal_unit])
+        self.curr_buttons.append(self.fal_entry)
 
-        fah_label = Label( side_toolbar, text="Attenuation Freq(Fa+):").grid(row=6,column=0)
-        self.fah_entry = Entry(side_toolbar,width=5)
-        self.fah_entry.grid(row=6,column=1)
-        fah_unit = Label( side_toolbar, text="[Hz]").grid(row=6,column=2)
+        self.fah_label = Label( self.side_toolbar, text="Attenuation Freq(Fa+):")
+        self.fah_entry = Entry(self.side_toolbar,width=5)
+        self.fah_unit = Label( self.side_toolbar, text="[Hz]")
+        self.entry_buttons.append([self.fah_label,self.fah_entry,self.fah_unit])
 
-        ap_label = Label( side_toolbar, text="Attenuation Atten.(Ap):").grid(row=7,column=0)
-        self.ap_entry = Entry(side_toolbar,width=5)
+        self.ap_label = Label( self.side_toolbar, text="Attenuation Atten.(Ap):")
+        self.ap_label.grid(row=7,column=0)
+        self.ap_entry = Entry(self.side_toolbar,width=5)
         self.ap_entry.grid(row=7,column=1)
-        ap_unit = Label( side_toolbar, text="[dB]").grid(row=7,column=2)
+        self.ap_unit = Label( self.side_toolbar, text="[dB]")
+        self.ap_unit.grid(row=7,column=2)
+        self.entry_buttons.append([self.ap_label,self.ap_entry,self.ap_unit])
+        self.curr_buttons.append(self.ap_entry)
 
-        aa_label = Label( side_toolbar, text="Stopband Atten(Aa):").grid(row=8,column=0)
-        self.aa_entry = Entry(side_toolbar,width=5)
+        self.aa_label = Label( self.side_toolbar, text="Stopband Atten(Aa):")
+        self.aa_label.grid(row=8,column=0)
+        self.aa_entry = Entry(self.side_toolbar,width=5)
         self.aa_entry.grid(row=8,column=1)
-        aa_unit = Label( side_toolbar, text="[dB]").grid(row=8,column=2)
+        self.aa_unit = Label( self.side_toolbar, text="[dB]")
+        self.aa_unit.grid(row=8,column=2)
+        self.entry_buttons.append([self.aa_label,self.aa_entry,self.aa_unit])
+        self.curr_buttons.append(self.aa_entry)
 
-        button_create_filter = Button(side_toolbar,text="Create Filter",command=self.create_filter).grid(row=9)
+        self.gp_label = Label( self.side_toolbar, text="Group delay at 0 Hz:")
+        self.gp_entry = Entry(self.side_toolbar,width=5)
+        self.gp_unit = Label( self.side_toolbar, text="[ms]")
+        self.entry_buttons.append([self.gp_label,self.gp_entry,self.gp_unit])
+
+        self.wrg_label = Label( self.side_toolbar, text="(wrg):")
+        self.wrg_entry = Entry(self.side_toolbar,width=5)
+        self.wrg_unit = Label( self.side_toolbar, text="[rad/s]")
+        self.entry_buttons.append([self.wrg_label,self.wrg_entry,self.wrg_unit])
+
+        self.tol_label = Label( self.side_toolbar, text="Group delay Tolerance:")
+        self.tol_entry = Entry(self.side_toolbar,width=5)
+        self.tol_unit = Label( self.side_toolbar, text="[%]")
+        self.entry_buttons.append([self.tol_label,self.tol_entry,self.tol_unit])
+
+        self.button_create_filter = Button(self.side_toolbar,text="Create Filter",command=self.create_filter)
+        self.button_create_filter.grid(row=9)
 
         graph_and_buttons = Frame(self.root)
         graph_and_buttons.pack(side=LEFT)
@@ -422,6 +641,7 @@ class TP4:
         nav.update()
         self.data_plot._tkcanvas.pack(side=LEFT, fill=X, expand=True)
 
+        self.aprox_string.trace_add('write',self.set_aproxs)
         self.filter_string.trace_add('write',self.set_entry_buttons)
         #-------------------------------------------------------------------------------
         self.root.mainloop()

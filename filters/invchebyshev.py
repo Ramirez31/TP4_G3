@@ -5,20 +5,26 @@ from scipy import signal
 class Invchebyshev(base_filter):
 
     #Filter initialization with initial parameters received
-    def __init__(self, name,Ap,Ao,wpl,wph,wal,wah,gain,n,tao0=None,wrg=None,palm=None):
-        if name:
-            self.name = name
-            self.Ap=Ap
-            self.Ao=Ao
-            self.wpl=wpl
-            self.wph=wph
-            self.wal=wal
-            self.wah=wah
-            self.n=n
-            self.gain=gain
-            self.tao0=tao0
-            self.wrg=wrg
-            self.palm=palm
+    def __init__(self, *args):
+        if (args[0]=='LowPass')|(args[0]=='HighPass'):
+            self.name = args[0]
+            self.gain=args[1]
+            self.wpl=args[2]
+            self.wal=args[3]
+            self.Ap=args[4]
+            self.Ao=args[5]
+            self.n=args[6]
+        elif (args[0]=='BandPass')|(args[0]=='StopBand'):
+            self.name = args[0]
+            self.gain=args[1]
+            self.wpl=args[2]
+            self.wph=args[3]
+            self.wal=args[4]
+            self.wah=args[5]
+            self.Ap=args[6]
+            self.Ao=args[7]
+            self.n=args[8]
+        if self.name:
             self.poles=[]
             self.zeroes=[]
             self.den=np.poly1d([1])
