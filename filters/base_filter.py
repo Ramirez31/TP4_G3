@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import numpy as np
 from scipy import signal
-import control as cntrl
 
 class base_filter(metaclass=ABCMeta):
     """Base abstract filter class, contains attributes and methods common to all approximation types. In
