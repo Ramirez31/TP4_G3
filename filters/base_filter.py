@@ -276,13 +276,13 @@ class base_filter(metaclass=ABCMeta):
     def denormalize_range(self):
         if self.denorm_percent != 0:
             range=self.wan-1
-            denorm_w=range*self.denorm_percent
+            denorm_w=range*self.denorm_percent+1
             den=np.poly1d([1])
             num=np.poly1d([1])
             for pole in self.poles:
-                den=den*np.poly1d([-denorm_w/(pole),1])
+                den=den*np.poly1d([-1/(denorm_w*pole),1])
             for zero in self.zeroes:
-                num=num*np.poly1d([denorm_w/(zero),1])
+                num=num*np.poly1d([1/(denorm_w*zero),1])
             self.den=den
             self.poles=np.roots(self.den)
             self.num=num

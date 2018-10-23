@@ -456,6 +456,8 @@ class TP4:
             if self.filter_ready:
                 self.filter_data.grid(row=11,columnspan=3,sticky=W)
 
+            self.button_create_Stages.grid(row=17,column=0,sticky=W)
+
         elif  self.filter_string.get()=='HighPass':
             self.aprox_figure.create_image(0,0,image=self.photoHP,anchor='nw')
             self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
@@ -497,6 +499,8 @@ class TP4:
 
             if self.filter_ready:
                 self.filter_data.grid(row=11,columnspan=3,sticky=W)
+
+            self.button_create_Stages.grid(row=17,column=0,sticky=W)
 
         elif  self.filter_string.get()=='BandPass':
             self.aprox_figure.create_image(0,0,image=self.photoBP,anchor='nw')
@@ -550,6 +554,8 @@ class TP4:
             if self.filter_ready:
                 self.filter_data.grid(row=13,columnspan=3,sticky=W)
 
+            self.button_create_Stages.grid(row=17,column=0,sticky=W)
+
         elif  self.filter_string.get()=='StopBand':
             self.aprox_figure.create_image(0,0,image=self.photoSB,anchor='nw')
             self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
@@ -602,6 +608,8 @@ class TP4:
             if self.filter_ready:
                 self.filter_data.grid(row=13,columnspan=3,sticky=W)
 
+            self.button_create_Stages.grid(row=17,column=0,sticky=W)
+
         elif  self.filter_string.get()=='Group Delay':
             self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
             self.entry_buttons[0][1].grid(row=2,column=1)
@@ -633,6 +641,8 @@ class TP4:
 
             if self.filter_ready:
                 self.filter_data.grid(row=9,columnspan=3,sticky=W)
+
+            self.button_create_Stages.grid(row=17,column=0,sticky=W)
 
     #Function creates filter according to user input
     def __init__(self):
@@ -764,7 +774,7 @@ class TP4:
         self.button_create_filter.grid(row=12,column=0,sticky=W)
         #button_create_filter = Button(side_toolbar,text="Create Filter",command=self.create_filter).grid(row=9)
         self.button_create_Stages = Button(self.side_toolbar,text="Create Stages",command=self.create_stages)
-        self.button_create_Stages.grid(row=13,column=0,sticky=W)
+        self.button_create_Stages.grid(row=17,column=0,sticky=W)
         
         
         self.filter_data=Frame(self.side_toolbar,width=270)
