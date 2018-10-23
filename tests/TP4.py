@@ -10,6 +10,7 @@ import matplotlib.path as mpath
 import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 from tkinter import *
+from tkinter import ttk
 from tkinter import messagebox
 import filters
 
@@ -111,6 +112,10 @@ class TP4:
                 messagebox.showerror("Input Error", filter_instance.error_was())
         else:
             messagebox.showerror("Input Error", "Check if any active entry box is empty. Input has to be numeric")
+
+    def create_stages(self):
+        root2=Toplevel(self.root)
+        myGUI=DesignFilter(root2)
 
     #Function plots current filter's phase in current subplot
     def plot_phase(self):
@@ -757,7 +762,11 @@ class TP4:
 
         self.button_create_filter = Button(self.side_toolbar,text="Create Filter",command=self.create_filter)
         self.button_create_filter.grid(row=12,column=0,sticky=W)
-
+        #button_create_filter = Button(side_toolbar,text="Create Filter",command=self.create_filter).grid(row=9)
+        self.button_create_Stages = Button(self.side_toolbar,text="Create Stages",command=self.create_stages)
+        self.button_create_Stages.grid(row=13,column=0,sticky=W)
+        
+        
         self.filter_data=Frame(self.side_toolbar,width=270)
 
         graph_and_buttons = Frame(self.root)
@@ -800,6 +809,341 @@ class TP4:
         self.filter_string.trace_add('write',self.set_entry_buttons)
         #-------------------------------------------------------------------------------
         self.root.mainloop()
+
+class DesignFilter:
+     def __init__(self,master):
+
+        self.master=master 
+        self.master.title("Design Filters")
+       
+        self.side_toolbar=Frame(self.master,width=200)
+        self.side_toolbar.pack(side=LEFT,fill=BOTH,padx=2,pady=4)
+        self.side_toolbar.grid_propagate(0)
+        #self.side_toolbar.pack(side=LEFT)
+
+        self.texto=StringVar()
+        self.texto.set("Polos y Ceros Seleccionados:")
+       
+        self.etiqueta=Label(self.side_toolbar,textvariable=self.texto).place(x=0,y=70)
+       
+       #-------Seleccion de Polos--------------------------------
+        self.comboPolos = ttk.Combobox(self.side_toolbar,width=10)
+        self.comboPolos.place(x=0,y=0)
+        self.poles = [1+1j,1-1j,5,2,2,2] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑO
+        self.polesAux = []
+        self.polesAux.extend(self.poles)
+        self.comboPolos['values'] = self.poles #Aca cargo cada polo
+         
+        self.comboPolos.current(0)
+        self.PolosSeleccionados = [] #Aca guardo polos para hacer etapa
+
+        self.AddPoleButton = Button(self.side_toolbar,text="Add Pole",command=self.AddPole)
+        self.AddPoleButton.place(x=0,y=40)
+        
+        self.SelectedPoles = Listbox(self.side_toolbar,width=10) #Aca muestro polos para hacer estapa
+        self.SelectedPoles.place(x=0,y=100)
+
+        
+        
+        #-----Seleccion de Ceros-----------------------------------
+        self.comboZeros = ttk.Combobox(self.side_toolbar,width=10)
+        self.comboZeros.place(x=100,y=0)
+        
+        self.Zeros = [1+1j,1-1j,5,2]
+        self.ZerosAux = [] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑO
+        self.ZerosAux.extend(self.Zeros)
+        self.comboZeros['values'] = self.Zeros #Aca cargo cada polo
+        self.comboZeros.current(0)
+        self.ZerosSeleccionados = [] #Aca guardo polos para hacer etapa
+
+        self.AddZeroButton = Button(self.side_toolbar,text="Add Zero",command=self.AddZero)
+        self.AddZeroButton.place(x=100,y=40)
+       
+
+        self.SelectedZeros = Listbox(self.side_toolbar,width=10) #Aca muestro polos para hacer estapa
+        self.SelectedZeros.place(x=100,y=100)
+
+
+        self.RemoveSelected = Button(self.side_toolbar,text="Del Selection", command=self.Remove)
+        self.RemoveSelected.place(x=0,y=270)
+
+        #-----------------stages---------------
+       
+        
+        self.forStages=Frame(self.master,width=100)
+        self.forStages.pack(side=LEFT,fill=BOTH,padx=2,pady=4)
+        self.forStages.grid_propagate(0)
+        
+        self.texto2=StringVar()
+        self.texto2.set("Etapas:")
+        self.etiqueta=Label(self.forStages,textvariable=self.texto2).place(x=0,y=2)
+
+        self.SelectedStage = Listbox(self.forStages,width=15,height=25) #Aca muestro polos para hacer estapa
+        self.SelectedStage.place(x=0,y=25)
+
+        #-------------Botones---------
+        graph_and_buttons = Frame(self.master)
+        graph_and_buttons.pack(side=LEFT,fill = BOTH)
+        graph = Canvas(graph_and_buttons)
+        graph.pack(side=TOP,fill=BOTH,expand=True,padx=2,pady=4)
+        toolbar = Frame(graph_and_buttons)
+        button_phase = Button(toolbar,text="Bode Phase")
+        button_phase.pack(side=LEFT,padx=2,pady=2)
+        button_mag = Button(toolbar,text="Bode Module")
+        button_mag.pack(side=LEFT,padx=2,pady=2)
+        button_step = Button(toolbar,text="Step Response")
+        button_step.pack(side=LEFT,padx=2,pady=2)
+        button_imp = Button(toolbar,text="Impulse response")
+        button_imp.pack(side=LEFT,padx=2,pady=4)
+        button_zeros_and_poles = Button(toolbar,text="Zeroes and Poles")
+        button_zeros_and_poles.pack(side=LEFT,padx=2,pady=4)
+        button_group_delay = Button(toolbar,text="Group Delay")
+        button_group_delay.pack(side=LEFT,padx=2,pady=4)
+        button_aten = Button(toolbar,text="Individual")
+        button_aten.pack(side=LEFT,padx=2,pady=2)
+        button_aten_norm = Button(toolbar,text="Accumulative")
+        button_aten_norm.pack(side=LEFT,padx=2,pady=2)
+
+        toolbar.pack(side=TOP,fill=X)
+        
+        f = Figure()
+        
+        self.axis = f.add_subplot(111)
+        self.data_plot = FigureCanvasTkAgg(f, master=graph)
+        self.data_plot.draw()
+        self.data_plot.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
+        nav = NavigationToolbar2Tk(self.data_plot, graph_and_buttons)
+        nav.pack(side=TOP,fill=BOTH,expand=True,padx=2,pady=4)
+        nav.update()
+        self.data_plot._tkcanvas.pack(side=LEFT, fill=X, expand=True)
+
+        #----------Generate Stage-----------------------------------------
+
+        self.GenerateStage = Button(self.side_toolbar,text="Generate Stage",command=self.GenerateStage)
+        self.GenerateStage.place(x=0,y=300)
+        self.TransferList = [] #Voy a ir agregando Stages ej [Polos[] Zeros[], Polos[] Zeros[]] siendo estos poly1d
+
+        #---------Remove Stages--------------------------------------------
+
+        self.DeleteStages = Button(self.side_toolbar,text="Delete Stages",command=self.DeleteStages)
+        self.DeleteStages.place(x=0,y=330)
+
+        #--------Automatic Cascade Stages-------------------------------------------
+
+        self.AutoStages = Button(self.side_toolbar,text="Automatic Cascade Stages",command=self.AutoStages)
+        self.AutoStages.place(x=0,y=360)
+    
+     def AddPole(self):
+
+        self.val=self.comboPolos.get()
+        
+        self.val2=complex(self.val)
+        if(self.val2.imag==0):
+            self.val2=self.val2.real
+        print(self.val2) 
+        if(self.val2 not in self.polesAux):
+            print("Polo ya Seleccionado")
+            return
+        if len(self.PolosSeleccionados) == 0 :
+            self.PolosSeleccionados.append(self.val2)
+            self.SelectedPoles.insert(END,self.val2)
+            self.polesAux.remove(self.val2)
+            self.comboPolos['values']=self.polesAux
+            print(self.polesAux)
+            
+            if(np.iscomplexobj(self.val2)):
+                self.PolosSeleccionados.append(np.conjugate(self.val2))
+                self.SelectedPoles.insert(END,np.conjugate(self.val2))
+                self.polesAux.remove(np.conjugate(self.val2))
+                self.comboPolos['values']=self.polesAux
+                print(self.polesAux)
+            
+        else:
+            if (len(self.PolosSeleccionados) <2) and  not np.iscomplexobj(self.val2):
+                self.PolosSeleccionados.append(self.val2)
+                self.SelectedPoles.insert(END,self.val2)
+                print(self.polesAux)
+                print(self.val2)
+                self.polesAux.remove(self.val2)
+                self.comboPolos['values']=self.polesAux
+                print(self.polesAux)  
+
+            else:
+                
+                print("Polo ya Seleccionado o orden maximo de Polos alcanzado para la etapa")
+                    
+        #Si es imaginario agrego tambien el conjugado pero si ya
+        
+        
+     def AddZero(self):
+
+        self.val=self.comboZeros.get()
+        self.val2=complex(self.val)
+        if(self.val2.imag==0):
+            self.val2=self.val2.real
+        if(self.val2 not in self.ZerosAux):
+            print("Cero ya Seleccionado")
+            return    
+        if len(self.ZerosSeleccionados) == 0 :
+            self.ZerosSeleccionados.append(self.val2)
+            self.SelectedZeros.insert(END,self.val2)
+            self.ZerosAux.remove(self.val2)
+            self.comboZeros['values']=self.ZerosAux
+            print(self.ZerosAux)
+
+            if(np.iscomplexobj(self.val2)):
+                self.ZerosSeleccionados.append(np.conjugate(self.val2))
+                self.SelectedZeros.insert(END,np.conjugate(self.val2))
+                self.ZerosAux.remove(np.conjugate(self.val2))
+                self.comboZeros['values']=self.ZerosAux
+                print(self.ZerosAux)
+        else:
+                if (len(self.ZerosSeleccionados) <2) and  not np.iscomplexobj(self.val2):
+                    self.ZerosSeleccionados.append(self.val2)
+                    self.SelectedZeros.insert(END,self.val2)
+                    print(self.ZerosAux)
+                    print(self.val2)
+                    self.ZerosAux.remove(self.val2)
+                    self.comboZeros['values']=self.ZerosAux
+                    print(self.ZerosAux)  #Creo que me tira el error en el segundo polo xq hace el for 2 veces con mi nuevo valor alto flash
+                else:
+                    print("Cero ya Seleccionado o Orden maximo de Ceros alcanzado para la etapa")
+
+     def Remove(self):
+         self.ZerosSeleccionados.clear()
+         self.PolosSeleccionados.clear()
+         self.SelectedPoles.delete(0, END)
+         self.SelectedZeros.delete(0,END)
+         self.comboPolos['values'] = self.poles
+         self.comboZeros['values'] = self.Zeros
+         self.polesAux = []
+         self.polesAux.extend(self.poles)
+         self.ZerosAux = []
+         self.ZerosAux.extend(self.Zeros)
+         print(self.polesAux)
+         
+     def GenerateStage(self):
+           self.den = []
+           self.num = []
+
+           if(len(self.PolosSeleccionados)==0 and len(self.ZerosSeleccionados)==0 ):
+               return
+           if(len(self.PolosSeleccionados)==0):
+                self.den=1
+                self.num.extend(self.ZerosSeleccionados)
+           if(len(self.ZerosSeleccionados)==0):
+                self.den.extend(self.PolosSeleccionados)
+                self.num=1
+           else:                  
+                self.den.extend(self.PolosSeleccionados)
+                self.num.extend(self.ZerosSeleccionados)
+           
+
+           self.HdeStage = []
+           self.HdeStage.append(self.den)
+           self.HdeStage.append(self.num)
+           self.TransferList.append(self.HdeStage)
+           print(self.TransferList)
+           
+           #Elimino los valores de la lsita y queda el combobox sin los valores de los polos seleccionados
+           #Hago Clear de los polos y ceros seleccionados para que los proximos no acumulen los anteiores
+           self.ZerosSeleccionados.clear()
+           self.PolosSeleccionados.clear() 
+           self.SelectedPoles.delete(0,END)
+           self.SelectedZeros.delete(0,END) 
+
+           self.SelectedStage.insert(END, ["Stage", len(self.TransferList)])
+            
+         
+     def DeleteStages(self):
+       
+         self.ZerosSeleccionados.clear()
+         self.PolosSeleccionados.clear()
+         self.SelectedPoles.delete(0,END)
+         self.SelectedZeros.delete(0,END)
+
+         self.comboPolos['values'] = self.poles
+         self.comboZeros['values'] = self.Zeros
+         self.polesAux = []
+         self.polesAux.extend(self.poles)
+         self.ZerosAux = []
+         self.ZerosAux.extend(self.Zeros)
+
+         self.HdeStage = []
+         self.TransferList.clear()
+         self.SelectedStage.delete(0, END)
+
+     def AutoStages(self):
+         #tengo que limpiar el combo box
+         self.comboPolos['values'] = ['']
+         self.comboZeros['values'] = ['']
+         #Tengo que limpiar mi lista
+         self.SelectedPoles.delete(0, END)
+         self.SelectedZeros.delete(0,END)
+         #Tengo que limpiar mis selecciones
+         self.ZerosSeleccionados.clear()
+         self.PolosSeleccionados.clear()
+         #Agarro y genero automaticamente TransferList con mis Aux eliminando los valores de ellos y poniendolos
+         self.polesAux = []
+         self.polesAux.extend(self.poles)
+         self.ZerosAux = []
+         self.ZerosAux.extend(self.Zeros)
+
+         print(self.polesAux) 
+         for i in self.polesAux:
+            if np.iscomplexobj(i):
+                self.polesAux.remove(np.conjugate(i))
+         
+         self.MisPolos = sorted(self.polesAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=True)       
+         
+
+         for i in self.ZerosAux:
+            if np.iscomplexobj(i):
+                self.ZerosAux.remove(np.conjugate(i))
+         
+         self.MisCeros = sorted(self.ZerosAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=True)       
+            
+         self.HdeStage = []
+         self.TransferList.clear() 
+         
+         print(self.MisPolos)
+         print(self.MisCeros)
+
+         while (len(self.MisPolos) != 0) or (len(self.MisCeros) != 0):  
+             if len(self.MisPolos)==0 :
+                 self.den=1
+             if len(self.MisCeros)==0:
+                 self.num=1   
+             for i in self.MisPolos :
+                if np.iscomplexobj(i):
+                    self.den=[i,np.conjugate(i)]
+                    self.MisPolos.remove(i)
+                    break
+                else:
+                    self.den=[i]
+                    self.MisPolos.remove(i)
+                    break
+                break    
+             for i in self.MisCeros :
+                if np.iscomplexobj(i):
+                    self.num=[i,np.conjugate(i)]
+                    self.MisCeros.remove(i)
+                    break
+                else:
+                    self.num=[i]
+                    self.MisCeros.remove(i)
+                    break
+                break    
+             
+             self.HdeStage.append(self.den) 
+             self.HdeStage.append(self.num)        
+       
+             self.TransferList.append(self.HdeStage)
+             self.HdeStage = []
+
+         print(self.TransferList)
+        #----------------Buttons functions----------------------------
+     
 
 if __name__ == "__main__":
     ex = TP4()
