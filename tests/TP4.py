@@ -12,7 +12,7 @@ import matplotlib.patches as mpatches
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
-import filters
+import filters 
 
 class TP4:
     #Function parses user input returning an error if input is not numeric
@@ -887,7 +887,7 @@ class DesignFilter:
         graph = Canvas(graph_and_buttons)
         graph.pack(side=TOP,fill=BOTH,expand=True,padx=2,pady=4)
         toolbar = Frame(graph_and_buttons)
-        button_phase = Button(toolbar,text="Bode Phase")
+        button_phase = Button(toolbar,text="Bode Phase", command = self.TransferOfStage)
         button_phase.pack(side=LEFT,padx=2,pady=2)
         button_mag = Button(toolbar,text="Bode Module")
         button_mag.pack(side=LEFT,padx=2,pady=2)
@@ -1143,6 +1143,26 @@ class DesignFilter:
 
          print(self.TransferList)
         #----------------Buttons functions----------------------------
+     
+     def TransferOfStage(self):
+        self.detectStage = self.SelectedStage.curselection()
+        for i in self.detectStage:
+            self.stageIs = self.TransferList[i]
+            #polos de la stage
+        self.polesOfStage = self.stageIs[0] #siempre el primer elemento son los polos
+        #ceros de la stage
+        self.zerosOfStage = self.stageIs[1] #siempre el segundo elemento son los ceros
+        #return self.zerosOfStage, self.polesOfStage
+        self.den=np.poly1d([1])
+        self.num=np.poly1d([1])
+        for i in range(0,len(self.polesOfStage)):
+            pol = np.poly1d([-1/(self.polesOfStage[i]), 1])
+            self.den= self.den*pol
+        for i in range(0,len(self.zerosOfStage)):
+            pol = np.poly1d([-1/(self.zerosOfStage[i]), 1])
+            self.num= self.num*pol
+        self.TFofStage = signal.TransferFunction(self.num,self.den)
+        print(self.TFofStage)
      
 
 if __name__ == "__main__":
