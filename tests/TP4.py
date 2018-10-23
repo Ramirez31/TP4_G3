@@ -790,8 +790,6 @@ class TP4:
         button_mag.pack(side=LEFT,padx=2,pady=2)
         button_aten = Button(toolbar,text="Bode Denorm Atten.",command=self.plot_atten)
         button_aten.pack(side=LEFT,padx=2,pady=2)
-        button_aten_norm = Button(toolbar,text="Bode Norm Atten.",command=self.plot_norm_atten)
-        button_aten_norm.pack(side=LEFT,padx=2,pady=2)
         button_step = Button(toolbar,text="Step Response",command=self.plot_step)
         button_step.pack(side=LEFT,padx=2,pady=2)
         button_imp = Button(toolbar,text="Impulse response",command=self.plot_imp)
@@ -821,7 +819,7 @@ class TP4:
         self.root.mainloop()
 
 class DesignFilter:
-     def __init__(self,master):
+    def __init__(self,master):
 
         self.master=master 
         self.master.title("Design Filters")
@@ -835,11 +833,11 @@ class DesignFilter:
         self.texto.set("Polos y Ceros Seleccionados:")
        
         self.etiqueta=Label(self.side_toolbar,textvariable=self.texto).place(x=0,y=70)
-       
+
        #-------Seleccion de Polos--------------------------------
         self.comboPolos = ttk.Combobox(self.side_toolbar,width=10)
         self.comboPolos.place(x=0,y=0)
-        self.poles = [1+1j,1-1j,5,2,2,2] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑO
+        self.poles = [-1+1j,-1-1j,-5,-2,-2,-2] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑO
         self.polesAux = []
         self.polesAux.extend(self.poles)
         self.comboPolos['values'] = self.poles #Aca cargo cada polo
@@ -859,7 +857,7 @@ class DesignFilter:
         self.comboZeros = ttk.Combobox(self.side_toolbar,width=10)
         self.comboZeros.place(x=100,y=0)
         
-        self.Zeros = [1+1j,1-1j,5,2]
+        self.Zeros = [-1+1j,-1-1j,-5,-2]
         self.ZerosAux = [] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑO
         self.ZerosAux.extend(self.Zeros)
         self.comboZeros['values'] = self.Zeros #Aca cargo cada polo
@@ -897,9 +895,9 @@ class DesignFilter:
         graph = Canvas(graph_and_buttons)
         graph.pack(side=TOP,fill=BOTH,expand=True,padx=2,pady=4)
         toolbar = Frame(graph_and_buttons)
-        button_phase = Button(toolbar,text="Bode Phase", command = self.TransferOfStage)
+        button_phase = Button(toolbar,text="Bode Phase", command = self.plot_phase)
         button_phase.pack(side=LEFT,padx=2,pady=2)
-        button_mag = Button(toolbar,text="Bode Module")
+        button_mag = Button(toolbar,text="Bode Module", command = self.plot_atten)
         button_mag.pack(side=LEFT,padx=2,pady=2)
         button_step = Button(toolbar,text="Step Response")
         button_step.pack(side=LEFT,padx=2,pady=2)
@@ -909,8 +907,6 @@ class DesignFilter:
         button_zeros_and_poles.pack(side=LEFT,padx=2,pady=4)
         button_group_delay = Button(toolbar,text="Group Delay")
         button_group_delay.pack(side=LEFT,padx=2,pady=4)
-        button_aten = Button(toolbar,text="Individual")
-        button_aten.pack(side=LEFT,padx=2,pady=2)
         button_aten_norm = Button(toolbar,text="Accumulative")
         button_aten_norm.pack(side=LEFT,padx=2,pady=2)
 
@@ -942,8 +938,81 @@ class DesignFilter:
 
         self.AutoStages = Button(self.side_toolbar,text="Automatic Cascade Stages",command=self.AutoStages)
         self.AutoStages.place(x=0,y=360)
+  
+    #Function plots current filter's phase in current subplot
+    def plot_phase(self):
+        self.TransferOfStage()
+        self.axis.clear()
+        self.axis.semilogx(self.w,self.phase)
+        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+        self.axis.set_xlabel("Radian Frequency [1/rad]$")
+        self.axis.set_ylabel("$Phase [Deegres]$")
+        self.data_plot.draw()
+        #else:
+        #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
     
-     def AddPole(self):
+    #Function plots current filter's magnitude in atenuation in current subplot    
+    def plot_atten(self):
+        self.TransferOfStage()
+        self.axis.clear()
+        self.axis.semilogx(self.w,-self.mag)
+        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+        self.axis.set_xlabel("$Radian Frequency [1/rad]$")
+        self.axis.set_ylabel("$Attenuation [dB]$")
+        self.data_plot.draw()
+        #else:
+        #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+
+    #Function plots current filter's step response in current subplot
+    def plot_step(self):
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.plot(self.stepT,self.step_mag)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Time [s]$")
+            self.axis.set_ylabel("$V_{out} [Volts]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+
+    #Function plots current filter's impulse response in current subplot
+    def plot_imp(self):
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.plot(self.impT,self.imp_mag)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Time [s]$")
+            self.axis.set_ylabel("$V_{out} [Volts]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+
+    #Function plots current filter's zeroes and poles
+    def plot_zeroes_and_poles(self):
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.scatter(np.real(self.polesOfStage),np.imag(self.polesOfStage),marker="x")
+            self.axis.scatter(np.real(self.zerosOfStage),np.imag(self.zerosOfStage),marker="o")
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Sigma$")
+            self.axis.set_ylabel("$jw$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+    
+    #Function creates filter according to user input
+    def plot_group_delay(self):
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.semilogx(self.w,self.group_delay*1000)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("Radian Frequency [1/rad]$")
+            self.axis.set_ylabel("$Group Delay [ms]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")        
+
+    def AddPole(self):
 
         self.val=self.comboPolos.get()
         
@@ -983,9 +1052,8 @@ class DesignFilter:
                 print("Polo ya Seleccionado o orden maximo de Polos alcanzado para la etapa")
                     
         #Si es imaginario agrego tambien el conjugado pero si ya
-        
-        
-     def AddZero(self):
+               
+    def AddZero(self):
 
         self.val=self.comboZeros.get()
         self.val2=complex(self.val)
@@ -1019,7 +1087,7 @@ class DesignFilter:
                 else:
                     print("Cero ya Seleccionado o Orden maximo de Ceros alcanzado para la etapa")
 
-     def Remove(self):
+    def Remove(self):
          self.ZerosSeleccionados.clear()
          self.PolosSeleccionados.clear()
          self.SelectedPoles.delete(0, END)
@@ -1032,7 +1100,7 @@ class DesignFilter:
          self.ZerosAux.extend(self.Zeros)
          print(self.polesAux)
          
-     def GenerateStage(self):
+    def GenerateStage(self):
            self.den = []
            self.num = []
 
@@ -1062,10 +1130,9 @@ class DesignFilter:
            self.SelectedPoles.delete(0,END)
            self.SelectedZeros.delete(0,END) 
 
-           self.SelectedStage.insert(END, ["Stage", len(self.TransferList)])
-            
+           self.SelectedStage.insert(END, ["Stage", len(self.TransferList)])          
          
-     def DeleteStages(self):
+    def DeleteStages(self):
        
          self.ZerosSeleccionados.clear()
          self.PolosSeleccionados.clear()
@@ -1083,7 +1150,7 @@ class DesignFilter:
          self.TransferList.clear()
          self.SelectedStage.delete(0, END)
 
-     def AutoStages(self):
+    def AutoStages(self):
          #tengo que limpiar el combo box
          self.comboPolos['values'] = ['']
          self.comboZeros['values'] = ['']
@@ -1154,7 +1221,7 @@ class DesignFilter:
          print(self.TransferList)
         #----------------Buttons functions----------------------------
      
-     def TransferOfStage(self):
+    def TransferOfStage(self):
         self.detectStage = self.SelectedStage.curselection()
         for i in self.detectStage:
             self.stageIs = self.TransferList[i]
@@ -1169,11 +1236,11 @@ class DesignFilter:
             pol = np.poly1d([-1/(self.polesOfStage[i]), 1])
             self.den= self.den*pol
         for i in range(0,len(self.zerosOfStage)):
-            pol = np.poly1d([-1/(self.zerosOfStage[i]), 1])
+            pol = np.poly1d([1/(self.zerosOfStage[i]), 1])
             self.num= self.num*pol
         self.TFofStage = signal.TransferFunction(self.num,self.den)
-        print(self.TFofStage)
-     
+        self.w,self.mag,self.phase = signal.bode(self.TFofStage)
+    
 
 if __name__ == "__main__":
     ex = TP4()
