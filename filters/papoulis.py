@@ -16,6 +16,7 @@ class Papoulis(base_filter):
             self.Ao=args[5]
             self.n=args[6]
             self.input_qmax=args[7]
+            self.denorm_percent=args[8]
         elif (args[0]=='BandPass')|(args[0]=='StopBand'):
             self.name = args[0]
             self.gain=args[1]
@@ -27,6 +28,7 @@ class Papoulis(base_filter):
             self.Ao=args[7]
             self.n=args[8]
             self.input_qmax=args[9]
+            self.denorm_percent=args[10]
         if self.name:
             self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
             self.errormsg=self.check_input()

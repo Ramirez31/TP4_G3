@@ -239,7 +239,7 @@ class base_filter(metaclass=ABCMeta):
                 if (errormsg =='') and (self.wrg<=0):
                     errormsg = errormsg +'Error:Wrg must be a positive real number\n'
 
-            elif (self.Ao>0) and (self.Ap>0) and (self.Ao>=self.Ap):
+            elif (self.Ao>0) and (self.Ap>0) and (self.Ao>=self.Ap) and (self.denorm_percent<=100) and (self.denorm_percent>=0):
                 if self.name == 'LowPass':
                     if(self.wpl>=self.wal):
                         errormsg=errormsg+'Error: Template requiermentes not met, Wp must be smaller than Wa\n'
@@ -257,6 +257,8 @@ class base_filter(metaclass=ABCMeta):
                     errormsg=errormsg+'Error: Ao and Ap must be positive valued real numbers\n'
                 elif (self.Ao<self.Ap):
                     errormsg=errormsg+'Error: Ap must be smaller than Ao\n'
+                elif (self.denorm_percent<0) or (self.denorm_percent>100):
+                    errormsg=errormsg+'Error: Denormalization percent cannot be higher than 100% or smaller than 0%.\n'
                 else:
                     errormsg=errormsg+'Error: Filter type was not found in our selection\n'
         else:

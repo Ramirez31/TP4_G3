@@ -43,7 +43,7 @@ class TP4:
                 error = True
             entry.delete(0,END)
         a=self.nvar.get()
-        if self.nvar.get() == 1:
+        if (self.nvar.get() == 1) and (self.qvar.get() == 0):
             if self.is_int(self.n_entry.get()):
                 entries.append(int(self.n_entry.get()))
             else:
@@ -51,7 +51,7 @@ class TP4:
         else:
             entries.append(None)
         self.n_entry.delete(0,END)
-        if self.qvar.get() == 1:
+        if (self.qvar.get() == 1) and (self.nvar.get() == 0):
             if self.is_float(self.q_entry.get()):
                 entries.append(float(self.q_entry.get()))
             else:
@@ -59,6 +59,10 @@ class TP4:
         else:
             entries.append(None)
         self.q_entry.delete(0,END)
+        if self.is_float(self.denorm_entry.get()):
+            entries.append(float(self.denorm_entry.get()))
+        else:
+            error = True
         return error,entries,aprox
 
     #Function creates filter according to user input
@@ -101,7 +105,7 @@ class TP4:
                 self.q_filter_data=Label( self.filter_data, text=str(round(self.q,3)))
                 self.q_filter_data.grid(row=2,column=2)
 
-                self.filter_data.grid(row=12,columnspan=3,sticky=W)
+                self.filter_data.grid(row=14,columnspan=3,sticky=W)
 
             else:
                 messagebox.showerror("Input Error", filter_instance.error_was())
@@ -438,10 +442,14 @@ class TP4:
             self.entry_buttons[11][0].grid(row=8,column=0,sticky=W)
             self.entry_buttons[11][2].grid(row=8,column=1)
 
-            self.button_create_filter.grid(row=9,column=0,sticky=W)
+            self.entry_buttons[12][0].grid(row=9,column=0,sticky=W)
+            self.entry_buttons[12][1].grid(row=9,column=1)
+            self.entry_buttons[12][2].grid(row=9,column=2)
+
+            self.button_create_filter.grid(row=10,column=0,sticky=W)
 
             if self.filter_ready:
-                self.filter_data.grid(row=10,columnspan=3,sticky=W)
+                self.filter_data.grid(row=11,columnspan=3,sticky=W)
 
         elif  self.filter_string.get()=='HighPass':
             self.aprox_figure.create_image(0,0,image=self.photoHP,anchor='nw')
@@ -476,10 +484,14 @@ class TP4:
             self.entry_buttons[11][0].grid(row=8,column=0,sticky=W)
             self.entry_buttons[11][2].grid(row=8,column=1)
 
-            self.button_create_filter.grid(row=9,column=0,sticky=W)
+            self.entry_buttons[12][0].grid(row=9,column=0,sticky=W)
+            self.entry_buttons[12][1].grid(row=9,column=1)
+            self.entry_buttons[12][2].grid(row=9,column=2)
+
+            self.button_create_filter.grid(row=10,column=0,sticky=W)
 
             if self.filter_ready:
-                self.filter_data.grid(row=10,columnspan=3,sticky=W)
+                self.filter_data.grid(row=11,columnspan=3,sticky=W)
 
         elif  self.filter_string.get()=='BandPass':
             self.aprox_figure.create_image(0,0,image=self.photoBP,anchor='nw')
@@ -524,10 +536,14 @@ class TP4:
             self.entry_buttons[11][0].grid(row=10,column=0,sticky=W)
             self.entry_buttons[11][2].grid(row=10,column=1)
 
-            self.button_create_filter.grid(row=11,column=0,sticky=W)
+            self.entry_buttons[12][0].grid(row=11,column=0,sticky=W)
+            self.entry_buttons[12][1].grid(row=11,column=1)
+            self.entry_buttons[12][2].grid(row=11,column=2)
+
+            self.button_create_filter.grid(row=12,column=0,sticky=W)
 
             if self.filter_ready:
-                self.filter_data.grid(row=12,columnspan=3,sticky=W)
+                self.filter_data.grid(row=13,columnspan=3,sticky=W)
 
         elif  self.filter_string.get()=='StopBand':
             self.aprox_figure.create_image(0,0,image=self.photoSB,anchor='nw')
@@ -572,10 +588,14 @@ class TP4:
             self.entry_buttons[11][0].grid(row=10,column=0,sticky=W)
             self.entry_buttons[11][2].grid(row=10,column=1)
 
-            self.button_create_filter.grid(row=11,column=0,sticky=W)
+            self.entry_buttons[12][0].grid(row=11,column=0,sticky=W)
+            self.entry_buttons[12][1].grid(row=11,column=1)
+            self.entry_buttons[12][2].grid(row=11,column=2)
+
+            self.button_create_filter.grid(row=12,column=0,sticky=W)
 
             if self.filter_ready:
-                self.filter_data.grid(row=12,columnspan=3,sticky=W)
+                self.filter_data.grid(row=13,columnspan=3,sticky=W)
 
         elif  self.filter_string.get()=='Group Delay':
             self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
@@ -726,8 +746,17 @@ class TP4:
         self.q_check.grid(row=10,column=0,sticky=W)
         self.entry_buttons.append([self.q_check,0,self.q_entry])
 
+        self.denorm_label = Label( self.side_toolbar, text="Denormalization Range:")
+        self.denorm_label.grid(row=11,column=0)
+        self.denorm_entry = Entry(self.side_toolbar,width=5)
+        self.denorm_entry.grid(row=11,column=1)
+        self.denorm_unit = Label( self.side_toolbar, text="%")
+        self.denorm_unit.grid(row=11,column=2)
+        self.entry_buttons.append([self.denorm_label,self.denorm_entry,self.denorm_unit])
+
+
         self.button_create_filter = Button(self.side_toolbar,text="Create Filter",command=self.create_filter)
-        self.button_create_filter.grid(row=11,column=0,sticky=W)
+        self.button_create_filter.grid(row=12,column=0,sticky=W)
 
         self.filter_data=Frame(self.side_toolbar,width=270)
 
