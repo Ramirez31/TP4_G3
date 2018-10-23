@@ -29,14 +29,27 @@ class Chebyshev(base_filter):
         if self.name:
             self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
             self.errormsg=self.check_input()
+            if self.n !=None:
+                self.set_fix_order()
             if self.errormsg == '':
-                self.poles=[]
-                self.zeroes=[]
-                self.den=np.poly1d([1])
-                self.num=np.poly1d([1])
-                self.normalize()#Normalizes current template
-                self.do_approximation()#Does normalized approximation and realizes
-                self.denormalize()#Denormalizes the approximation to match desired template
+                while True:
+                    self.q=0
+                    self.poles=[]
+                    self.zeroes=[]
+                    self.den=np.poly1d([1])
+                    self.num=np.poly1d([1])
+                    self.normalize()#Normalizes current template
+                    self.do_approximation()#Does normalized approximation and realizes
+                    self.denormalize()#Denormalizes the approximation to match desired template
+
+                    if(self.input_qmax==None) or (self.input_qmax>=self.q):
+                        break
+                    else:
+                        if self.n>1:
+                            self.n=self.n-1
+                        else:
+                            self.errormsg=self.errormsg+'Required Q factor can not be achieved with current template\n'
+                            break
 
     def do_approximation(self):
        self.epsilon=np.sqrt(np.power(10,(self.Ap)/10)-1)
@@ -63,3 +76,12 @@ class Chebyshev(base_filter):
        self.zeroes=np.roots(self.num)
        self.poles=np.roots(self.den)
        self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
+
+    def set_fix_order(self):
+        if (self.name =='LowPass') or (self.name =='HighPass'):
+            self.n=int(self.n)
+        elif (self.name =='BandPass') or (self.name =='StopBand'):
+            if np.mod(self.n,2)==0:
+                self.n=int(self.n/2)
+            else:
+                self.errormsg=self.errormsg+'Required filter cannot be realized with the specified order\n'

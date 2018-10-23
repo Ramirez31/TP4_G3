@@ -72,12 +72,37 @@ class TP4:
                 self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
                 self.template_params = filter_instance.get_template()
                 self.filter_type = filter_instance.filter_is()
+                self.n,self.q=filter_instance.n_and_q_is()
         
                 self.atenua = -(self.mag)
                 self.stepT,self.step_mag = filter_instance.get_step()
                 self.impT,self.imp_mag = filter_instance.get_impulse()
                 self.zeroes, self.poles = filter_instance.get_zeroes_poles()
                 self.group_delay = filter_instance.get_group_delay()
+
+                for widget in self.filter_data.grid_slaves():
+                    widget.grid_forget()
+
+                self.filter_type_label=Label( self.filter_data, text="Filter Type:")
+                self.filter_type_label.grid(row=0,column=0)
+
+                self.filter_type_data=Label( self.filter_data, text=self.filter_type)
+                self.filter_type_data.grid(row=0,column=2)
+
+                self.n_filter_label=Label( self.filter_data, text="Filter Order:")
+                self.n_filter_label.grid(row=1,column=0)
+
+                self.n_filter_data=Label( self.filter_data, text=self.n)
+                self.n_filter_data.grid(row=1,column=2)
+
+                self.q_filter_label=Label( self.filter_data, text="Pole's maximum Q:")
+                self.q_filter_label.grid(row=2,column=0)
+
+                self.q_filter_data=Label( self.filter_data, text=str(round(self.q,3)))
+                self.q_filter_data.grid(row=2,column=2)
+
+                self.filter_data.grid(row=12,columnspan=3,sticky=W)
+
             else:
                 messagebox.showerror("Input Error", filter_instance.error_was())
         else:
@@ -379,6 +404,7 @@ class TP4:
         for widget in self.side_toolbar.grid_slaves():
             if int(widget.grid_info()["row"]) > 1:
                 widget.grid_forget()
+
         if  self.filter_string.get()=='LowPass':
             self.aprox_figure.create_image(0,0,image=self.photoLP,anchor='nw')
             self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
@@ -409,12 +435,14 @@ class TP4:
             self.entry_buttons[10][0].grid(row=7,column=0,sticky=W)
             self.entry_buttons[10][2].grid(row=7,column=1)
 
-
             self.entry_buttons[11][0].grid(row=8,column=0,sticky=W)
             self.entry_buttons[11][2].grid(row=8,column=1)
 
-
             self.button_create_filter.grid(row=9,column=0,sticky=W)
+
+            if self.filter_ready:
+                self.filter_data.grid(row=10,columnspan=3,sticky=W)
+
         elif  self.filter_string.get()=='HighPass':
             self.aprox_figure.create_image(0,0,image=self.photoHP,anchor='nw')
             self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
@@ -449,6 +477,10 @@ class TP4:
             self.entry_buttons[11][2].grid(row=8,column=1)
 
             self.button_create_filter.grid(row=9,column=0,sticky=W)
+
+            if self.filter_ready:
+                self.filter_data.grid(row=10,columnspan=3,sticky=W)
+
         elif  self.filter_string.get()=='BandPass':
             self.aprox_figure.create_image(0,0,image=self.photoBP,anchor='nw')
             self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
@@ -493,6 +525,10 @@ class TP4:
             self.entry_buttons[11][2].grid(row=10,column=1)
 
             self.button_create_filter.grid(row=11,column=0,sticky=W)
+
+            if self.filter_ready:
+                self.filter_data.grid(row=12,columnspan=3,sticky=W)
+
         elif  self.filter_string.get()=='StopBand':
             self.aprox_figure.create_image(0,0,image=self.photoSB,anchor='nw')
             self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
@@ -537,6 +573,10 @@ class TP4:
             self.entry_buttons[11][2].grid(row=10,column=1)
 
             self.button_create_filter.grid(row=11,column=0,sticky=W)
+
+            if self.filter_ready:
+                self.filter_data.grid(row=12,columnspan=3,sticky=W)
+
         elif  self.filter_string.get()=='Group Delay':
             self.entry_buttons[0][0].grid(row=2,column=0,sticky=W)
             self.entry_buttons[0][1].grid(row=2,column=1)
@@ -565,6 +605,10 @@ class TP4:
             self.entry_buttons[11][2].grid(row=7,column=1)
 
             self.button_create_filter.grid(row=8,column=0,sticky=W)
+
+            if self.filter_ready:
+                self.filter_data.grid(row=9,columnspan=3,sticky=W)
+
     #Function creates filter according to user input
     def __init__(self):
         self.root = Tk()
@@ -684,6 +728,8 @@ class TP4:
 
         self.button_create_filter = Button(self.side_toolbar,text="Create Filter",command=self.create_filter)
         self.button_create_filter.grid(row=11,column=0,sticky=W)
+
+        self.filter_data=Frame(self.side_toolbar,width=270)
 
         graph_and_buttons = Frame(self.root)
         graph_and_buttons.pack(side=LEFT)

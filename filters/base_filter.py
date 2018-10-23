@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import numpy as np
 from scipy import signal
+import control as cntrl
 
 class base_filter(metaclass=ABCMeta):
     """Base abstract filter class, contains attributes and methods common to all approximation types. In
@@ -47,7 +48,9 @@ class base_filter(metaclass=ABCMeta):
             #Denormalize poles
             for i in range(0,len(self.poles)):#For each pole denormalization is realized
                 if self.poles[i] != 0:#If pole is not zero
-                    self.den= self.den*np.poly1d([-1/(self.wpl*self.poles[i]),1]) #Filter is denormalized by frequency scaling it S=Sn/wc
+                    pol=np.poly1d([-1/(self.wpl*self.poles[i]),1])
+                    if np.real(np.roots(pol))<=0:
+                        self.den= self.den*pol #Filter is denormalized by frequency scaling it S=Sn/wc
                 else:
                     self.den=self.den*np.poly1d([1/(self.wpl),0])
             #Denormalize zeroes
@@ -64,7 +67,9 @@ class base_filter(metaclass=ABCMeta):
             self.num=np.poly1d(np.zeros(len(self.poles)),r=True) #Zeroes created after doing HP denormalization to poles
             for i in range(0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
-                    self.den= self.den*np.poly1d([1,-self.wpl/(self.poles[i])]) #Filter is denormalized by frequency scaling it S=wc/Sn
+                    pol=np.poly1d([1,-self.wpl/(self.poles[i])])
+                    if np.real(np.roots(pol))<=0:
+                        self.den= self.den*pol #Filter is denormalized by frequency scaling it S=wc/Sn
                 else:
                     self.den= self.den*np.poly1d([-self.wpl]) #Filter is denormalized by frequency scaling it S=wc/Sn
             #Denormalize zeroes
@@ -84,6 +89,8 @@ class base_filter(metaclass=ABCMeta):
             self.num=np.poly1d(np.zeros(len(self.poles)),r=True) #Zeroes created after doing HP denormalization to poles
             for i in range (0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
+                    if np.absolute(np.real(self.poles[i]))<0.01:
+                        self.poles[i]=1j*np.imag(self.poles[i])
                     self.den=self.den*np.poly1d([-1/(wo*B*self.poles[i]), 1, -wo/(B*self.poles[i])])
                 else:
                     self.den=self.den*np.poly1d([-1/(wo*B), 0, -wo/B])
@@ -91,6 +98,8 @@ class base_filter(metaclass=ABCMeta):
             self.den=self.den*np.poly1d(np.zeros(len(self.zeroes)),r=True) #Zeroes created after doing HP denormalization to poles
             for i in range (0,len(self.zeroes)):
                 if self.zeroes[i] != 0:#If zero is not located in origin
+                    if np.absolute(np.real(self.zeroes[i]))<0.01:
+                        self.zeroes[i]=1j*np.imag(self.zeroes[i])
                     self.num=self.num*np.poly1d([1/(wo*B*self.zeroes[i]), 1, wo/(B*self.zeroes[i])])
                 else:
                     self.num=self.num*np.poly1d([1/(wo*B), 0, wo/B])
@@ -103,6 +112,8 @@ class base_filter(metaclass=ABCMeta):
             #Denormalize poles
             for i in range (0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
+                    if np.absolute(np.real(self.poles[i]))<0.01:
+                        self.poles[i]=1j*np.imag(self.poles[i])
                     self.den=self.den*np.poly1d([1/wo, B/(-self.poles[i]), wo])
                 else:
                     self.den=self.den*np.poly1d([B,0])
@@ -110,12 +121,15 @@ class base_filter(metaclass=ABCMeta):
             #Denormalize zeroes
             for i in range (0,len(self.zeroes)):
                 if self.zeroes[i] != 0:#If pole is not zero
+                    if np.absolute(np.real(self.zeroes[i]))<0.01:
+                        self.zeroes[i]=1j*np.imag(self.zeroes[i])
                     self.num=self.num*np.poly1d([1/wo, B/(self.zeroes[i]), wo])
                 else:
                     self.num=self.num*np.poly1d([B,0])
                 self.den=self.den*np.poly1d([1/wo,0,wo])
-            self.poles=np.roots(self.den)
             self.zeroes=np.roots(self.num)
+            self.poles=np.roots(self.den)
+
 
         elif self.name=='Group Delay':
             #Denormalize poles
@@ -134,8 +148,15 @@ class base_filter(metaclass=ABCMeta):
             self.poles=np.roots(self.den)
         else:
             pass
+        for sing_pole in self.poles:
+            if np.real(sing_pole) !=0:
+                if (-np.absolute(sing_pole)/(2*np.real(sing_pole)))>self.q:
+                    self.q=(-np.absolute(sing_pole)/(2*np.real(sing_pole)))
+            else:
+                self.q=float('inf')
         K=np.power(10,self.gain/20)
         self.num=self.num*K*self.aprox_gain
+        self.denorm_n=len(self.den)
         self.denorm_sys = signal.TransferFunction(self.num,self.den) #Denormalized system is obtained
 
     # Function returns current denormalized filter step response
@@ -210,7 +231,7 @@ class base_filter(metaclass=ABCMeta):
     def check_input(self):
         errormsg=''
         if (self.gain >=0) and ((self.n==None) or (self.n<self.nmax)):
-            if self.name == 'Group delay':
+            if self.name == 'Group Delay':
                 if (self.palm<=0) or (self.palm>=1):
                     errormsg=errormsg+'Error: Tolerance must be a real number higher than 0 and smaller than 1\n'
                 if (errormsg =='') and (self.tao0<=0):
@@ -248,4 +269,5 @@ class base_filter(metaclass=ABCMeta):
     def error_was(self):
         return self.errormsg
 
-
+    def n_and_q_is(self):
+        return self.denorm_n, self.q

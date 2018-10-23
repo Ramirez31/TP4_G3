@@ -18,13 +18,24 @@ class Bessel(base_filter):
             self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
             self.errormsg=self.check_input()
             if self.errormsg == '':
-                self.poles=[]
-                self.zeroes=[]
-                self.den=np.poly1d([1])
-                self.num=np.poly1d([1])
-                self.normalize()#Normalizes current template
-                self.do_approximation()#Does normalized approximation and realizes
-                self.denormalize()#Denormalizes the approximation to match desired template
+                while True:
+                    self.q=0
+                    self.poles=[]
+                    self.zeroes=[]
+                    self.den=np.poly1d([1])
+                    self.num=np.poly1d([1])
+                    self.normalize()#Normalizes current template
+                    self.do_approximation()#Does normalized approximation and realizes
+                    self.denormalize()#Denormalizes the approximation to match desired template
+
+                    if(self.input_qmax==None) or (self.input_qmax>=self.q):
+                        break
+                    else:
+                        if self.n>1:
+                            self.n=self.n-1
+                        else:
+                            self.errormsg=self.errormsg+'Required Q factor can not be achieved with current template\n'
+                            break
 
     def do_approximation(self):
         if self.n == None:
@@ -41,8 +52,8 @@ class Bessel(base_filter):
             k = np.linspace(0, self.n, num=(self.n + 1))  #vector of increasing integers from 0 to n is created
             k=np.flip(k)
             bess_coef=np.poly1d(self.bessel_coef(k))# K-th Bessel of N-th order is calculated
-        self.aprox_gain=self.bessel_coef(0)#Transfer function has a gain constant
-        self.norm_sys = signal.TransferFunction(self.aprox_gain,bess_coef) #Filter system is obtained
+        self.norm_sys = signal.TransferFunction(self.bessel_coef(0),bess_coef) #Filter system is obtained
+        self.aprox_gain=1
         self.poles=np.roots(bess_coef)#Poles are obtained
 
     def bessel_coef (self,k):#Function calculates k-th bessel coefficients for a n-order bessel polynomial. Receives a vector of decreasing integers starting from n

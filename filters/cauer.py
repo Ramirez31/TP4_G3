@@ -32,6 +32,7 @@ class Cauer(base_filter):
             self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
             self.errormsg=self.check_input()
             if self.errormsg == '':
+                self.q=0
                 self.poles=[]
                 self.zeroes=[]
                 self.den=np.poly1d([1])
