@@ -15,7 +15,7 @@ class Butterworth(base_filter):
             self.Ao=args[5]
             self.n=args[6]
             self.input_qmax=args[7]
-            self.denorm_percent=args[8]
+            self.denorm_percent=args[8]/100
         elif (args[0]=='BandPass')|(args[0]=='StopBand'):
             self.name = args[0]
             self.gain=args[1]
@@ -68,6 +68,7 @@ class Butterworth(base_filter):
                     pol= np.poly1d([-1/root, 1])
                     self.den= self.den*pol
             self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
+            self.denormalize_range()
             self.aprox_gain=1
         else:
             self.errormsg='Required order surpasses maximum order limit for this approximation type.\n'
