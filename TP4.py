@@ -1097,6 +1097,8 @@ class DesignFilter:
          self.PolosSeleccionados.clear()
          self.SelectedPoles.delete(0, END)
          self.SelectedZeros.delete(0,END)
+         self.PolosNoEnStages = [item for item in temp1 if item not in temp2]   
+         
          self.comboPolos['values'] = self.poles
          self.comboZeros['values'] = self.Zeros
          self.polesAux = []
@@ -1224,6 +1226,9 @@ class DesignFilter:
              self.HdeStage = []
 
          print(self.TransferList)
+         for i in range(0,len(self.TransferList)):
+             self.SelectedStage.insert(END, ["Stage" , i+1])
+
         #----------------Buttons functions----------------------------
      
      def TransferOfStage(self):
