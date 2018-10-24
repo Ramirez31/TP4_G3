@@ -844,7 +844,6 @@ class DesignFilter:
         self.polesAux.extend(self.poles)
         self.comboPolos['values'] = self.poles #Aca cargo cada polo
          
-        self.comboPolos.current(0)
         self.PolosSeleccionados = [] #Aca guardo polos para hacer etapa
 
         self.AddPoleButton = Button(self.side_toolbar,text="Add Pole",command=self.AddPole)
@@ -862,7 +861,6 @@ class DesignFilter:
         self.Zeros = np.array(np.around(zeros, decimals=5)).tolist()
         self.ZerosAux = [] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑOself.ZerosAux.extend(self.Zeros)
         self.comboZeros['values'] = self.Zeros #Aca cargo cada polo
-        self.comboZeros.current(0)
         self.ZerosSeleccionados = [] #Aca guardo polos para hacer etapa
 
         self.AddZeroButton = Button(self.side_toolbar,text="Add Zero",command=self.AddZero)
@@ -945,7 +943,7 @@ class DesignFilter:
         self.AutoStages.place(x=0,y=360)
   
     #Function plots current filter's phase in current subplot
-    def plot_phase(self):
+     def plot_phase(self):
         self.TransferOfStage()
         self.axis.clear()
         self.axis.semilogx(self.w,self.phase)
@@ -957,7 +955,7 @@ class DesignFilter:
         #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
     
     #Function plots current filter's magnitude in atenuation in current subplot    
-    def plot_atten(self):
+     def plot_atten(self):
         self.TransferOfStage()
         self.axis.clear()
         self.axis.semilogx(self.w,-self.mag)
@@ -969,7 +967,7 @@ class DesignFilter:
         #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's step response in current subplot
-    def plot_step(self):
+     def plot_step(self):
         if self.filter_ready is True:
             self.axis.clear()
             self.axis.plot(self.stepT,self.step_mag)
@@ -981,7 +979,7 @@ class DesignFilter:
             messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's impulse response in current subplot
-    def plot_imp(self):
+     def plot_imp(self):
         if self.filter_ready is True:
             self.axis.clear()
             self.axis.plot(self.impT,self.imp_mag)
@@ -993,7 +991,7 @@ class DesignFilter:
             messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's zeroes and poles
-    def plot_zeroes_and_poles(self):
+     def plot_zeroes_and_poles(self):
         if self.filter_ready is True:
             self.axis.clear()
             self.axis.scatter(np.real(self.polesOfStage),np.imag(self.polesOfStage),marker="x")
@@ -1006,7 +1004,7 @@ class DesignFilter:
             messagebox.showerror("Error", "No filter was created, plot cannot be realized")
     
     #Function creates filter according to user input
-    def plot_group_delay(self):
+     def plot_group_delay(self):
         if self.filter_ready is True:
             self.axis.clear()
             self.axis.semilogx(self.w,self.group_delay*1000)
@@ -1017,7 +1015,7 @@ class DesignFilter:
         else:
             messagebox.showerror("Error", "No filter was created, plot cannot be realized")        
 
-    def AddPole(self):
+     def AddPole(self):
 
         self.val=self.comboPolos.get()
         
@@ -1058,7 +1056,7 @@ class DesignFilter:
                     
         #Si es imaginario agrego tambien el conjugado pero si ya
                
-    def AddZero(self):
+     def AddZero(self):
 
         self.val=self.comboZeros.get()
         self.val2=complex(self.val)
@@ -1092,7 +1090,7 @@ class DesignFilter:
                 else:
                     print("Cero ya Seleccionado o Orden maximo de Ceros alcanzado para la etapa")
 
-    def Remove(self):
+     def Remove(self):
          self.ZerosSeleccionados.clear()
          self.PolosSeleccionados.clear()
          self.SelectedPoles.delete(0, END)
@@ -1105,7 +1103,7 @@ class DesignFilter:
          self.ZerosAux.extend(self.Zeros)
          print(self.polesAux)
          
-    def GenerateStage(self):
+     def GenerateStage(self):
            self.den = []
            self.num = []
 
@@ -1137,7 +1135,7 @@ class DesignFilter:
 
            self.SelectedStage.insert(END, ["Stage", len(self.TransferList)])          
          
-    def DeleteStages(self):
+     def DeleteStages(self):
        
          self.ZerosSeleccionados.clear()
          self.PolosSeleccionados.clear()
@@ -1155,7 +1153,7 @@ class DesignFilter:
          self.TransferList.clear()
          self.SelectedStage.delete(0, END)
 
-    def AutoStages(self):
+     def AutoStages(self):
          #tengo que limpiar el combo box
          self.comboPolos['values'] = ['']
          self.comboZeros['values'] = ['']
@@ -1226,7 +1224,7 @@ class DesignFilter:
          print(self.TransferList)
         #----------------Buttons functions----------------------------
      
-    def TransferOfStage(self):
+     def TransferOfStage(self):
         self.detectStage = self.SelectedStage.curselection()
         for i in self.detectStage:
             self.stageIs = self.TransferList[i]
