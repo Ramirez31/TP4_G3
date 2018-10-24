@@ -114,7 +114,10 @@ class TP4:
                 self.q_filter_data.grid(row=3,column=2)
 
                 self.filter_data.grid(row=14,columnspan=3,sticky=W)
-
+                if self.filter_type == 'Group Delay':
+                    self.plot_group_delay()
+                else:
+                    self.plot_atten()
             else:
                 messagebox.showerror("Input Error", self.filter_instance.error_was())
         else:
@@ -131,6 +134,7 @@ class TP4:
     def plot_phase(self):
         if self.filter_ready is True:
             self.axis.clear()
+            self.axis.set_title('Bode Diagram phase plot')
             self.axis.semilogx(self.w,self.phase)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("Radian Frequency [1/rad]$")
@@ -163,6 +167,7 @@ class TP4:
             l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
             r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=True,color='orange',alpha=0.5)#template is plotted
             self.axis.clear()
+            self.axis.set_title('Bode Diagram Normalized Attenuation plot')
             self.axis.add_patch(l_rect)
             self.axis.add_patch(r_rect)
             self.axis.set_xlim(1/10,self.template_params[2]+5)
@@ -193,7 +198,7 @@ class TP4:
                 heightc=0
                 self.axis.clear()
                 self.axis.set_xlim(self.template_params[3]/10,self.template_params[4]*2)
-                self.axis.set_ylim(-5-self.template_params[5],self.template_params[1]+self.template_params[5]+5)
+                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[5]+5)
             elif self.filter_type == 'HighPass':
                 xl=-100000
                 yl=-100000
@@ -209,7 +214,7 @@ class TP4:
                 heightc=0
                 self.axis.clear()
                 self.axis.set_xlim(self.template_params[4]/10,self.template_params[3]*2)
-                self.axis.set_ylim(-5-self.template_params[5],self.template_params[1]+self.template_params[5]+5)
+                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[5]+5)
             elif self.filter_type == 'BandPass':
                 xl=-100000
                 yl=-100000
@@ -225,7 +230,7 @@ class TP4:
                 heightc=100000
                 self.axis.clear()
                 self.axis.set_xlim(self.template_params[5]/5,self.template_params[6]*5)
-                self.axis.set_ylim(-5-self.template_params[5],self.template_params[1]+self.template_params[5]+5)
+                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[5]+5)
             elif self.filter_type == 'StopBand':
                 xl=-100000
                 yl=self.template_params[0]-self.template_params[7]
@@ -241,7 +246,7 @@ class TP4:
                 heightc=np.absolute(yc)+self.template_params[1]-self.template_params[7]
                 self.axis.clear()
                 self.axis.set_xlim(self.template_params[3]/5,self.template_params[4]*5)
-                self.axis.set_ylim(-5-self.template_params[5],self.template_params[1]+self.template_params[5]+5)
+                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[5]+5)
             elif self.filter_type == 'Group Delay':
                 xl=0
                 yl=0
@@ -258,6 +263,7 @@ class TP4:
             c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=True,color='orange',alpha=0.5)#template is plotted
             l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
             r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=True,color='orange',alpha=0.5)#template is plotted
+            self.axis.set_title('Bode Diagram Denormalized Attenuation plot')
             self.axis.add_patch(l_rect)
             self.axis.add_patch(r_rect)
             self.axis.add_patch(c_rect)
@@ -273,57 +279,69 @@ class TP4:
     def plot_gain(self):
         if self.filter_ready is True:
             if self.filter_type == 'LowPass':
-                xl=-100
-                yl=-100
+                xl=-100000
+                yl=-100000
                 widthl=np.absolute(xl)+self.template_params[3]
                 heightl=np.absolute(yl)-self.template_params[0]+self.template_params[5]
                 xr=self.template_params[4]
                 yr=-self.template_params[1]+self.template_params[5]
-                widthr=100
-                heightr=100
+                widthr=self.template_params[4]*1000
+                heightr=100000
                 xc=0
                 yc=0
                 widthc=0
                 heightc=0
+                self.axis.clear()
+                self.axis.set_xlim(self.template_params[3]/100,self.template_params[4]*100)
+                self.axis.set_ylim(-5-self.template_params[1],self.template_params[0]+self.template_params[5]+5)
             elif self.filter_type == 'HighPass':
-                xl=-100
+                xl=-100000
                 yl=-self.template_params[1]+self.template_params[5]
                 widthl=np.absolute(xl)+self.template_params[4]
-                heightl=100
+                heightl=100000
                 xr=self.template_params[3]
-                yr=-100
-                widthr=100
+                yr=-100000
+                widthr=self.template_params[3]*1000
                 heightr=np.absolute(yr)-self.template_params[0]+self.template_params[5]
                 xc=0
                 yc=0
                 widthc=0
                 heightc=0
+                self.axis.clear()
+                self.axis.set_xlim(self.template_params[4]/100,self.template_params[3]*100)
+                self.axis.set_ylim(-5-self.template_params[1]+self.template_params[5],self.template_params[0]+self.template_params[5]+5)
             elif self.filter_type == 'BandPass':
-                xl=-100
+                xl=-100000
                 yl=-self.template_params[1]+self.template_params[7]
                 widthl=np.absolute(xl)+self.template_params[5]
-                heightl=100
+                heightl=100000
                 xr=self.template_params[6]
                 yr=-self.template_params[1]+self.template_params[7]
-                widthr=100
-                heightr=100
+                widthr=self.template_params[6]*1000
+                heightr=100000
                 xc=self.template_params[3]
-                yc=-100
+                yc=-100000
                 widthc=self.template_params[4]-self.template_params[3]
                 heightc=np.absolute(yc)-self.template_params[0]+self.template_params[7]
+                self.axis.clear()
+                self.axis.set_xlim(self.template_params[5]/100,self.template_params[6]*100)
+                self.axis.set_ylim(-5-self.template_params[1]+self.template_params[7],self.template_params[0]+self.template_params[7]+5)
             elif self.filter_type == 'StopBand':
-                xl=-100
-                yl=-100
+                xl=-100000
+                yl=-100000
                 widthl=np.absolute(xl)+self.template_params[3]
                 heightl=np.absolute(yl)-self.template_params[0]+self.template_params[7]
                 xr=self.template_params[4]
-                yr=-100
-                widthr=100
+                yr=-100000
+                widthr=self.template_params[4]*1000
                 heightr=np.absolute(yr)-self.template_params[0]+self.template_params[7]
                 xc=self.template_params[5]
                 yc=-self.template_params[1]+self.template_params[7]
                 widthc=self.template_params[6]-self.template_params[5]
-                heightc=100
+                heightc=100000
+                self.axis.clear()
+                self.axis.set_xlim(self.template_params[3]/100,self.template_params[4]*100)
+                self.axis.set_ylim(-5-self.template_params[1]+self.template_params[7],self.template_params[0]+self.template_params[7]+5)
             elif self.filter_type == 'Group Delay':
                 xl=0
                 yl=0
@@ -337,10 +355,10 @@ class TP4:
                 yc=0
                 widthc=0
                 heightc=0
+            self.axis.set_title('Bode Diagram Denormalized Gain plot')
             c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=True,color='orange',alpha=0.5)#template is plotted
             l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
             r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=True,color='orange',alpha=0.5)#template is plotted
-            self.axis.clear()
             self.axis.add_patch(l_rect)
             self.axis.add_patch(r_rect)
             self.axis.add_patch(c_rect)
@@ -356,7 +374,8 @@ class TP4:
     def plot_step(self):
         if self.filter_ready is True:
             self.axis.clear()
-            self.axis.set_aspect('equal',adjustable='box')
+            self.axis.set_title('Filter\'s Step Response')
+            self.axis.set_aspect('auto',adjustable='box')
             self.axis.plot(self.stepT,self.step_mag)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("$Time [s]$")
@@ -369,7 +388,8 @@ class TP4:
     def plot_imp(self):
         if self.filter_ready is True:
             self.axis.clear()
-
+            self.axis.set_title('Filter\'s Impulse Response')
+            self.axis.set_aspect('auto',adjustable='box')
             self.axis.plot(self.impT,self.imp_mag)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("$Time [s]$")
@@ -382,7 +402,8 @@ class TP4:
     def plot_zeroes_and_poles(self):
         if self.filter_ready is True:
             self.axis.clear()
-            self.axis.set_aspect('equal',adjustable='box')
+            self.axis.set_title('Filter\'s Group Delay')
+            #self.axis.set_aspect('equal')
             self.axis.scatter(np.real(self.poles),np.imag(self.poles),marker="x")
             self.axis.scatter(np.real(self.zeroes),np.imag(self.zeroes),marker="o")
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
@@ -397,7 +418,23 @@ class TP4:
         if self.filter_ready is True:
             arrows=[]
             self.axis.clear()
-            
+            for i in range(0,len(self.phase)-1):
+                if (np.absolute(self.phase[i]-self.phase[i+1])>40):
+                    #arrows.append(matplotlib.patches.Arrow(self.w[i],))
+                    j=i
+                    while (np.absolute(self.group_delay[j]-self.group_delay[i])<0.1) and (j<(len(self.phase)-1)):
+                        self.group_delay[j]=self.group_delay[i-1]
+                        j=j+1
+                    self.group_delay[j]=self.group_delay[i-1]
+                    
+                elif ((self.phase[i]-self.phase[i+1])<-40):
+                    #arrows.append(matplotlib.patches.Arrow(self.w[i],))
+                    j=i
+                    while np.absolute(self.group_delay[j]-self.group_delay[i])<0.1:
+                        self.group_delay[j]=self.group_delay[i-1]
+                        j=j+1
+                    self.group_delay[j]=self.group_delay[i-1]
+
             self.axis.semilogx(self.w,self.group_delay*1000)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("Radian Frequency [1/rad]$")
@@ -1284,7 +1321,7 @@ class DesignFilter:
             if np.iscomplexobj(i):
                 self.polesAux.remove(np.conjugate(i))
          
-         self.MisPolos = sorted(self.polesAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=True)       
+         self.MisPolos = sorted(self.polesAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=False)       
          
 
          for i in range(len(self.ZerosAux)):
@@ -1295,7 +1332,7 @@ class DesignFilter:
             if np.iscomplexobj(i):
                 self.ZerosAux.remove(np.conjugate(i))
          
-         self.MisCeros = sorted(self.ZerosAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=True)       
+         self.MisCeros = sorted(self.ZerosAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=False)       
             
          self.HdeStage = []
          self.TransferList.clear() 

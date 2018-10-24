@@ -165,29 +165,29 @@ class base_filter(metaclass=ABCMeta):
             self.w,self.mag,self.phase = signal.bode(self.denorm_sys)
             return self.w, self.mag, self.phase
         if self.name=='LowPass': #If required filter is LP
-            w=np.hstack((np.logspace(np.log10(self.wpl/1000),np.log10(self.wpl),num=500),np.logspace(np.log10(self.wpl*1.01),np.log10(self.wal*0.99),num=500)))
-            w=np.hstack((w,np.logspace(np.log10(self.wal),np.log10(self.wal*1000),num=500)))
+            w=np.hstack((np.logspace(np.log10(self.wpl/1000000),np.log10(self.wpl),num=1000),np.logspace(np.log10(self.wpl*1.01),np.log10(self.wal*0.99),num=1000)))
+            w=np.hstack((w,np.logspace(np.log10(self.wal),np.log10(self.wal*1000000),num=1000)))
         elif self.name=='HighPass': #If required filter is HP
-            w=np.hstack((np.logspace(np.log10(self.wal/1000),np.log10(self.wal),num=500),np.logspace(np.log10(self.wal*1.01),np.log10(self.wpl*0.99),num=500)))
-            w=np.hstack((w,np.logspace(np.log10(self.wpl),np.log10(self.wpl*1000),num=500)))
+            w=np.hstack((np.logspace(np.log10(self.wal/1000000),np.log10(self.wal),num=1000),np.logspace(np.log10(self.wal*1.01),np.log10(self.wpl*0.99),num=1000)))
+            w=np.hstack((w,np.logspace(np.log10(self.wpl),np.log10(self.wpl*1000000),num=1000)))
         elif self.name=='BandPass': #If required filter is BP
-            w=np.hstack((np.logspace(np.log10(self.wal/1000),np.log10(self.wal),num=500),np.logspace(np.log10(self.wal*1.01),np.log10(self.wpl*0.99),num=500)))
-            w=np.hstack((w,np.logspace(np.log10(self.wpl),np.log10(self.wph),num=500)))
-            w=np.hstack((w,np.logspace(np.log10(self.wph*1.01),np.log10(self.wah),num=500)))
-            w=np.hstack((w,np.logspace(np.log10(self.wah*1.01),np.log10(self.wah*1000),num=500)))
+            w=np.hstack((np.logspace(np.log10(self.wal/1000000),np.log10(self.wal),num=1000),np.logspace(np.log10(self.wal*1.01),np.log10(self.wpl*0.99),num=1000)))
+            w=np.hstack((w,np.logspace(np.log10(self.wpl),np.log10(self.wph),num=1000)))
+            w=np.hstack((w,np.logspace(np.log10(self.wph*1.01),np.log10(self.wah),num=1000)))
+            w=np.hstack((w,np.logspace(np.log10(self.wah*1.01),np.log10(self.wah*1000000),num=1000)))
         elif self.name=='StopBand': #If required filter is SB
-            w=np.hstack((np.logspace(np.log10(self.wpl/1000),np.log10(self.wpl),num=500),np.logspace(np.log10(self.wpl*1.01),np.log10(self.wal*0.99),num=500)))
-            w=np.hstack((w,np.logspace(np.log10(self.wal),np.log10(self.wah),num=500)))
-            w=np.hstack((w,np.logspace(np.log10(self.wah*1.01),np.log10(self.wph),num=500)))
-            w=np.hstack((w,np.logspace(np.log10(self.wph*1.01),np.log10(self.wph*1000),num=500)))
+            w=np.hstack((np.logspace(np.log10(self.wpl/1000000),np.log10(self.wpl),num=1000),np.logspace(np.log10(self.wpl*1.01),np.log10(self.wal*0.99),num=1000)))
+            w=np.hstack((w,np.logspace(np.log10(self.wal),np.log10(self.wah),num=1000)))
+            w=np.hstack((w,np.logspace(np.log10(self.wah*1.01),np.log10(self.wph),num=1000)))
+            w=np.hstack((w,np.logspace(np.log10(self.wph*1.01),np.log10(self.wph*1000000),num=1000)))
         self.w,self.mag,self.phase = signal.bode(self.denorm_sys,w)
         return self.w, self.mag, self.phase
 
     # Function returns current filter normalized frequency response (frec,magnitude,phase)
     def get_norm_bode(self):
         if self.name!='Group Delay':
-            w=np.hstack((np.logspace(-3,0,num=500),np.logspace(0.01,np.log10(self.wan*0.99),num=500)))
-            w=np.hstack((w,np.logspace(np.log10(self.wan),np.log10(self.wan*1000),num=500)))
+            w=np.hstack((np.logspace(-6,0,num=1000),np.logspace(0.01,np.log10(self.wan*0.99),num=1000)))
+            w=np.hstack((w,np.logspace(np.log10(self.wan),np.log10(self.wan*100000),num=500)))
             self.nw,self.nmag,self.nphase = signal.bode(self.norm_sys,w)
         else:
             self.nw,self.nmag,self.nphase = signal.bode(self.norm_sys)
