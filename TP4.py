@@ -1332,6 +1332,7 @@ class DesignFilter:
         index = int(w.curselection()[0])
         value = w.get(index)
         self.TransferOfStage()
+        self.plot_atten()
 
 
 
