@@ -3,6 +3,20 @@ import numpy as np
 from scipy import signal
 
 class Chebyshev(base_filter):
+    #Chebyshev approximation class.In order to instantiate receives variadic arguments depending on filter type required.
+    #If required filter is Low Pass or High Pass object receives in order:
+    #string filter_type : Type of filter required to implement (LowPass,HighPass,BandPass,StopBand).
+    #float gain : Desired DC gain.
+    #float wp : Desired passband frequency.
+    #float wa : Desired attenuation frequency.
+    #float Ap : Desired passband maximum attenuation.
+    #float Aa : Desired stopband minimum attenuation.
+    #int n : Fixed approximation order. If no limitations regarding this value are met function should receive n=None, class will find smaller order that meets template requirements.
+    #float max Q : Desired maximum pole Q factor. If no limitations regarding this value are met function should receive max_q=None. When Q is a limiting factor, it is not guaranteed that template requirements will be met.
+    #float denorm Percent : Porcentual value, if equals 0 attenuation at w=wp will be Ap. If value increases, approximation will shift rigthwards until, at w=wa attenuation is Aa
+
+    #If required filter is BandPass or StopBand function receives wp+ and wa+ after the previously defined wp and wa (this values will be used as wp- and wa-)
+
 
     #Filter initialization with initial parameters received
     def __init__(self, *args):
@@ -33,33 +47,36 @@ class Chebyshev(base_filter):
                 self.nmax=16
             else:
                 self.nmax=18
-            self.errormsg=self.check_input()
-            if self.n !=None:
-                self.set_fix_order()
-            if (self.name == 'BandPass') or (self.name =='StopBand'):#Order limit for normalized approximation (taking into account that denormalized limits are not met)
-                self.nmax=8
-            else:
-                self.nmax=18
-            if self.errormsg == '':
-                while True:
-                    self.q=0
-                    self.poles=[]
-                    self.zeroes=[]
-                    self.den=np.poly1d([1])
-                    self.num=np.poly1d([1])
-                    self.normalize()#Normalizes current template
-                    self.do_approximation()#Does normalized approximation and realizes
-                    if self.errormsg =='':
-                        self.denormalize()#Denormalizes the approximation to match desired template
+            if self.check_4_infs_and_nans(args) is False:
+                self.errormsg=self.check_input()
+                if self.n !=None:
+                    self.set_fix_order()
+                if (self.name == 'BandPass') or (self.name =='StopBand'):#Order limit for normalized approximation (taking into account that denormalized limits are not met)
+                    self.nmax=8
+                else:
+                    self.nmax=18
+                if self.errormsg == '':
+                    while True:
+                        self.q=0
+                        self.poles=[]
+                        self.zeroes=[]
+                        self.den=np.poly1d([1])
+                        self.num=np.poly1d([1])
+                        self.normalize()#Normalizes current template
+                        self.do_approximation()#Does normalized approximation and realizes
+                        if self.errormsg =='':
+                            self.denormalize()#Denormalizes the approximation to match desired template
 
-                    if(self.input_qmax==None) or (self.input_qmax>=self.q):
-                        break
-                    else:
-                        if self.n>1:
-                            self.n=self.n-1
-                        else:
-                            self.errormsg=self.errormsg+'Required Q factor can not be achieved with current template\n'
+                        if(self.input_qmax==None) or (self.input_qmax>=self.q):
                             break
+                        else:
+                            if self.n>1:
+                                self.n=self.n-1
+                            else:
+                                self.errormsg=self.errormsg+'Required Q factor can not be achieved with current template\n'
+                                break
+            else:
+                self.errormsg='Input cannot be inf or NaN\n'
 
     def do_approximation(self):
        self.epsilon=np.sqrt(np.power(10,(self.Ap)/10)-1)

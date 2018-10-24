@@ -16,27 +16,30 @@ class Gauss(base_filter):
             self.n=args[5]
             self.input_qmax=args[6]
             self.nmax=13 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
-            self.errormsg=self.check_input()
-            if self.errormsg == '':
-                while True:
-                    self.q=0
-                    self.poles=[]
-                    self.zeroes=[]
-                    self.den=np.poly1d([1])
-                    self.num=np.poly1d([1])
-                    self.normalize()#Normalizes current template
-                    self.do_approximation()#Does normalized approximation and realizes
-                    if self.errormsg == '':
-                        self.denormalize()#Denormalizes the approximation to match desired template
+            if self.check_4_infs_and_nans(args) is False:
+                self.errormsg=self.check_input()
+                if self.errormsg == '':
+                    while True:
+                        self.q=0
+                        self.poles=[]
+                        self.zeroes=[]
+                        self.den=np.poly1d([1])
+                        self.num=np.poly1d([1])
+                        self.normalize()#Normalizes current template
+                        self.do_approximation()#Does normalized approximation and realizes
+                        if self.errormsg == '':
+                            self.denormalize()#Denormalizes the approximation to match desired template
 
-                    if(self.input_qmax==None) or (self.input_qmax>=self.q):
-                        break
-                    else:
-                        if self.n>1:
-                            self.n=self.n-1
-                        else:
-                            self.errormsg=self.errormsg+'Required Q factor can not be achieved with current template\n'
+                        if(self.input_qmax==None) or (self.input_qmax>=self.q):
                             break
+                        else:
+                            if self.n>1:
+                                self.n=self.n-1
+                            else:
+                                self.errormsg=self.errormsg+'Required Q factor can not be achieved with current template\n'
+                                break
+            else:
+                self.errormsg='Input cannot be inf or NaN\n'
     
     def do_approximation(self):
         gamma=1
@@ -98,38 +101,3 @@ class Gauss(base_filter):
             g_k.append(0)
         #b_k is a vector with all of the polynomial coefficients, with decreasing order
         return np.flip(g_k)
-
-
-    #def factorial(self,n):
-    #    if n <= 0:
-    #        return 1
-    #    else:
-    #        return n*self.factorial(n-1)
-
-    #def do_approximation(self):
-    #    #Me pasan Tao(0) WRG y palmerita
-    #    wrgn = self.tao0*self.wrg
-    #    j = np.complex(0,1)
-    #    NoCumplo=True
-    #    self.n=1
-        
-    #    while NoCumplo or self.n<=20:
-    #        Terminos= np.zeros(self.n*2)
-    #        Terminos[len(Terminos)]=1
-           
-    #        for i in range (0,self.n+1):
-    #            Terminos[len(Terminos)-2*i] = (-1*(j**i))/self.factorial(i)
-
-    #        POL=np.poly1d(Terminos)
-    #        den=Terminos
-    #        w,TaoWRGN = signal.group_delay((1,den),[wrgn])
-
-    #        if TaoWRGN >= (1-self.palm):
-    #            NoCumplo=False
-    #        else:
-    #            NoCumplo=True
-
-    #        self.poles=np.roots(POL)
-    #        self.zeroes=1
-    #        self.n=self.n+1
-                

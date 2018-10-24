@@ -3,16 +3,8 @@ import numpy as np
 from scipy import signal
 
 class base_filter(metaclass=ABCMeta):
-    """Base abstract filter class, contains attributes and methods common to all approximation types. In
-    Ap=
-    Ao=
-    wpl=
-    wph=
-    wal=
-    wah=
-    wo=
-    n= Filter order
-    """
+    #Base abstract filter class, contains attributes and methods common to all approximation types. Class receives variadic arguments depending on required approximation.
+
     #Function initializes class
     def __init__(self,*args,):
         pass
@@ -238,7 +230,7 @@ class base_filter(metaclass=ABCMeta):
 
     def check_input(self):
         errormsg=''
-        if (self.gain >=0) and ((self.n==None) or (self.n<=self.nmax)):
+        if (self.gain >=0) and ((self.n==None) or (self.n<=self.nmax)) and((self.input_qmax==None) or (self.input_qmax>0)):
             if self.name == 'Group Delay':
                 if (self.palm<=0) or (self.palm>=1):
                     errormsg=errormsg+'Error: Tolerance must be a real number higher than 0 and smaller than 1\n'
@@ -249,17 +241,29 @@ class base_filter(metaclass=ABCMeta):
 
             elif (self.Ao>0) and (self.Ap>0) and (self.Ao>=self.Ap) and (self.denorm_percent<=100) and (self.denorm_percent>=0):
                 if self.name == 'LowPass':
-                    if(self.wpl>=self.wal):
-                        errormsg=errormsg+'Error: Template requiermentes not met, Wp must be smaller than Wa\n'
+                    if (self.wpl>0) and (self.wal>0):
+                        if(self.wpl>=self.wal):
+                            errormsg=errormsg+'Error: Template requiermentes not met, Wp must be smaller than Wa\n'
+                    else:
+                        errormsg=errormsg+'Error: Wp and Wa must be positive real values\n'
                 elif self.name == 'HighPass':
-                    if(self.wal>=self.wpl):
-                        errormsg=errormsg+'Error: Template requirements not met, Wa must be smaller than Wp\n'
+                    if (self.wpl>0) and (self.wal>0):
+                        if(self.wal>=self.wpl):
+                            errormsg=errormsg+'Error: Template requirements not met, Wa must be smaller than Wp\n'
+                    else:
+                        errormsg=errormsg+'Error: Wp and Wa must be positive real values\n'
                 elif self.name == 'BandPass':
-                    if ((self.wah > self.wph) and (self.wph > self.wpl) and (self.wpl > self.wal) ) is False:
-                        errormsg=errormsg+'Error: Template requirements not met.(Remember, Wa+>Wp+>Wp->Wa-)\n'
+                    if (self.wpl>0) and (self.wal>0) and (self.wah>0) and (self.wph>0):
+                        if ((self.wah > self.wph) and (self.wph > self.wpl) and (self.wpl > self.wal) ) is False:
+                            errormsg=errormsg+'Error: Template requirements not met.(Remember, Wa+>Wp+>Wp->Wa-)\n'
+                    else:
+                        errormsg=errormsg+'Error: Wp-, Wp+, Wa- and Wa+ must be positive real values\n'
                 elif self.name == 'StopBand':
-                    if ((self.wph > self.wah) and (self.wah > self.wal) and (self.wal > self.wpl)) is False:
-                        errormsg=errormsg+'Error: Template requirements not met.(Remember, Wp+>Wa+>Wa->Wp-)\n'
+                    if (self.wpl>0) and (self.wal>0) and (self.wah>0) and (self.wph>0):
+                        if ((self.wph > self.wah) and (self.wah > self.wal) and (self.wal > self.wpl)) is False:
+                            errormsg=errormsg+'Error: Template requirements not met.(Remember, Wp+>Wa+>Wa->Wp-)\n'
+                    else:
+                        errormsg=errormsg+'Error: Wp-, Wp+, Wa- and Wa+ must be positive real values\n'
             else:
                 if(self.Ao<0) or (self.Ap<0):
                     errormsg=errormsg+'Error: Ao and Ap must be positive valued real numbers\n'
@@ -274,6 +278,8 @@ class base_filter(metaclass=ABCMeta):
                 errormsg=errormsg+'Error: Gain must be a positive real value.\n'
             if ((self.n!=None) and (self.n>self.nmax)):
                 errormsg=errormsg+'Error: Fixed order surpasses maximum order limit for this approximation type.\n'
+            if ((self.input_qmax!=None) and (self.input_qmax<=0)):
+                errormsg=errormsg+'Error: Desired maximum Q factor must be a positive real number.\n'
         return errormsg
 
     def error_was(self):
@@ -308,3 +314,9 @@ class base_filter(metaclass=ABCMeta):
     
     def get_gain(self):
         return self.aprox_gain
+
+    def check_4_infs_and_nans(*args):
+        for input in args[1]:
+            if (input != input) or (input==float('inf')):
+                return True
+        return False

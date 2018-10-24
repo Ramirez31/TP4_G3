@@ -16,27 +16,30 @@ class Bessel(base_filter):
             self.n=args[5]
             self.input_qmax=args[6]
             self.nmax=13
-            self.errormsg=self.check_input()
-            if self.errormsg == '':
-                while True:
-                    self.q=0
-                    self.poles=[]
-                    self.zeroes=[]
-                    self.den=np.poly1d([1])
-                    self.num=np.poly1d([1])
-                    self.normalize()#Normalizes current template
-                    self.do_approximation()#Does normalized approximation and realizes
-                    if self.errormsg=='':
-                        self.denormalize()#Denormalizes the approximation to match desired template
+            if self.check_4_infs_and_nans(args) is False:
+                self.errormsg=self.check_input()
+                if self.errormsg == '':
+                    while True:
+                        self.q=0
+                        self.poles=[]
+                        self.zeroes=[]
+                        self.den=np.poly1d([1])
+                        self.num=np.poly1d([1])
+                        self.normalize()#Normalizes current template
+                        self.do_approximation()#Does normalized approximation and realizes
+                        if self.errormsg=='':
+                            self.denormalize()#Denormalizes the approximation to match desired template
 
-                    if(self.input_qmax==None) or (self.input_qmax>=self.q):
-                        break
-                    else:
-                        if self.n>1:
-                            self.n=self.n-1
-                        else:
-                            self.errormsg=self.errormsg+'Required Q factor can not be achieved with current template\n'
+                        if(self.input_qmax==None) or (self.input_qmax>=self.q):
                             break
+                        else:
+                            if self.n>1:
+                                self.n=self.n-1
+                            else:
+                                self.errormsg=self.errormsg+'Required Q factor can not be achieved with current template\n'
+                                break
+            else:
+                self.errormsg='Input cannot be inf or NaN\n'
 
     def do_approximation(self):
         if self.n == None:
