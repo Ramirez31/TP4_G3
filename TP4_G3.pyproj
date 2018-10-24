@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{358a6c55-6c2c-47b5-93a9-506f35ea6e81}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>tests\TP4.py</StartupFile>
+    <StartupFile>TP4.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -43,11 +43,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="filters\__init__.py" />
-    <Compile Include="tests\TP4.py" />
+    <Compile Include="TP4.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="filters" />
-    <Folder Include="tests\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

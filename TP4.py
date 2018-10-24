@@ -902,13 +902,13 @@ class DesignFilter:
         button_phase.pack(side=LEFT,padx=2,pady=2)
         button_mag = Button(toolbar,text="Bode Module", command = self.plot_atten)
         button_mag.pack(side=LEFT,padx=2,pady=2)
-        button_step = Button(toolbar,text="Step Response")
+        button_step = Button(toolbar,text="Step Response", command = self.plot_step)
         button_step.pack(side=LEFT,padx=2,pady=2)
-        button_imp = Button(toolbar,text="Impulse response")
+        button_imp = Button(toolbar,text="Impulse response",command = self.plot_imp)
         button_imp.pack(side=LEFT,padx=2,pady=4)
-        button_zeros_and_poles = Button(toolbar,text="Zeroes and Poles")
+        button_zeros_and_poles = Button(toolbar,text="Zeroes and Poles", command = self.plot_zeroes_and_poles)
         button_zeros_and_poles.pack(side=LEFT,padx=2,pady=4)
-        button_group_delay = Button(toolbar,text="Group Delay")
+        button_group_delay = Button(toolbar,text="Group Delay", command = self.plot_group_delay)
         button_group_delay.pack(side=LEFT,padx=2,pady=4)
         button_aten_norm = Button(toolbar,text="Accumulative")
         button_aten_norm.pack(side=LEFT,padx=2,pady=2)
@@ -968,40 +968,42 @@ class DesignFilter:
 
     #Function plots current filter's step response in current subplot
      def plot_step(self):
-        if self.filter_ready is True:
-            self.axis.clear()
-            self.axis.plot(self.stepT,self.step_mag)
-            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("$Time [s]$")
-            self.axis.set_ylabel("$V_{out} [Volts]$")
-            self.data_plot.draw()
-        else:
-            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+        self.TransferOfStage()
+        self.stepT,self.step_mag=signal.step(self.TFofStage,N=1000)
+        self.axis.clear()
+        self.axis.plot(self.stepT,self.step_mag)
+        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+        self.axis.set_xlabel("$Time [s]$")
+        self.axis.set_ylabel("$V_{out} [Volts]$")
+        self.data_plot.draw()
+        #else:
+        #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's impulse response in current subplot
      def plot_imp(self):
-        if self.filter_ready is True:
-            self.axis.clear()
-            self.axis.plot(self.impT,self.imp_mag)
-            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("$Time [s]$")
-            self.axis.set_ylabel("$V_{out} [Volts]$")
-            self.data_plot.draw()
-        else:
-            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+        self.TransferOfStage()
+        self.impT,self.imp_mag=signal.impulse(self.TFofStage,N=1000)
+        self.axis.clear()
+        self.axis.plot(self.impT,self.imp_mag)
+        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+        self.axis.set_xlabel("$Time [s]$")
+        self.axis.set_ylabel("$V_{out} [Volts]$")
+        self.data_plot.draw()
+        #else:
+        #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's zeroes and poles
      def plot_zeroes_and_poles(self):
-        if self.filter_ready is True:
-            self.axis.clear()
-            self.axis.scatter(np.real(self.polesOfStage),np.imag(self.polesOfStage),marker="x")
-            self.axis.scatter(np.real(self.zerosOfStage),np.imag(self.zerosOfStage),marker="o")
-            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("$Sigma$")
-            self.axis.set_ylabel("$jw$")
-            self.data_plot.draw()
-        else:
-            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+        self.TransferOfStage()
+        self.axis.clear()
+        self.axis.scatter(np.real(self.polesOfStage),np.imag(self.polesOfStage),marker="x")
+        self.axis.scatter(np.real(self.zerosOfStage),np.imag(self.zerosOfStage),marker="o")
+        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+        self.axis.set_xlabel("$Sigma$")
+        self.axis.set_ylabel("$jw$")
+        self.data_plot.draw()
+        #else:
+        #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
     
     #Function creates filter according to user input
      def plot_group_delay(self):
