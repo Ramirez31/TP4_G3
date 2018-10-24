@@ -27,12 +27,23 @@ class Butterworth(base_filter):
             self.Ao=args[7]
             self.n=args[8]
             self.input_qmax=args[9]
-            self.denorm_percent=args[10]
+            self.denorm_percent=args[10]/100
         if self.name:
-            self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
+            if self.name == 'BandPass':#Order limit for fix order (Max denormalized order)
+                self.nmax=18
+            elif self.name == 'StopBand':
+                self.nmax=10
+            else:
+                self.nmax=20
             self.errormsg=self.check_input()
             if self.n !=None:
                 self.set_fix_order()
+            if self.name == 'BandPass':#Order limit for normalized approximation (taking into account that denormalized limits are not met)
+                self.nmax=9
+            elif self.name == 'StopBand':
+                self.nmax=10
+            else:
+                self.nmax=20
             if self.errormsg == '':
                 while True:
                     self.q=0
@@ -42,7 +53,8 @@ class Butterworth(base_filter):
                     self.num=np.poly1d([1])
                     self.normalize()#Normalizes current template
                     self.do_approximation()#Does normalized approximation and realizes
-                    self.denormalize()#Denormalizes the approximation to match desired template
+                    if self.errormsg =='':
+                        self.denormalize()#Denormalizes the approximation to match desired template
 
                     if(self.input_qmax==None) or (self.input_qmax>=self.q):
                         break

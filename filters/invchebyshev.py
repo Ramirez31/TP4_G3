@@ -15,7 +15,7 @@ class Invchebyshev(base_filter):
             self.Ao=args[5]
             self.n=args[6]
             self.input_qmax=args[7]
-            self.denorm_percent=args[8]
+            self.denorm_percent=args[8]/100
         elif (args[0]=='BandPass')|(args[0]=='StopBand'):
             self.name = args[0]
             self.gain=args[1]
@@ -27,9 +27,12 @@ class Invchebyshev(base_filter):
             self.Ao=args[7]
             self.n=args[8]
             self.input_qmax=args[9]
-            self.denorm_percent=args[10]
+            self.denorm_percent=args[10]/100
         if self.name:
-            self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
+            if (self.name=='LowPass') or(self.name=='HighPass'):#Order limit for fix order (Max denormalized order)
+                self.nmax=16
+            else:
+                self.nmax=14
             self.errormsg=self.check_input()
             if self.n !=None:
                 self.set_fix_order()
@@ -75,6 +78,7 @@ class Invchebyshev(base_filter):
        self.poles=np.roots(self.den) 
        self.aprox_gain=1
        self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained 
+       self.denormalize_range()
 
     def is_odd(self,num):
         return num & 0x1
@@ -103,3 +107,28 @@ class Invchebyshev(base_filter):
                 self.n=int((self.n+2)/4)
             else:
                 self.errormsg=self.errormsg+'Required filter cannot be realized with the specified order\n'
+
+
+    def denormalize_range(self):
+
+        if self.denorm_percent != 0:
+            w=np.linspace(1,self.wan,100000)
+            w,mag,phase=signal.bode(self.norm_sys,w)
+            for i in range(0,len(mag)):
+                a=np.absolute(-mag[i]-self.Ap)
+                if np.absolute(-mag[i]-self.Ap)<0.001:
+                    break
+            max_denorm_w=w[i]
+            diff=max_denorm_w-1
+            denorm_w=max_denorm_w-diff*(1-self.denorm_percent)
+            den=np.poly1d([1])
+            num=np.poly1d([1])
+            for pole in self.poles:
+                den=den*np.poly1d([-denorm_w/(pole),1])
+            for zero in self.zeroes:
+                num=num*np.poly1d([denorm_w/(zero),1])
+            self.den=den
+            self.poles=np.roots(self.den)
+            self.num=num
+            self.zeroes=np.roots(self.num)
+            self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained

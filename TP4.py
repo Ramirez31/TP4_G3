@@ -60,10 +60,11 @@ class TP4:
         else:
             entries.append(None)
         self.q_entry.delete(0,END)
-        if self.is_float(self.denorm_entry.get()):
-            entries.append(float(self.denorm_entry.get()))
-        else:
-            error = True
+        if self.filter_string.get()!='Group Delay':
+            if self.is_float(self.denorm_entry.get()):
+                entries.append(float(self.denorm_entry.get()))
+            else:
+                error = True
         return error,entries,aprox
 
     #Function creates filter according to user input
@@ -791,6 +792,8 @@ class TP4:
         button_mag.pack(side=LEFT,padx=2,pady=2)
         button_aten = Button(toolbar,text="Bode Denorm Atten.",command=self.plot_atten)
         button_aten.pack(side=LEFT,padx=2,pady=2)
+        button_norm_aten = Button(toolbar,text="Bode Norm Atten.",command=self.plot_norm_atten)
+        button_norm_aten.pack(side=LEFT,padx=2,pady=2)
         button_step = Button(toolbar,text="Step Response",command=self.plot_step)
         button_step.pack(side=LEFT,padx=2,pady=2)
         button_imp = Button(toolbar,text="Impulse response",command=self.plot_imp)

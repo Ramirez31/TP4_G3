@@ -238,7 +238,7 @@ class base_filter(metaclass=ABCMeta):
 
     def check_input(self):
         errormsg=''
-        if (self.gain >=0) and ((self.n==None) or (self.n<self.nmax)):
+        if (self.gain >=0) and ((self.n==None) or (self.n<=self.nmax)):
             if self.name == 'Group Delay':
                 if (self.palm<=0) or (self.palm>=1):
                     errormsg=errormsg+'Error: Tolerance must be a real number higher than 0 and smaller than 1\n'
@@ -285,8 +285,15 @@ class base_filter(metaclass=ABCMeta):
     def denormalize_range(self):
 
         if self.denorm_percent != 0:
-            range=self.wan-1
-            denorm_w=range*self.denorm_percent+1
+            w=np.linspace(1,self.wan,100000)
+            w,mag,phase=signal.bode(self.norm_sys,w)
+            for i in range(0,len(mag)):#Frequency where H(s)=Aa is found
+                a=np.absolute(-mag[i]-self.Ao)
+                if np.absolute(-mag[i]-self.Ao)<0.001:
+                    break
+            max_denorm_w=(self.wan/w[i])#In logarithmic scale wan/frec previously found indicates the maximum frequency that can be scaled
+            diff=max_denorm_w-1#Difference between max denorm frequency and wp=1
+            denorm_w=max_denorm_w-diff*(1-self.denorm_percent)#Depending on denormalization percent denorm frequency will vary betwen 1 and max_denorm
             den=np.poly1d([1])
             num=np.poly1d([1])
             for pole in self.poles:

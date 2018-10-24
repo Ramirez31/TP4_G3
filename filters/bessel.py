@@ -15,7 +15,7 @@ class Bessel(base_filter):
             self.palm=args[4]/100
             self.n=args[5]
             self.input_qmax=args[6]
-            self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
+            self.nmax=13
             self.errormsg=self.check_input()
             if self.errormsg == '':
                 while True:
@@ -26,7 +26,8 @@ class Bessel(base_filter):
                     self.num=np.poly1d([1])
                     self.normalize()#Normalizes current template
                     self.do_approximation()#Does normalized approximation and realizes
-                    self.denormalize()#Denormalizes the approximation to match desired template
+                    if self.errormsg=='':
+                        self.denormalize()#Denormalizes the approximation to match desired template
 
                     if(self.input_qmax==None) or (self.input_qmax>=self.q):
                         break
@@ -43,6 +44,9 @@ class Bessel(base_filter):
             Tn_Wrgn=0   #Group Delay at normalized frequency(wrgn)(starting value is fixed for algorithmic purposes)
             while  ((1-self.palm)<= Tn_Wrgn)==False: #Check if tolerance limits are met
                 self.n += 1
+                if self.n>self.nmax:
+                    self.errormsg='Required order surpasses maximum order limit for this approximation type.\n'
+                    break
                 k = np.linspace(0, self.n, num=(self.n + 1))  #vector of increasing integers from 0 to n is created
                 k=np.flip(k)
                 bess_coef=np.poly1d(self.bessel_coef(k))# K-th Bessel of N-th order is calculated

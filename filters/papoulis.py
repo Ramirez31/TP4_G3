@@ -16,7 +16,7 @@ class Papoulis(base_filter):
             self.Ao=args[5]
             self.n=args[6]
             self.input_qmax=args[7]
-            self.denorm_percent=args[8]
+            self.denorm_percent=args[8]/100
         elif (args[0]=='BandPass')|(args[0]=='StopBand'):
             self.name = args[0]
             self.gain=args[1]
@@ -28,12 +28,23 @@ class Papoulis(base_filter):
             self.Ao=args[7]
             self.n=args[8]
             self.input_qmax=args[9]
-            self.denorm_percent=args[10]
+            self.denorm_percent=args[10]/100
         if self.name:
-            self.nmax=1000 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
+            if self.name=='LowPass':#Order limit for fix order (Max denormalized order)
+                self.nmax=20
+            elif self.name=='HighPass':
+                self.nmax=16
+            else:
+                self.nmax=18
             self.errormsg=self.check_input()
             if self.n !=None:
                 self.set_fix_order()
+            if self.name=='LowPass':#Order limit for normalized approximation (taking into account that denormalized limits are not met)
+                self.nmax=20
+            elif self.name=='HighPass':
+                self.nmax=16
+            else:
+                self.nmax=9
             if self.errormsg == '':
                 while True:
                     self.q=0
@@ -43,7 +54,8 @@ class Papoulis(base_filter):
                     self.num=np.poly1d([1])
                     self.normalize()#Normalizes current template
                     self.do_approximation()#Does normalized approximation and realizes
-                    self.denormalize()#Denormalizes the approximation to match desired template
+                    if self.errormsg == '':
+                        self.denormalize()#Denormalizes the approximation to match desired template
 
                     if(self.input_qmax==None) or (self.input_qmax>=self.q):
                         break
@@ -61,6 +73,9 @@ class Papoulis(base_filter):
             Ln2_wan=0
             while (Ln2_wan >= ((np.power(10,self.Ao/10)-1)/np.power(self.epsilon,2)))==False: #While template specifications are not met, order increases
                 self.n+=1
+                if self.n>self.nmax:
+                    self.errormsg='Required order surpasses maximum order limit for this approximation type.\n'
+                    break
                 Ln=np.poly1d([1])
                 if np.mod(self.n,2)==1:#If n is odd 
                      k=(self.n-1)/2
@@ -130,6 +145,7 @@ class Papoulis(base_filter):
        self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
        self.poles=np.roots(self.den)
        self.aprox_gain=1
+       self.denormalize_range()
 
     def set_fix_order(self):
         if (self.name =='LowPass') or (self.name =='HighPass'):
