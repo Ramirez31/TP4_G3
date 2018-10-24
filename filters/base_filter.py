@@ -213,6 +213,15 @@ class base_filter(metaclass=ABCMeta):
     def get_zeroes_poles(self):
         return self.zeroes, self.poles
 
+    # Function returns current filter zeroes and poles (zeroes, poles)
+    def get_poles(self):
+        return self.poles
+
+    # Function returns current filter zeroes and poles (zeroes, poles)
+    def get_zeroes(self):
+        return self.zeroes
+
+
     # Function returns current filter template limitations
     def get_template(self):
         if (self.name=='LowPass')|(self.name=='HighPass'):
@@ -274,6 +283,7 @@ class base_filter(metaclass=ABCMeta):
         return self.denorm_n, self.q
 
     def denormalize_range(self):
+
         if self.denorm_percent != 0:
             range=self.wan-1
             denorm_w=range*self.denorm_percent+1
@@ -288,3 +298,6 @@ class base_filter(metaclass=ABCMeta):
             self.num=num
             self.zeroes=np.roots(self.num)
             self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
+    
+    def get_gain(self):
+        return self.aprox_gain

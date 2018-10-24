@@ -70,20 +70,20 @@ class TP4:
     def create_filter(self):
         error,entries,aproximation =self.parse_entry()
         if error is False:
-            filter_instance = filters.create(aproximation, *entries)
-            if filter_instance.error_was() == '':
+            self.filter_instance = filters.create(aproximation, *entries)
+            if self.filter_instance.error_was() == '':
                 self.filter_ready=True
-                self.w,self.mag,self.phase = filter_instance.get_bode()
-                self.wn,self.magn,self.phasen=filter_instance.get_norm_bode()
-                self.template_params = filter_instance.get_template()
-                self.filter_type = filter_instance.filter_is()
-                self.n,self.q=filter_instance.n_and_q_is()
+                self.w,self.mag,self.phase = self.filter_instance.get_bode()
+                self.wn,self.magn,self.phasen=self.filter_instance.get_norm_bode()
+                self.template_params = self.filter_instance.get_template()
+                self.filter_type = self.filter_instance.filter_is()
+                self.n,self.q=self.filter_instance.n_and_q_is()
         
                 self.atenua = -(self.mag)
-                self.stepT,self.step_mag = filter_instance.get_step()
-                self.impT,self.imp_mag = filter_instance.get_impulse()
-                self.zeroes, self.poles = filter_instance.get_zeroes_poles()
-                self.group_delay = filter_instance.get_group_delay()
+                self.stepT,self.step_mag = self.filter_instance.get_step()
+                self.impT,self.imp_mag = self.filter_instance.get_impulse()
+                self.zeroes, self.poles = self.filter_instance.get_zeroes_poles()
+                self.group_delay = self.filter_instance.get_group_delay()
 
                 for widget in self.filter_data.grid_slaves():
                     widget.grid_forget()
@@ -109,13 +109,14 @@ class TP4:
                 self.filter_data.grid(row=14,columnspan=3,sticky=W)
 
             else:
-                messagebox.showerror("Input Error", filter_instance.error_was())
+                messagebox.showerror("Input Error", self.filter_instance.error_was())
         else:
             messagebox.showerror("Input Error", "Check if any active entry box is empty. Input has to be numeric")
 
     def create_stages(self):
         root2=Toplevel(self.root)
-        myGUI=DesignFilter(root2)
+        myGUI=DesignFilter(root2,self.filter_instance.get_poles(), self.filter_instance.get_zeroes(),self.filter_instance.get_gain())
+
 
     #Function plots current filter's phase in current subplot
     def plot_phase(self):
@@ -819,7 +820,7 @@ class TP4:
         self.root.mainloop()
 
 class DesignFilter:
-    def __init__(self,master):
+     def __init__(self,master,poles,zeros,gain):
 
         self.master=master 
         self.master.title("Design Filters")
@@ -830,14 +831,15 @@ class DesignFilter:
         #self.side_toolbar.pack(side=LEFT)
 
         self.texto=StringVar()
-        self.texto.set("Polos y Ceros Seleccionados:")
+        self.texto.set("Poles & Zeroes Selected:")
        
         self.etiqueta=Label(self.side_toolbar,textvariable=self.texto).place(x=0,y=70)
-
+       
+        self.Gain = gain
        #-------Seleccion de Polos--------------------------------
         self.comboPolos = ttk.Combobox(self.side_toolbar,width=10)
         self.comboPolos.place(x=0,y=0)
-        self.poles = [-1+1j,-1-1j,-5,-2,-2,-2] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑO
+        self.poles = np.array(np.around(poles, decimals=5)).tolist() #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑO
         self.polesAux = []
         self.polesAux.extend(self.poles)
         self.comboPolos['values'] = self.poles #Aca cargo cada polo
@@ -857,9 +859,8 @@ class DesignFilter:
         self.comboZeros = ttk.Combobox(self.side_toolbar,width=10)
         self.comboZeros.place(x=100,y=0)
         
-        self.Zeros = [-1+1j,-1-1j,-5,-2]
-        self.ZerosAux = [] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑO
-        self.ZerosAux.extend(self.Zeros)
+        self.Zeros = np.array(np.around(zeros, decimals=5)).tolist()
+        self.ZerosAux = [] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑOself.ZerosAux.extend(self.Zeros)
         self.comboZeros['values'] = self.Zeros #Aca cargo cada polo
         self.comboZeros.current(0)
         self.ZerosSeleccionados = [] #Aca guardo polos para hacer etapa
@@ -875,6 +876,10 @@ class DesignFilter:
         self.RemoveSelected = Button(self.side_toolbar,text="Del Selection", command=self.Remove)
         self.RemoveSelected.place(x=0,y=270)
 
+        print(self.poles)
+        print(self.Zeros)
+        print(self.Gain)
+       
         #-----------------stages---------------
        
         
@@ -1107,11 +1112,11 @@ class DesignFilter:
            if(len(self.PolosSeleccionados)==0 and len(self.ZerosSeleccionados)==0 ):
                return
            if(len(self.PolosSeleccionados)==0):
-                self.den=1
+                self.den=[]
                 self.num.extend(self.ZerosSeleccionados)
            if(len(self.ZerosSeleccionados)==0):
                 self.den.extend(self.PolosSeleccionados)
-                self.num=1
+                self.num=[]
            else:                  
                 self.den.extend(self.PolosSeleccionados)
                 self.num.extend(self.ZerosSeleccionados)
@@ -1188,9 +1193,9 @@ class DesignFilter:
 
          while (len(self.MisPolos) != 0) or (len(self.MisCeros) != 0):  
              if len(self.MisPolos)==0 :
-                 self.den=1
+                 self.den=[]
              if len(self.MisCeros)==0:
-                 self.num=1   
+                 self.num=[]   
              for i in self.MisPolos :
                 if np.iscomplexobj(i):
                     self.den=[i,np.conjugate(i)]
