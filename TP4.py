@@ -115,9 +115,11 @@ class TP4:
             messagebox.showerror("Input Error", "Check if any active entry box is empty. Input has to be numeric")
 
     def create_stages(self):
-        root2=Toplevel(self.root)
-        myGUI=DesignFilter(root2,self.filter_instance.get_poles(), self.filter_instance.get_zeroes(),self.filter_instance.get_gain())
-
+        if self.filter_ready is True:
+            root2=Toplevel(self.root)
+            myGUI=DesignFilter(root2,self.filter_instance.get_poles(), self.filter_instance.get_zeroes(),self.filter_instance.get_gain())
+        else:
+            messagebox.showerror("Error", "No filter was created, stages cannot be created")
 
     #Function plots current filter's phase in current subplot
     def plot_phase(self):
@@ -894,6 +896,7 @@ class DesignFilter:
 
         self.SelectedStage = Listbox(self.forStages,width=15,height=25) #Aca muestro polos para hacer estapa
         self.SelectedStage.place(x=0,y=25)
+        self.SelectedStage.bind('<<ListboxSelect>>', self.onselect)
 
         #-------------Botones---------
         graph_and_buttons = Frame(self.master)
@@ -928,6 +931,7 @@ class DesignFilter:
         nav.pack(side=TOP,fill=BOTH,expand=True,padx=2,pady=4)
         nav.update()
         self.data_plot._tkcanvas.pack(side=LEFT, fill=X, expand=True)
+        self.filter_ready=False
 
         #----------Generate Stage-----------------------------------------
 
@@ -947,66 +951,64 @@ class DesignFilter:
   
     #Function plots current filter's phase in current subplot
      def plot_phase(self):
-        self.TransferOfStage()
-        self.axis.clear()
-        self.axis.semilogx(self.w,self.phase)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("Radian Frequency [1/rad]$")
-        self.axis.set_ylabel("$Phase [Deegres]$")
-        self.data_plot.draw()
-        #else:
-        #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.semilogx(self.w,self.phase)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("Radian Frequency [1/rad]$")
+            self.axis.set_ylabel("$Phase [Deegres]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
     
     #Function plots current filter's magnitude in atenuation in current subplot    
      def plot_atten(self):
-        self.TransferOfStage()
-        self.axis.clear()
-        self.axis.semilogx(self.w,-self.mag)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("$Radian Frequency [1/rad]$")
-        self.axis.set_ylabel("$Attenuation [dB]$")
-        self.data_plot.draw()
-        #else:
-        #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.semilogx(self.w,-self.mag)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Radian Frequency [1/rad]$")
+            self.axis.set_ylabel("$Attenuation [dB]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's step response in current subplot
      def plot_step(self):
-        self.TransferOfStage()
-        self.stepT,self.step_mag=signal.step(self.TFofStage,N=1000)
-        self.axis.clear()
-        self.axis.plot(self.stepT,self.step_mag)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("$Time [s]$")
-        self.axis.set_ylabel("$V_{out} [Volts]$")
-        self.data_plot.draw()
-        #else:
-        #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.plot(self.stepT,self.step_mag)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Time [s]$")
+            self.axis.set_ylabel("$V_{out} [Volts]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's impulse response in current subplot
      def plot_imp(self):
-        self.TransferOfStage()
-        self.impT,self.imp_mag=signal.impulse(self.TFofStage,N=1000)
-        self.axis.clear()
-        self.axis.plot(self.impT,self.imp_mag)
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("$Time [s]$")
-        self.axis.set_ylabel("$V_{out} [Volts]$")
-        self.data_plot.draw()
-        #else:
-        #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.plot(self.impT,self.imp_mag)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Time [s]$")
+            self.axis.set_ylabel("$V_{out} [Volts]$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
 
     #Function plots current filter's zeroes and poles
      def plot_zeroes_and_poles(self):
-        self.TransferOfStage()
-        self.axis.clear()
-        self.axis.scatter(np.real(self.polesOfStage),np.imag(self.polesOfStage),marker="x")
-        self.axis.scatter(np.real(self.zerosOfStage),np.imag(self.zerosOfStage),marker="o")
-        self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-        self.axis.set_xlabel("$Sigma$")
-        self.axis.set_ylabel("$jw$")
-        self.data_plot.draw()
-        #else:
-        #    messagebox.showerror("Error", "No filter was created, plot cannot be realized")
+        if self.filter_ready is True:
+            self.axis.clear()
+            self.axis.scatter(np.real(self.polesOfStage),np.imag(self.polesOfStage),marker="x")
+            self.axis.scatter(np.real(self.zerosOfStage),np.imag(self.zerosOfStage),marker="o")
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Sigma$")
+            self.axis.set_ylabel("$jw$")
+            self.data_plot.draw()
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")
     
     #Function creates filter according to user input
      def plot_group_delay(self):
@@ -1159,6 +1161,9 @@ class DesignFilter:
          self.HdeStage = []
          self.TransferList.clear()
          self.SelectedStage.delete(0, END)
+         self.filter_ready=False
+         self.axis.clear()
+         self.data_plot.draw()
 
      def AutoStages(self):
          #tengo que limpiar el combo box
@@ -1253,7 +1258,24 @@ class DesignFilter:
             self.num= self.num*pol
         self.TFofStage = signal.TransferFunction(self.num,self.den)
         self.w,self.mag,self.phase = signal.bode(self.TFofStage)
-    
+        self.stepT,self.step_mag=signal.step(self.TFofStage,N=1000)
+        self.impT,self.imp_mag=signal.impulse(self.TFofStage,N=1000)
+        dphase=np.ediff1d(self.phase)#Phase is in deegres
+        dw=np.ediff1d(self.w)
+        gd=-dphase/dw
+        gd=np.append(gd,gd[len(gd)-1])
+        gd= gd/(180/np.pi)
+        self.filter_ready=True
+
+     def onselect(self,evt):
+        # Note here that Tkinter passes an event object to onselect()
+        w = evt.widget
+        index = int(w.curselection()[0])
+        value = w.get(index)
+        self.TransferOfStage()
+
+
+
 
 if __name__ == "__main__":
     ex = TP4()
