@@ -920,6 +920,7 @@ class DesignFilter:
         
         self.Zeros = np.array(np.around(zeros, decimals=5)).tolist()
         self.ZerosAux = [] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑOself.ZerosAux.extend(self.Zeros)
+        self.ZerosAux.extend(self.Zeros)
         self.comboZeros['values'] = self.Zeros #Aca cargo cada polo
         self.ZerosSeleccionados = [] #Aca guardo polos para hacer etapa
 
@@ -940,18 +941,25 @@ class DesignFilter:
        
         #-----------------stages---------------
        
-        
         self.forStages=Frame(self.master,width=100)
         self.forStages.pack(side=LEFT,fill=BOTH,padx=2,pady=4)
-        self.forStages.grid_propagate(0)
         
         self.texto2=StringVar()
-        self.texto2.set("Etapas:")
-        self.etiqueta=Label(self.forStages,textvariable=self.texto2).place(x=0,y=2)
+        self.texto2.set("Stages:")
+        self.etiqueta=Label(self.forStages,textvariable=self.texto2)
+        self.etiqueta.grid(row=0,column=0,columnspan=3)
 
-        self.SelectedStage = Listbox(self.forStages,width=15,height=25) #Aca muestro polos para hacer estapa
-        self.SelectedStage.place(x=0,y=25)
+        self.SelectedStage = Listbox(self.forStages,width=22,height=25) #Aca muestro polos para hacer estapa
+        self.SelectedStage.grid(row=1,column=0,columnspan=3)
         self.SelectedStage.bind('<<ListboxSelect>>', self.onselect)
+
+        self.gain_label = Label( self.forStages, text="Gain:")
+        self.gain_label.grid(row=2,column=0,sticky=W)
+        self.gain_entry = Entry(self.forStages,width=5)
+        self.gain_entry.grid(row=2,column=1)
+        self.gain_unit = Label( self.forStages, text="[dB]")
+        self.gain_unit.grid(row=2,column=2)
+        
 
         #-------------Botones---------
         graph_and_buttons = Frame(self.master)
@@ -993,7 +1001,9 @@ class DesignFilter:
         self.GenerateStage = Button(self.side_toolbar,text="Generate Stage",command=self.GenerateStage)
         self.GenerateStage.place(x=0,y=300)
         self.TransferList = [] #Voy a ir agregando Stages ej [Polos[] Zeros[], Polos[] Zeros[]] siendo estos poly1d
-
+        self.GainOfStages = [] #guardo las ganancias de cada etapa. que me ingresa el usuario
+        self.ListaDePolosPasados = []
+        self.ListaDeCerosPasados = []
         #---------Remove Stages--------------------------------------------
 
         self.DeleteStages = Button(self.side_toolbar,text="Delete Stages",command=self.DeleteStages)
@@ -1080,7 +1090,9 @@ class DesignFilter:
      def AddPole(self):
 
         self.val=self.comboPolos.get()
-        
+        if(len(self.val)==0):
+            print("Ingresar Valor")
+            return
         self.val2=complex(self.val)
         if(self.val2.imag==0):
             self.val2=self.val2.real
@@ -1088,6 +1100,9 @@ class DesignFilter:
         if(self.val2 not in self.polesAux):
             print("Polo ya Seleccionado")
             return
+        if(self.val2 in self.ListaDePolosPasados):  
+            print("Polo ya Seleccionado")  
+            return    
         if len(self.PolosSeleccionados) == 0 :
             self.PolosSeleccionados.append(self.val2)
             self.SelectedPoles.insert(END,self.val2)
@@ -1121,12 +1136,18 @@ class DesignFilter:
      def AddZero(self):
 
         self.val=self.comboZeros.get()
+        if(len(self.val)==0):
+            print("Ingresar Valor")
+            return
         self.val2=complex(self.val)
         if(self.val2.imag==0):
             self.val2=self.val2.real
         if(self.val2 not in self.ZerosAux):
             print("Cero ya Seleccionado")
-            return    
+            return
+        if(self.val2 in self.ListaDeCerosPasados):  
+            print("Polo ya Seleccionado")  
+            return      
         if len(self.ZerosSeleccionados) == 0 :
             self.ZerosSeleccionados.append(self.val2)
             self.SelectedZeros.insert(END,self.val2)
@@ -1157,7 +1178,7 @@ class DesignFilter:
          self.PolosSeleccionados.clear()
          self.SelectedPoles.delete(0, END)
          self.SelectedZeros.delete(0,END)
-         self.PolosNoEnStages = [item for item in temp1 if item not in temp2]   
+         #self.PolosNoEnStages = [item for item in temp1 if item not in temp2]   
          
          self.comboPolos['values'] = self.poles
          self.comboZeros['values'] = self.Zeros
@@ -1171,6 +1192,8 @@ class DesignFilter:
            self.den = []
            self.num = []
 
+           if(len(self.PolosSeleccionados)<len(self.ZerosSeleccionados)) :
+               return
            if(len(self.PolosSeleccionados)==0 and len(self.ZerosSeleccionados)==0 ):
                return
            if(len(self.PolosSeleccionados)==0):
@@ -1187,8 +1210,12 @@ class DesignFilter:
            self.HdeStage = []
            self.HdeStage.append(self.den)
            self.HdeStage.append(self.num)
+           self.ListaDePolosPasados = self.ListaDePolosPasados + self.den
+           self.ListaDeCerosPasados = self.ListaDeCerosPasados + self.num
            self.TransferList.append(self.HdeStage)
            print(self.TransferList)
+           print(self.ListaDePolosPasados)
+           print(self.ListaDeCerosPasados)
            
            #Elimino los valores de la lsita y queda el combobox sin los valores de los polos seleccionados
            #Hago Clear de los polos y ceros seleccionados para que los proximos no acumulen los anteiores
@@ -1197,10 +1224,18 @@ class DesignFilter:
            self.SelectedPoles.delete(0,END)
            self.SelectedZeros.delete(0,END) 
 
-           self.SelectedStage.insert(END, ["Stage", len(self.TransferList)])          
+           self.GainOfStages.clear()                #borro todo para solamente tener las etapas actuales
+           for i in range(0,len(self.TransferList)):
+                self.GainOfStages.append(0)         #todas mis etapas arrancan con ganancia 0dB
+           self.SelectedStage.insert(END, ["Stage", len(self.TransferList), "->", "Gain:", self.GainOfStages[len(self.TransferList)-1], "dB"])
+          
          
      def DeleteStages(self):
        
+         
+         self.ListaDeCerosPasados.clear()
+         self.ListaDePolosPasados.clear()
+         
          self.ZerosSeleccionados.clear()
          self.PolosSeleccionados.clear()
          self.SelectedPoles.delete(0,END)
@@ -1236,13 +1271,25 @@ class DesignFilter:
          self.ZerosAux = []
          self.ZerosAux.extend(self.Zeros)
 
+         self.den = []
+         self.num = []
+         
          print(self.polesAux) 
+         
+         for i in range(len(self.polesAux)) :
+                if self.polesAux[i].imag == 0 :
+                    self.polesAux[i]=self.polesAux[i].real
+         
          for i in self.polesAux:
             if np.iscomplexobj(i):
                 self.polesAux.remove(np.conjugate(i))
          
          self.MisPolos = sorted(self.polesAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=True)       
          
+
+         for i in range(len(self.ZerosAux)):
+                if self.ZerosAux[i].imag == 0 :
+                    self.ZerosAux[i]=self.ZerosAux[i].real
 
          for i in self.ZerosAux:
             if np.iscomplexobj(i):
@@ -1255,6 +1302,30 @@ class DesignFilter:
          
          print(self.MisPolos)
          print(self.MisCeros)
+         
+         for i in self.MisCeros :
+            if np.iscomplexobj(i) :
+                for k in self.MisPolos :
+                    if np.iscomplexobj(k) :
+                        self.den=[k,np.conjugate(k)]
+                        self.num=[i,np.conjugate(i)]
+                        self.MisPolos.remove(k)
+                        self.MisCeros.remove(i)
+                        break
+            else:
+                for k in self.MisPolos :
+                    if np.isrealobj(k) :
+                        self.den=[k]
+                        self.num=[i]
+                        self.MisPolos.remove(k)
+                        self.MisCeros.remove(i)
+                        break
+            
+            self.HdeStage.append(self.den) 
+            self.HdeStage.append(self.num)        
+       
+            self.TransferList.append(self.HdeStage)
+            self.HdeStage = []
 
          while (len(self.MisPolos) != 0) or (len(self.MisCeros) != 0):  
              if len(self.MisPolos)==0 :
@@ -1289,8 +1360,10 @@ class DesignFilter:
              self.HdeStage = []
 
          print(self.TransferList)
-         for i in range(0,len(self.TransferList)):
-             self.SelectedStage.insert(END, ["Stage" , i+1])
+         self.GainOfStages.clear()                #borro todo para solamente tener las etapas actuales
+         for i in range(0,len(self.TransferList)): 
+             self.GainOfStages.append(0)         #todas mis etapas arrancan con ganancia 0dB
+             self.SelectedStage.insert(END, ["Stage", i+1 , "->" ,"Gain:", self.GainOfStages[i], "dB"])
 
         #----------------Buttons functions----------------------------
      
@@ -1299,6 +1372,15 @@ class DesignFilter:
         for i in self.detectStage:
             self.stageIs = self.TransferList[i]
             #polos de la stage
+        aux=self.gain_entry.get()   #aca guardo lo que ingreso el usuario
+        self.gain_entry.delete(0, END) #una vez que lo tome lo elimino
+        if len(aux) > 0:        #si el usuario introdujo algo
+            #aca deberia parsear
+            self.GainOfStages[i]=aux
+            self.SelectedStage.delete(i)    #elimino la stage con ganancia vieja
+            self.SelectedStage.insert(i, ["Stage", i+1 , "->" ,"Gain:", self.GainOfStages[i], "dB"]) #nueva stage con nueva ganancia
+
+        K=np.power(10,float(self.GainOfStages[i])/20) #constante para obtener la ganancia en dB que pide el usuario    
         self.polesOfStage = self.stageIs[0] #siempre el primer elemento son los polos
         #ceros de la stage
         self.zerosOfStage = self.stageIs[1] #siempre el segundo elemento son los ceros
@@ -1311,6 +1393,7 @@ class DesignFilter:
         for i in range(0,len(self.zerosOfStage)):
             pol = np.poly1d([1/(self.zerosOfStage[i]), 1])
             self.num= self.num*pol
+        self.num = self.num*K    
         self.TFofStage = signal.TransferFunction(self.num,self.den)
         self.w,self.mag,self.phase = signal.bode(self.TFofStage)
         self.stepT,self.step_mag=signal.step(self.TFofStage,N=1000)
@@ -1328,6 +1411,7 @@ class DesignFilter:
         index = int(w.curselection()[0])
         value = w.get(index)
         self.TransferOfStage()
+        self.plot_atten()
 
 
 
