@@ -42,7 +42,6 @@ class TP4:
                 entries.append(float(entry.get()))
             else:
                 error = True
-            entry.delete(0,END)
         a=self.nvar.get()
         if (self.nvar.get() == 1) and (self.qvar.get() == 0):
             if self.is_int(self.n_entry.get()):
@@ -51,7 +50,6 @@ class TP4:
                 error = True
         else:
             entries.append(None)
-        self.n_entry.delete(0,END)
         if (self.qvar.get() == 1) and (self.nvar.get() == 0):
             if self.is_float(self.q_entry.get()):
                 entries.append(float(self.q_entry.get()))
@@ -59,12 +57,14 @@ class TP4:
                 error = True
         else:
             entries.append(None)
-        self.q_entry.delete(0,END)
         if self.filter_string.get()!='Group Delay':
-            if self.is_float(self.denorm_entry.get()):
-                entries.append(float(self.denorm_entry.get()))
+            if self.denormvar.get()==1:
+                if self.is_float(self.denorm_entry.get()):
+                    entries.append(float(self.denorm_entry.get()))
+                else:
+                    error = True
             else:
-                error = True
+                entries.append(0)
         return error,entries,aprox
 
     #Function creates filter according to user input
@@ -160,11 +160,13 @@ class TP4:
                 yr=-100
                 widthr=100
                 heightr=100+self.template_params[1]
-            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
-            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
+            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
+            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=True,color='orange',alpha=0.5)#template is plotted
             self.axis.clear()
             self.axis.add_patch(l_rect)
             self.axis.add_patch(r_rect)
+            self.axis.set_xlim(1/10,self.template_params[2]+5)
+            self.axis.set_ylim(-5,self.template_params[1]+10)
             self.axis.semilogx(self.wn,-self.magn)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("$Radian Frequency [1/rad]$")
@@ -177,57 +179,69 @@ class TP4:
     def plot_atten(self):
         if self.filter_ready is True:
             if self.filter_type == 'LowPass':
-                xl=-100
+                xl=-100000
                 yl=self.template_params[0]-self.template_params[5]
                 widthl=np.absolute(xl)+self.template_params[3]
-                heightl=100
+                heightl=100000
                 xr=self.template_params[4]
-                yr=-100
-                widthr=100
-                heightr=100+self.template_params[1]-self.template_params[5]
+                yr=-100000
+                widthr=100000
+                heightr=100000+self.template_params[1]-self.template_params[5]
                 xc=0
                 yc=0
                 widthc=0
                 heightc=0
+                self.axis.clear()
+                self.axis.set_xlim(self.template_params[3]/10,self.template_params[4]*2)
+                self.axis.set_ylim(-5-self.template_params[5],self.template_params[1]+self.template_params[5]+5)
             elif self.filter_type == 'HighPass':
-                xl=-100
-                yl=-100
+                xl=-100000
+                yl=-100000
                 widthl=-xl + self.template_params[4]
                 heightl=np.absolute(yl) + self.template_params[1]-self.template_params[5]
                 xr=self.template_params[3]
                 yr=self.template_params[0]-self.template_params[5]
-                widthr=100
-                heightr=100
+                widthr=100000
+                heightr=100000
                 xc=0
                 yc=0
                 widthc=0
                 heightc=0
+                self.axis.clear()
+                self.axis.set_xlim(self.template_params[4]/10,self.template_params[3]*2)
+                self.axis.set_ylim(-5-self.template_params[5],self.template_params[1]+self.template_params[5]+5)
             elif self.filter_type == 'BandPass':
-                xl=-100
-                yl=-100
+                xl=-100000
+                yl=-100000
                 widthl=np.absolute(xl)+self.template_params[5]
                 heightl=np.absolute(yl)+self.template_params[1]-self.template_params[7]
                 xr=self.template_params[6]
-                yr=-100
-                widthr=100
+                yr=-100000
+                widthr=100000
                 heightr=np.absolute(yr)+self.template_params[1]-self.template_params[7]
                 xc=self.template_params[3]
                 yc=self.template_params[0]-self.template_params[7]
                 widthc=self.template_params[4]-self.template_params[3]
-                heightc=100
+                heightc=100000
+                self.axis.clear()
+                self.axis.set_xlim(self.template_params[5]/5,self.template_params[6]*5)
+                self.axis.set_ylim(-5-self.template_params[5],self.template_params[1]+self.template_params[5]+5)
             elif self.filter_type == 'StopBand':
-                xl=-100
+                xl=-100000
                 yl=self.template_params[0]-self.template_params[7]
                 widthl=np.absolute(xl)+self.template_params[3]
-                heightl=100
+                heightl=100000
                 xr=self.template_params[4]
                 yr=self.template_params[0]-self.template_params[7]
-                widthr=100
-                heightr=100
+                widthr=100000
+                heightr=100000
                 xc=self.template_params[5]
-                yc=-100
+                yc=-100000
                 widthc=self.template_params[6]-self.template_params[5]
                 heightc=np.absolute(yc)+self.template_params[1]-self.template_params[7]
+                self.axis.clear()
+                self.axis.set_xlim(self.template_params[3]/5,self.template_params[4]*5)
+                self.axis.set_ylim(-5-self.template_params[5],self.template_params[1]+self.template_params[5]+5)
             elif self.filter_type == 'Group Delay':
                 xl=0
                 yl=0
@@ -241,10 +255,9 @@ class TP4:
                 yc=0
                 widthc=0
                 heightc=0
-            c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
-            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
-            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
-            self.axis.clear()
+            c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=True,color='orange',alpha=0.5)#template is plotted
+            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
+            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=True,color='orange',alpha=0.5)#template is plotted
             self.axis.add_patch(l_rect)
             self.axis.add_patch(r_rect)
             self.axis.add_patch(c_rect)
@@ -324,9 +337,9 @@ class TP4:
                 yc=0
                 widthc=0
                 heightc=0
-            c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
-            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
-            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
+            c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=True,color='orange',alpha=0.5)#template is plotted
+            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
+            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=True,color='orange',alpha=0.5)#template is plotted
             self.axis.clear()
             self.axis.add_patch(l_rect)
             self.axis.add_patch(r_rect)
@@ -343,6 +356,7 @@ class TP4:
     def plot_step(self):
         if self.filter_ready is True:
             self.axis.clear()
+            self.axis.set_aspect('equal',adjustable='box')
             self.axis.plot(self.stepT,self.step_mag)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("$Time [s]$")
@@ -355,6 +369,7 @@ class TP4:
     def plot_imp(self):
         if self.filter_ready is True:
             self.axis.clear()
+
             self.axis.plot(self.impT,self.imp_mag)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("$Time [s]$")
@@ -367,6 +382,7 @@ class TP4:
     def plot_zeroes_and_poles(self):
         if self.filter_ready is True:
             self.axis.clear()
+            self.axis.set_aspect('equal',adjustable='box')
             self.axis.scatter(np.real(self.poles),np.imag(self.poles),marker="x")
             self.axis.scatter(np.real(self.zeroes),np.imag(self.zeroes),marker="o")
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
@@ -379,7 +395,9 @@ class TP4:
     #Function creates filter according to user input
     def plot_group_delay(self):
         if self.filter_ready is True:
+            arrows=[]
             self.axis.clear()
+            
             self.axis.semilogx(self.w,self.group_delay*1000)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("Radian Frequency [1/rad]$")
@@ -666,7 +684,7 @@ class TP4:
         self.root.title("Tc Example")
         self.root.resizable(False, False)
         #------------------------------------------------------------------------
-        self.side_toolbar=Frame(self.root,width=310,borderwidth=7,relief=RAISED,background='firebrick3')
+        self.side_toolbar=Frame(self.root,width=330,borderwidth=7,relief=RAISED,background='firebrick3')
         self.side_toolbar.pack(side=LEFT,fill=BOTH,expand=True,padx=2,pady=4)
         self.side_toolbar.grid_propagate(0)
 
@@ -788,13 +806,15 @@ class TP4:
         self.q_check.grid(row=10,column=0,sticky=W)
         self.entry_buttons.append([self.q_check,0,self.q_entry])
 
-        self.denorm_label = Label( self.side_toolbar, text="Denormalization Range:",background='firebrick3', font='Helvetica 9 bold')
-        self.denorm_label.grid(row=11,column=0)
+        self.denormvar=IntVar()
+        self.denorm_check = Checkbutton( self.side_toolbar, text="Denormalization Range:", variable=self.denormvar,background='firebrick3', font='Helvetica 9 bold')
+        self.denorm_check.grid(row=11,column=0)
+        self.denorm_check.configure(activebackground = 'firebrick3')
         self.denorm_entry = Entry(self.side_toolbar,width=5)
         self.denorm_entry.grid(row=11,column=1)
         self.denorm_unit = Label( self.side_toolbar, text="%",background='firebrick3', font='Helvetica 9 bold')
         self.denorm_unit.grid(row=11,column=2)
-        self.entry_buttons.append([self.denorm_label,self.denorm_entry,self.denorm_unit])
+        self.entry_buttons.append([self.denorm_check,self.denorm_entry,self.denorm_unit])
 
 
         self.button_create_filter = Button(self.side_toolbar,text="Create Filter",command=self.create_filter)

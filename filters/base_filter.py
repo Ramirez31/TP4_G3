@@ -152,11 +152,12 @@ class base_filter(metaclass=ABCMeta):
 
     # Function returns current denormalized filter step response
     def get_step(self):
-        return signal.step(self.denorm_sys,N=1000)
+        a=signal.step(self.denorm_sys,N=3000)
+        return signal.step(self.denorm_sys,N=3000)
 
     # Function returns current denormalized filter impulse response
     def get_impulse(self):
-        return signal.impulse(self.denorm_sys,N=1000)
+        return signal.impulse(self.denorm_sys,N=5000)
 
     # Function returns current filter frequency response (frec,magnitude,phase)
     def get_bode(self):
@@ -297,7 +298,7 @@ class base_filter(metaclass=ABCMeta):
                 a=np.absolute(-mag[i]-self.Ao)
                 if np.absolute(-mag[i]-self.Ao)<0.001:
                     break
-            max_denorm_w=(self.wan/w[i])#In logarithmic scale wan/frec previously found indicates the maximum frequency that can be scaled
+            max_denorm_w=(self.wan/w[i])*0.9999#In logarithmic scale wan/frec previously found indicates the maximum frequency that can be scaled
             diff=max_denorm_w-1#Difference between max denorm frequency and wp=1
             denorm_w=max_denorm_w-diff*(1-self.denorm_percent)#Depending on denormalization percent denorm frequency will vary betwen 1 and max_denorm
             den=np.poly1d([1])
