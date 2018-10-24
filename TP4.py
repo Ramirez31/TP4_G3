@@ -900,6 +900,7 @@ class DesignFilter:
         
         self.Zeros = np.array(np.around(zeros, decimals=5)).tolist()
         self.ZerosAux = [] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑOself.ZerosAux.extend(self.Zeros)
+        self.ZerosAux.extend(self.Zeros)
         self.comboZeros['values'] = self.Zeros #Aca cargo cada polo
         self.ZerosSeleccionados = [] #Aca guardo polos para hacer etapa
 
@@ -981,7 +982,8 @@ class DesignFilter:
         self.GenerateStage.place(x=0,y=300)
         self.TransferList = [] #Voy a ir agregando Stages ej [Polos[] Zeros[], Polos[] Zeros[]] siendo estos poly1d
         self.GainOfStages = [] #guardo las ganancias de cada etapa. que me ingresa el usuario
-
+        self.ListaDePolosPasados = []
+        self.ListaDeCerosPasados = []
         #---------Remove Stages--------------------------------------------
 
         self.DeleteStages = Button(self.side_toolbar,text="Delete Stages",command=self.DeleteStages)
@@ -1068,7 +1070,9 @@ class DesignFilter:
      def AddPole(self):
 
         self.val=self.comboPolos.get()
-        
+        if(len(self.val)==0):
+            print("Ingresar Valor")
+            return
         self.val2=complex(self.val)
         if(self.val2.imag==0):
             self.val2=self.val2.real
@@ -1076,6 +1080,9 @@ class DesignFilter:
         if(self.val2 not in self.polesAux):
             print("Polo ya Seleccionado")
             return
+        if(self.val2 in self.ListaDePolosPasados):  
+            print("Polo ya Seleccionado")  
+            return    
         if len(self.PolosSeleccionados) == 0 :
             self.PolosSeleccionados.append(self.val2)
             self.SelectedPoles.insert(END,self.val2)
@@ -1109,12 +1116,18 @@ class DesignFilter:
      def AddZero(self):
 
         self.val=self.comboZeros.get()
+        if(len(self.val)==0):
+            print("Ingresar Valor")
+            return
         self.val2=complex(self.val)
         if(self.val2.imag==0):
             self.val2=self.val2.real
         if(self.val2 not in self.ZerosAux):
             print("Cero ya Seleccionado")
-            return    
+            return
+        if(self.val2 in self.ListaDeCerosPasados):  
+            print("Polo ya Seleccionado")  
+            return      
         if len(self.ZerosSeleccionados) == 0 :
             self.ZerosSeleccionados.append(self.val2)
             self.SelectedZeros.insert(END,self.val2)
@@ -1145,7 +1158,7 @@ class DesignFilter:
          self.PolosSeleccionados.clear()
          self.SelectedPoles.delete(0, END)
          self.SelectedZeros.delete(0,END)
-         self.PolosNoEnStages = [item for item in temp1 if item not in temp2]   
+         #self.PolosNoEnStages = [item for item in temp1 if item not in temp2]   
          
          self.comboPolos['values'] = self.poles
          self.comboZeros['values'] = self.Zeros
@@ -1159,6 +1172,8 @@ class DesignFilter:
            self.den = []
            self.num = []
 
+           if(len(self.PolosSeleccionados)<len(self.ZerosSeleccionados)) :
+               return
            if(len(self.PolosSeleccionados)==0 and len(self.ZerosSeleccionados)==0 ):
                return
            if(len(self.PolosSeleccionados)==0):
@@ -1175,8 +1190,12 @@ class DesignFilter:
            self.HdeStage = []
            self.HdeStage.append(self.den)
            self.HdeStage.append(self.num)
+           self.ListaDePolosPasados = self.ListaDePolosPasados + self.den
+           self.ListaDeCerosPasados = self.ListaDeCerosPasados + self.num
            self.TransferList.append(self.HdeStage)
            print(self.TransferList)
+           print(self.ListaDePolosPasados)
+           print(self.ListaDeCerosPasados)
            
            #Elimino los valores de la lsita y queda el combobox sin los valores de los polos seleccionados
            #Hago Clear de los polos y ceros seleccionados para que los proximos no acumulen los anteiores
@@ -1193,6 +1212,10 @@ class DesignFilter:
          
      def DeleteStages(self):
        
+         
+         self.ListaDeCerosPasados.clear()
+         self.ListaDePolosPasados.clear()
+         
          self.ZerosSeleccionados.clear()
          self.PolosSeleccionados.clear()
          self.SelectedPoles.delete(0,END)
@@ -1228,13 +1251,25 @@ class DesignFilter:
          self.ZerosAux = []
          self.ZerosAux.extend(self.Zeros)
 
+         self.den = []
+         self.num = []
+         
          print(self.polesAux) 
+         
+         for i in range(len(self.polesAux)) :
+                if self.polesAux[i].imag == 0 :
+                    self.polesAux[i]=self.polesAux[i].real
+         
          for i in self.polesAux:
             if np.iscomplexobj(i):
                 self.polesAux.remove(np.conjugate(i))
          
          self.MisPolos = sorted(self.polesAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=True)       
          
+
+         for i in range(len(self.ZerosAux)):
+                if self.ZerosAux[i].imag == 0 :
+                    self.ZerosAux[i]=self.ZerosAux[i].real
 
          for i in self.ZerosAux:
             if np.iscomplexobj(i):
@@ -1247,6 +1282,30 @@ class DesignFilter:
          
          print(self.MisPolos)
          print(self.MisCeros)
+         
+         for i in self.MisCeros :
+            if np.iscomplexobj(i) :
+                for k in self.MisPolos :
+                    if np.iscomplexobj(k) :
+                        self.den=[k,np.conjugate(k)]
+                        self.num=[i,np.conjugate(i)]
+                        self.MisPolos.remove(k)
+                        self.MisCeros.remove(i)
+                        break
+            else:
+                for k in self.MisPolos :
+                    if np.isrealobj(k) :
+                        self.den=[k]
+                        self.num=[i]
+                        self.MisPolos.remove(k)
+                        self.MisCeros.remove(i)
+                        break
+            
+            self.HdeStage.append(self.den) 
+            self.HdeStage.append(self.num)        
+       
+            self.TransferList.append(self.HdeStage)
+            self.HdeStage = []
 
          while (len(self.MisPolos) != 0) or (len(self.MisCeros) != 0):  
              if len(self.MisPolos)==0 :
