@@ -1067,8 +1067,24 @@ class DesignFilter:
         self.AutoStages = Button(self.side_toolbar,text="Automatic Cascade Stages",command=self.AutoStages)
         self.AutoStages.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         self.AutoStages.place(x=0,y=360)
-  
-    #Function plots current filter's phase in current subplot
+
+        #-------Calculo de Rango Dinamico-------------------------------------------
+        self.RD_label = Label(self.forStages, text="RD:",background='skyblue3',font='Helvetica 9 bold')
+        self.RD_label.grid(row=3,column=0,sticky=W)
+        self.RD_entry = Entry(self.forStages,width=5)
+        self.RD_entry.grid(row=3,column=1)
+        self.RD_unit = Label(self.forStages, text="[dB]",background='skyblue3',font='Helvetica 9 bold')
+        self.RD_unit.grid(row=3,column=2)
+
+        self.RD_label = Label(self.forStages, text="Vsat = 14V",background='skyblue3',font='Helvetica 6')
+        self.RD_label.grid(row=4,column=0,sticky=W)
+        self.RD_entry = Entry(self.forStages,width=5)
+
+        self.RD_label = Label(self.forStages, text="Vmin = 10mV",background='skyblue3',font='Helvetica 6')
+        self.RD_label.grid(row=5,column=0,sticky=W)
+        self.RD_entry = Entry(self.forStages,width=5)
+    
+        #Function plots current filter's phase in current subplot
      def plot_phase(self):
         if self.filter_ready is True:
             self.axis.clear()
@@ -1310,6 +1326,10 @@ class DesignFilter:
          self.data_plot.draw()
 
      def AutoStages(self):
+
+         if(len(self.TransferList)!=0):
+            print("AutoGen ya Realizado, Delete Stages antes")
+            return
          #tengo que limpiar el combo box
          self.comboPolos['values'] = ['']
          self.comboZeros['values'] = ['']
@@ -1324,6 +1344,8 @@ class DesignFilter:
          self.polesAux.extend(self.poles)
          self.ZerosAux = []
          self.ZerosAux.extend(self.Zeros)
+         self.ListaDeCerosPasados.extend(self.Zeros)
+         self.ListaDePolosPasados.extend(self.poles) 
 
          self.den = []
          self.num = []
@@ -1442,7 +1464,7 @@ class DesignFilter:
         self.den=np.poly1d([1])
         self.num=np.poly1d([1])
         for i in range(0,len(self.polesOfStage)):
-            if self.zerosOfStage[i] !=0:
+            if self.polesOfStage[i] !=0:
                 pol = np.poly1d([-1/(self.polesOfStage[i]), 1])
             else:
                 pol = np.poly1d([1,0])
@@ -1464,6 +1486,7 @@ class DesignFilter:
         gd=np.append(gd,gd[len(gd)-1])
         gd= gd/(180/np.pi)
         self.filter_ready=True
+        #self.CalcRD()
 
      def onselect(self,evt):
         # Note here that Tkinter passes an event object to onselect()
@@ -1475,6 +1498,22 @@ class DesignFilter:
 
 
 
+
+#def CalcRD(self,ListaDeConstantes):
+        #pass
+         #armo un arreglo1 lleno de Vmax de cantidad dependinedo de la cantidad de etapas
+         #armo un arreglo2 lleno de vmin de cantidad dependiendo de la cantidad de etapas
+         #for (i in range(len(self.ConstantesDeGanancia))):
+          #   for (k in range(0:i)): 
+            #   self.arreglo1[i]=self.arreglo1[i]/self.ConstantesDeGanancia[k]
+
+        # for (i in range(len(self.ConstantesDeGanancia))):
+         #for (k in range(0:i)): 
+             #  self.arreglo2[i]=self.arreglo2[i]/self.ConstantesDeGanancia[k]
+
+        # self.Vmax= min(self.arreglo1)
+        # self.vmin = max(self.arreglo2)    
+        # self.RD = Vmax/Vmin
 
 if __name__ == "__main__":
     ex = TP4()
