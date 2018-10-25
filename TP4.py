@@ -935,7 +935,7 @@ class DesignFilter:
         self.master.title("Design Filters")
         self.master.resizable(False, False)
        
-        self.side_toolbar=Frame(self.master,width=200,borderwidth=7,relief=RAISED,background='skyblue3')
+        self.side_toolbar=Frame(self.master,width=300,borderwidth=7,relief=RAISED,background='skyblue3')
         self.side_toolbar.pack(side=LEFT,fill=BOTH,padx=2,pady=4)
         self.side_toolbar.grid_propagate(0)
         #self.side_toolbar.pack(side=LEFT)
@@ -943,12 +943,13 @@ class DesignFilter:
         self.texto=StringVar()
         self.texto.set("Poles & Zeroes Selected:")
        
-        self.etiqueta=Label(self.side_toolbar,textvariable=self.texto,background='skyblue3',font='Helvetica 9 bold').place(x=0,y=70)
-       
+        self.etiqueta=Label(self.side_toolbar,textvariable=self.texto,background='skyblue3',font='Helvetica 9 bold')
+        self.etiqueta.grid(row=2,column=0,columnspan=2)
         self.Gain = gain
        #-------Seleccion de Polos--------------------------------
         self.comboPolos = ttk.Combobox(self.side_toolbar,width=10)
-        self.comboPolos.place(x=0,y=0)
+        self.comboPolos.grid(row=0,column=0)
+
         self.poles = np.array(np.around(poles, decimals=5)).tolist() #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑO
         self.polesAux = []
         self.polesAux.extend(self.poles)
