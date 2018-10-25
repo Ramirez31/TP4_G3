@@ -982,7 +982,6 @@ class DesignFilter:
         self.SelectedZeros = Listbox(self.side_toolbar,width=10) #Aca muestro polos para hacer estapa
         self.SelectedZeros.place(x=100,y=100)
 
-
         self.RemoveSelected = Button(self.side_toolbar,text="Del Selection", command=self.Remove)
         self.RemoveSelected.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         self.RemoveSelected.place(x=0,y=270)
