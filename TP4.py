@@ -1510,6 +1510,7 @@ class DesignFilter:
         #----------------Buttons functions----------------------------
      
      def TransferOfStage(self):
+        a,b=self.getMax()
         self.GainOfStagesVeces.clear()
         self.detectStage = self.SelectedStage.curselection()
         for i in self.detectStage:
@@ -1594,7 +1595,30 @@ class DesignFilter:
         self.RD = round(20*np.log10(Vmax/Vmin),2)
         print(ConstantesDeGanancia)
 
-
+     def getMax(self):
+        maxs=[]
+        for transfer in self.TransferList:
+            den=np.poly1d([1])
+            num=np.poly1d([1])
+            temppoles=transfer[0]
+            tempzeros=transfer[1]
+            for pole in temppoles:
+                if pole != 0:
+                    den=den*np.poly1d([-1/pole,1])
+                else:
+                    den=den*np.poly1d([1,0])
+            for zero in tempzeros:
+                if zero != 0:
+                    num=num*np.poly1d([1/zero,1])
+                else:
+                    num=num*np.poly1d([1,0])
+            w,mag,phase=signal.bode(signal.TransferFunction(num,den))
+            tempmax=0
+            for m in mag:
+                if m>tempmax:
+                    tempmax=m
+            maxs.append(tempmax)
+        return maxs
 
 if __name__ == "__main__":
     ex = TP4()
