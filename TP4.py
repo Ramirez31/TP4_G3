@@ -402,8 +402,18 @@ class TP4:
     def plot_zeroes_and_poles(self):
         if self.filter_ready is True:
             self.axis.clear()
-            self.axis.set_title('Filter\'s Group Delay')
-            #self.axis.set_aspect('equal')
+            self.axis.set_title('Filter\'s Zeroes and Poles')
+            size = self.f.get_size_inches()*self.f.dpi
+            self.axis.set_aspect(aspect='equal')
+            maxmod=0
+            for pole in self.poles:
+                if np.absolute(pole)>maxmod:
+                    maxmod=np.absolute(pole)
+            for zero in self.zeroes:
+                if np.absolute(zero)>maxmod:
+                    maxmod=np.absolute(zero)
+            self.axis.set_xlim(-maxmod-2,maxmod+2)
+            self.axis.set_ylim(-maxmod-2,maxmod+2)
             self.axis.scatter(np.real(self.poles),np.imag(self.poles),marker="x")
             self.axis.scatter(np.real(self.zeroes),np.imag(self.zeroes),marker="o")
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
@@ -418,6 +428,8 @@ class TP4:
         if self.filter_ready is True:
             arrows=[]
             self.axis.clear()
+
+            self.axis.set_title('Filter\'s Group Delay')
             for i in range(0,len(self.phase)-1):
                 if (np.absolute(self.phase[i]-self.phase[i+1])>40):
                     #arrows.append(matplotlib.patches.Arrow(self.w[i],))
@@ -770,28 +782,28 @@ class TP4:
         self.fpl_label.grid(row=3,column=0,sticky=W)
         self.fpl_entry = Entry(self.side_toolbar,width=10)
         self.fpl_entry.grid(row=3,column=1)
-        self.fpl_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
+        self.fpl_unit = Label( self.side_toolbar, text="[rad/s]",background='firebrick3', font='Helvetica 9 bold')
         self.fpl_unit.grid(row=3,column=2)
         self.entry_buttons.append([self.fpl_label,self.fpl_entry,self.fpl_unit])
         self.curr_buttons.append(self.fpl_entry)
 
         self.fph_label = Label( self.side_toolbar, text="Passband Freq(Fp+):",background='firebrick3', font='Helvetica 9 bold')
         self.fph_entry = Entry(self.side_toolbar,width=10)
-        self.fph_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
+        self.fph_unit = Label( self.side_toolbar, text="[rad/s]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.fph_label,self.fph_entry,self.fph_unit])
 
         self.fal_label = Label( self.side_toolbar, text="Attenuation Freq(Fa-):",background='firebrick3', font='Helvetica 9 bold')
         self.fal_label.grid(row=5,column=0,sticky=W)
         self.fal_entry = Entry(self.side_toolbar,width=10)
         self.fal_entry.grid(row=5,column=1)
-        self.fal_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
+        self.fal_unit = Label( self.side_toolbar, text="[rad/s]",background='firebrick3', font='Helvetica 9 bold')
         self.fal_unit.grid(row=5,column=2)
         self.entry_buttons.append([self.fal_label,self.fal_entry,self.fal_unit])
         self.curr_buttons.append(self.fal_entry)
 
         self.fah_label = Label( self.side_toolbar, text="Attenuation Freq(Fa+):",background='firebrick3', font='Helvetica 9 bold')
         self.fah_entry = Entry(self.side_toolbar,width=10)
-        self.fah_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
+        self.fah_unit = Label( self.side_toolbar, text="[rad/s]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.fah_label,self.fah_entry,self.fah_unit])
 
         self.ap_label = Label( self.side_toolbar, text="Attenuation Atten.(Ap):",background='firebrick3', font='Helvetica 9 bold')
@@ -812,7 +824,7 @@ class TP4:
         self.entry_buttons.append([self.aa_label,self.aa_entry,self.aa_unit])
         self.curr_buttons.append(self.aa_entry)
 
-        self.gp_label = Label( self.side_toolbar, text="Group delay at 0 Hz:",background='firebrick3', font='Helvetica 9 bold')
+        self.gp_label = Label( self.side_toolbar, text="Group delay at 0 rad/s:",background='firebrick3', font='Helvetica 9 bold')
         self.gp_entry = Entry(self.side_toolbar,width=10)
         self.gp_unit = Label( self.side_toolbar, text="[ms]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.gp_label,self.gp_entry,self.gp_unit])
@@ -849,7 +861,7 @@ class TP4:
         self.denorm_check.configure(activebackground = 'firebrick3')
         self.denorm_entry = Entry(self.side_toolbar,width=10)
         self.denorm_entry.grid(row=11,column=1)
-        self.denorm_unit = Label( self.side_toolbar, text="%",background='firebrick3', font='Helvetica 9 bold')
+        self.denorm_unit = Label( self.side_toolbar, text="[%]",background='firebrick3', font='Helvetica 9 bold')
         self.denorm_unit.grid(row=11,column=2)
         self.entry_buttons.append([self.denorm_check,self.denorm_entry,self.denorm_unit])
 
@@ -897,11 +909,10 @@ class TP4:
         toolbar.pack(side=TOP,fill=X)
         
         #-------------------------------------------------------------------------------
-
-        f = Figure()
+        self.f = Figure()
         self.filter_ready=False
-        self.axis = f.add_subplot(111)
-        self.data_plot = FigureCanvasTkAgg(f, master=graph)
+        self.axis = self.f.add_subplot(111)
+        self.data_plot = FigureCanvasTkAgg(self.f, master=graph)
         self.data_plot.draw()
         self.data_plot.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
         nav = NavigationToolbar2Tk(self.data_plot, graph_and_buttons)
@@ -1120,6 +1131,15 @@ class DesignFilter:
      def plot_zeroes_and_poles(self):
         if self.filter_ready is True:
             self.axis.clear()
+            maxmod=0
+            for pole in self.polesOfStage:
+                if np.absolute(pole)>maxmod:
+                    maxmod=np.absolute(pole)
+            for zero in self.zerossOfStage:
+                if np.absolute(zero)>maxmod:
+                    maxmod=np.absolute(zero)
+            self.axis.set_xlim(-maxmod-2,maxmod+2)
+            self.axis.set_ylim(-maxmod-2,maxmod+2)
             self.axis.scatter(np.real(self.polesOfStage),np.imag(self.polesOfStage),marker="x")
             self.axis.scatter(np.real(self.zerosOfStage),np.imag(self.zerosOfStage),marker="o")
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
