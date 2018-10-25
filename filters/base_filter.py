@@ -218,11 +218,11 @@ class base_filter(metaclass=ABCMeta):
     # Function returns current filter template limitations
     def get_template(self):
         if (self.name=='LowPass')|(self.name=='HighPass'):
-            return [self.Ap,self.Ao,self.wan,self.wpl,self.wal,self.gain]
+            return [self.Ap,self.Ao,self.wan/(2*np.pi),self.wpl/(2*np.pi),self.wal/(2*np.pi),self.gain]
         if (self.name=='BandPass')|(self.name=='StopBand'):
-            return [self.Ap,self.Ao,self.wan,self.wpl,self.wph,self.wal,self.wah,self.gain]
+            return [self.Ap,self.Ao,self.wan/(2*np.pi),self.wpl/(2*np.pi),self.wph/(2*np.pi),self.wal/(2*np.pi),self.wah/(2*np.pi),self.gain]
         if (self.name=='Group Delay'):
-            return [self.tao0,self.wrg,self.palm,self.gain]
+            return [self.tao0,self.wrg/(2*np.pi),self.palm,self.gain]
         
 
     # Function returns current filter type:LP,HP,BP or SB

@@ -26,12 +26,8 @@ class TP4:
             aprox='chebyshev'
         elif self.aprox_string.get()=='Inverse Chebyshev':
             aprox='invchebyshev'
-        elif self.aprox_string.get()=='Legendre':
-            aprox='legendre'
         elif self.aprox_string.get()=='Papoulis':
             aprox='papoulis'
-        elif self.aprox_string.get()=='Cauer':
-            aprox='cauer'
         elif self.aprox_string.get()=='Bessel':
             aprox='bessel'
         elif self.aprox_string.get()=='Gauss':
@@ -75,7 +71,9 @@ class TP4:
             if self.filter_instance.error_was() == '':
                 self.filter_ready=True
                 self.w,self.mag,self.phase = self.filter_instance.get_bode()
+                self.w=self.w/(2*np.pi)
                 self.wn,self.magn,self.phasen=self.filter_instance.get_norm_bode()
+                self.wn=self.wn/(2*np.pi)
                 self.template_params = self.filter_instance.get_template()
                 self.filter_type = self.filter_instance.filter_is()
                 self.n,self.q=self.filter_instance.n_and_q_is()
@@ -137,7 +135,7 @@ class TP4:
             self.axis.set_title('Bode Diagram phase plot')
             self.axis.semilogx(self.w,self.phase)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("Radian Frequency [1/rad]$")
+            self.axis.set_xlabel("Frequency [Hz]$")
             self.axis.set_ylabel("$Phase [Deegres]$")
             self.data_plot.draw()
         else:
@@ -158,7 +156,7 @@ class TP4:
             else:
                 xl=-100
                 yl=self.template_params[0]
-                widthl=np.absolute(xl)+1
+                widthl=np.absolute(xl)+1/(2*np.pi)
                 heightl=100
                 xr=self.template_params[2]
                 yr=-100
@@ -174,7 +172,7 @@ class TP4:
             self.axis.set_ylim(-5,self.template_params[1]+10)
             self.axis.semilogx(self.wn,-self.magn)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("$Radian Frequency [1/rad]$")
+            self.axis.set_xlabel("$Frequency [Hz]$")
             self.axis.set_ylabel("$Attenuation [dB]$")
             self.data_plot.draw()  
         else:
@@ -269,7 +267,7 @@ class TP4:
             self.axis.add_patch(c_rect)
             self.axis.semilogx(self.w,self.atenua)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("$Radian Frequency [1/rad]$")
+            self.axis.set_xlabel("$Frequency [Hz]$")
             self.axis.set_ylabel("$Attenuation [dB]$")
             self.data_plot.draw()
         else:
@@ -364,7 +362,7 @@ class TP4:
             self.axis.add_patch(c_rect)
             self.axis.semilogx(self.w,self.mag)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("$Radian Frequency [1/rad]$")
+            self.axis.set_xlabel("$Frequency [Hz]$")
             self.axis.set_ylabel("$Gain [dB]$")
             self.data_plot.draw()
         else:
@@ -403,8 +401,9 @@ class TP4:
         if self.filter_ready is True:
             self.axis.clear()
             self.axis.set_title('Filter\'s Zeroes and Poles')
-            size = self.f.get_size_inches()*self.f.dpi
             self.axis.set_aspect(aspect='equal')
+            self.axis.axhline(0, color='black')
+            self.axis.axvline(0, color='black')
             maxmod=0
             for pole in self.poles:
                 if np.absolute(pole)>maxmod:
@@ -449,7 +448,7 @@ class TP4:
 
             self.axis.semilogx(self.w,self.group_delay*1000)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("Radian Frequency [1/rad]$")
+            self.axis.set_xlabel("Frequency [Hz]$")
             self.axis.set_ylabel("$Group Delay [ms]$")
             self.data_plot.draw()
         else:
@@ -737,7 +736,7 @@ class TP4:
         self.side_toolbar.pack(side=LEFT,fill=BOTH,expand=True,padx=2,pady=4)
         self.side_toolbar.grid_propagate(0)
 
-        approximation_list=('Butterworth','Chebyshev','Inverse Chebyshev','Legendre','Papoulis','Cauer','Bessel','Gauss')
+        approximation_list=('Butterworth','Chebyshev','Inverse Chebyshev','Papoulis','Bessel','Gauss')
         self.aprox_string = StringVar()
         self.aprox_string.set(approximation_list[0])
         aproximation_menu=OptionMenu(self.side_toolbar,self.aprox_string, *approximation_list)
@@ -782,28 +781,28 @@ class TP4:
         self.fpl_label.grid(row=3,column=0,sticky=W)
         self.fpl_entry = Entry(self.side_toolbar,width=10)
         self.fpl_entry.grid(row=3,column=1)
-        self.fpl_unit = Label( self.side_toolbar, text="[rad/s]",background='firebrick3', font='Helvetica 9 bold')
+        self.fpl_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
         self.fpl_unit.grid(row=3,column=2)
         self.entry_buttons.append([self.fpl_label,self.fpl_entry,self.fpl_unit])
         self.curr_buttons.append(self.fpl_entry)
 
         self.fph_label = Label( self.side_toolbar, text="Passband Freq(Fp+):",background='firebrick3', font='Helvetica 9 bold')
         self.fph_entry = Entry(self.side_toolbar,width=10)
-        self.fph_unit = Label( self.side_toolbar, text="[rad/s]",background='firebrick3', font='Helvetica 9 bold')
+        self.fph_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.fph_label,self.fph_entry,self.fph_unit])
 
         self.fal_label = Label( self.side_toolbar, text="Attenuation Freq(Fa-):",background='firebrick3', font='Helvetica 9 bold')
         self.fal_label.grid(row=5,column=0,sticky=W)
         self.fal_entry = Entry(self.side_toolbar,width=10)
         self.fal_entry.grid(row=5,column=1)
-        self.fal_unit = Label( self.side_toolbar, text="[rad/s]",background='firebrick3', font='Helvetica 9 bold')
+        self.fal_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
         self.fal_unit.grid(row=5,column=2)
         self.entry_buttons.append([self.fal_label,self.fal_entry,self.fal_unit])
         self.curr_buttons.append(self.fal_entry)
 
         self.fah_label = Label( self.side_toolbar, text="Attenuation Freq(Fa+):",background='firebrick3', font='Helvetica 9 bold')
         self.fah_entry = Entry(self.side_toolbar,width=10)
-        self.fah_unit = Label( self.side_toolbar, text="[rad/s]",background='firebrick3', font='Helvetica 9 bold')
+        self.fah_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.fah_label,self.fah_entry,self.fah_unit])
 
         self.ap_label = Label( self.side_toolbar, text="Attenuation Atten.(Ap):",background='firebrick3', font='Helvetica 9 bold')
@@ -824,14 +823,14 @@ class TP4:
         self.entry_buttons.append([self.aa_label,self.aa_entry,self.aa_unit])
         self.curr_buttons.append(self.aa_entry)
 
-        self.gp_label = Label( self.side_toolbar, text="Group delay at 0 rad/s:",background='firebrick3', font='Helvetica 9 bold')
+        self.gp_label = Label( self.side_toolbar, text="Group delay at 0 Hz:",background='firebrick3', font='Helvetica 9 bold')
         self.gp_entry = Entry(self.side_toolbar,width=10)
         self.gp_unit = Label( self.side_toolbar, text="[ms]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.gp_label,self.gp_entry,self.gp_unit])
 
-        self.wrg_label = Label( self.side_toolbar, text="(wrg):",background='firebrick3', font='Helvetica 9 bold')
+        self.wrg_label = Label( self.side_toolbar, text="Maximum Tol Freq:",background='firebrick3', font='Helvetica 9 bold')
         self.wrg_entry = Entry(self.side_toolbar,width=10)
-        self.wrg_unit = Label( self.side_toolbar, text="[rad/s]",background='firebrick3', font='Helvetica 9 bold')
+        self.wrg_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.wrg_label,self.wrg_entry,self.wrg_unit])
 
         self.tol_label = Label( self.side_toolbar, text="Group delay Tolerance:",background='firebrick3', font='Helvetica 9 bold')
@@ -1038,9 +1037,9 @@ class DesignFilter:
         button_group_delay = Button(toolbar,text="Group Delay", command = self.plot_group_delay)
         button_group_delay.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         button_group_delay.pack(side=LEFT,padx=2,pady=4)
-        button_aten_norm = Button(toolbar,text="Accumulative")
-        button_aten_norm.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        button_aten_norm.pack(side=LEFT,padx=2,pady=2)
+        button_accumul = Button(toolbar,text="Accumulative",command = self.plot_accumul)
+        button_accumul.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
+        button_accumul.pack(side=LEFT,padx=2,pady=2)
 
         toolbar.pack(side=TOP,fill=X)
         
@@ -1083,9 +1082,10 @@ class DesignFilter:
      def plot_phase(self):
         if self.filter_ready is True:
             self.axis.clear()
+            self.axis.set_title('Stage\'s Phase plot')
             self.axis.semilogx(self.w,self.phase)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("Radian Frequency [1/rad]$")
+            self.axis.set_xlabel("Frequency [Hz]$")
             self.axis.set_ylabel("$Phase [Deegres]$")
             self.data_plot.draw()
         else:
@@ -1095,9 +1095,10 @@ class DesignFilter:
      def plot_atten(self):
         if self.filter_ready is True:
             self.axis.clear()
+            self.axis.set_title('Stage\'s Attenuation plot')
             self.axis.semilogx(self.w,-self.mag)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("$Radian Frequency [1/rad]$")
+            self.axis.set_xlabel("$Frequency [Hz]$")
             self.axis.set_ylabel("$Attenuation [dB]$")
             self.data_plot.draw()
         else:
@@ -1107,6 +1108,8 @@ class DesignFilter:
      def plot_step(self):
         if self.filter_ready is True:
             self.axis.clear()
+            self.axis.set_title('Stage\'s Step Response')
+            self.axis.set_aspect(aspect='auto')
             self.axis.plot(self.stepT,self.step_mag)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("$Time [s]$")
@@ -1118,7 +1121,9 @@ class DesignFilter:
     #Function plots current filter's impulse response in current subplot
      def plot_imp(self):
         if self.filter_ready is True:
+            self.axis.set_title('Stage\'s Impulse Response')
             self.axis.clear()
+            self.axis.set_aspect(aspect='auto')
             self.axis.plot(self.impT,self.imp_mag)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("$Time [s]$")
@@ -1131,11 +1136,15 @@ class DesignFilter:
      def plot_zeroes_and_poles(self):
         if self.filter_ready is True:
             self.axis.clear()
+            self.axis.set_title('Stage\'s Zeroes and Poles')
+            self.axis.set_aspect(aspect='equal')
+            self.axis.axhline(0, color='black')
+            self.axis.axvline(0, color='black')
             maxmod=0
             for pole in self.polesOfStage:
                 if np.absolute(pole)>maxmod:
                     maxmod=np.absolute(pole)
-            for zero in self.zerossOfStage:
+            for zero in self.zerosOfStage:
                 if np.absolute(zero)>maxmod:
                     maxmod=np.absolute(zero)
             self.axis.set_xlim(-maxmod-2,maxmod+2)
@@ -1153,13 +1162,48 @@ class DesignFilter:
      def plot_group_delay(self):
         if self.filter_ready is True:
             self.axis.clear()
+            self.axis.set_title('Stage\'s Group Delay')
             self.axis.semilogx(self.w,self.group_delay*1000)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
-            self.axis.set_xlabel("Radian Frequency [1/rad]$")
+            self.axis.set_xlabel("Frequency [Hz]$")
             self.axis.set_ylabel("$Group Delay [ms]$")
             self.data_plot.draw()
         else:
             messagebox.showerror("Error", "No filter was created, plot cannot be realized")        
+
+     def plot_accumul(self):
+        if self.filter_ready is True:
+            self.detectStage = self.SelectedStage.curselection()
+            den=np.poly1d([1])
+            num=np.poly1d([1])
+            for i in range(0,self.detectStage[0]+1):
+                self.stageIs = self.TransferList[i]
+                temp_poles = self.stageIs[0] #siempre el primer elemento son los polos
+                temp_zeros = self.stageIs[1] #siempre el segundo elemento son los ceros
+                for pole in temp_poles:
+                    if pole !=0:
+                        den=den*np.poly1d([-1/pole,1])
+                    else:
+                        den=den*np.poly1d([1,0])
+                for zero in temp_zeros:
+                    if zero !=0:
+                        num=num*np.poly1d([1/zero,1])
+                    else:
+                        num=num*np.poly1d([1,0])
+            w,mag,phase=signal.bode(signal.TransferFunction(num,den))
+            self.axis.clear()
+            self.axis.set_title('Accumulative\'s Attenuation plot')
+            self.axis.semilogx(w,-mag)
+            self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
+            self.axis.set_xlabel("$Frequency [Hz]$")
+            self.axis.set_ylabel("$Attenuation [dB]$")
+            self.data_plot.draw()
+
+            #ceros de la stage
+
+            #return self.zerosOfStage, self.polesOfStage
+        else:
+            messagebox.showerror("Error", "No filter was created, plot cannot be realized")   
 
      def AddPole(self):
 
@@ -1462,7 +1506,7 @@ class DesignFilter:
         self.den=np.poly1d([1])
         self.num=np.poly1d([1])
         for i in range(0,len(self.polesOfStage)):
-            if self.zerosOfStage[i] !=0:
+            if self.polesOfStage[i] !=0:
                 pol = np.poly1d([-1/(self.polesOfStage[i]), 1])
             else:
                 pol = np.poly1d([1,0])
@@ -1482,7 +1526,8 @@ class DesignFilter:
         dw=np.ediff1d(self.w)
         gd=-dphase/dw
         gd=np.append(gd,gd[len(gd)-1])
-        gd= gd/(180/np.pi)
+        self.group_delay= gd/(180/np.pi)
+        self.w=self.w/(2*np.pi)
         self.filter_ready=True
 
      def onselect(self,evt):

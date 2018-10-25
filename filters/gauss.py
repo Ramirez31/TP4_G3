@@ -11,11 +11,11 @@ class Gauss(base_filter):
             self.name =args[0]
             self.gain=args[1]
             self.tao0=args[2]/1000
-            self.wrg=args[3]
+            self.wrg=args[3]*2*np.pi
             self.palm=args[4]/100
             self.n=args[5]
             self.input_qmax=args[6]
-            self.nmax=13 #VALOR NO DEFINITIVO, PROBAR CUAL ES EL VALOR MAXIMO PARA EL QUE EMPIEZA A MORIR LA APROXIMACION
+            self.nmax=20
             if self.check_4_infs_and_nans(args) is False:
                 self.errormsg=self.check_input()
                 if self.errormsg == '':

@@ -22,8 +22,8 @@ class Butterworth(base_filter):
         if (args[0]=='LowPass')|(args[0]=='HighPass'):
             self.name = args[0]
             self.gain=args[1]
-            self.wpl=args[2]
-            self.wal=args[3]
+            self.wpl=args[2]*2*np.pi
+            self.wal=args[3]*2*np.pi
             self.Ap=args[4]
             self.Ao=args[5]
             self.n=args[6]
@@ -32,10 +32,10 @@ class Butterworth(base_filter):
         elif (args[0]=='BandPass')|(args[0]=='StopBand'):
             self.name = args[0]
             self.gain=args[1]
-            self.wpl=args[2]
-            self.wph=args[3]
-            self.wal=args[4]
-            self.wah=args[5]
+            self.wpl=args[2]*2*np.pi
+            self.wph=args[3]*2*np.pi
+            self.wal=args[4]*2*np.pi
+            self.wah=args[5]*2*np.pi
             self.Ap=args[6]
             self.Ao=args[7]
             self.n=args[8]
@@ -53,7 +53,7 @@ class Butterworth(base_filter):
                 if self.n !=None:
                     self.set_fix_order()
                 if self.name == 'BandPass':#Order limit for normalized approximation (taking into account that denormalized limits are not met)
-                    self.nmax=9
+                    self.nmax=10
                 elif self.name == 'StopBand':
                     self.nmax=10
                 else:
@@ -69,7 +69,6 @@ class Butterworth(base_filter):
                         self.do_approximation()#Does normalized approximation
                         if self.errormsg =='':
                             self.denormalize()#Denormalizes the approximation to match desired template
-
                         if(self.input_qmax==None) or (self.input_qmax>=self.q):#If no Q limitations are received or if there was any, it was met, approximation is complete
                             break
                         else:

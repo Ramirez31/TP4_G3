@@ -23,8 +23,8 @@ class Chebyshev(base_filter):
         if (args[0]=='LowPass')|(args[0]=='HighPass'):
             self.name = args[0]
             self.gain=args[1]
-            self.wpl=args[2]
-            self.wal=args[3]
+            self.wpl=args[2]*2*np.pi
+            self.wal=args[3]*2*np.pi
             self.Ap=args[4]
             self.Ao=args[5]
             self.n=args[6]
@@ -33,10 +33,10 @@ class Chebyshev(base_filter):
         elif (args[0]=='BandPass')|(args[0]=='StopBand'):
             self.name = args[0]
             self.gain=args[1]
-            self.wpl=args[2]
-            self.wph=args[3]
-            self.wal=args[4]
-            self.wah=args[5]
+            self.wpl=args[2]*2*np.pi
+            self.wph=args[3]*2*np.pi
+            self.wal=args[4]*2*np.pi
+            self.wah=args[5]*2*np.pi
             self.Ap=args[6]
             self.Ao=args[7]
             self.n=args[8]
