@@ -921,6 +921,7 @@ class TP4:
         nav._message_label.config(background='firebrick4')
         self.data_plot._tkcanvas.pack(side=LEFT, fill=X, expand=True)
 
+
         self.aprox_string.trace_add('write',self.set_aproxs)
         self.filter_string.trace_add('write',self.set_entry_buttons)
         #-------------------------------------------------------------------------------
@@ -956,17 +957,14 @@ class DesignFilter:
         self.PolosSeleccionados = [] #Aca guardo polos para hacer etapa
 
         self.AddPoleButton = Button(self.side_toolbar,text="Add Pole",command=self.AddPole)
-        self.AddPoleButton.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.AddPoleButton.place(x=0,y=40)
+        self.AddPoleButton.grid(row=1,column=0)
         
-        self.SelectedPoles = Listbox(self.side_toolbar,width=10) #Aca muestro polos para hacer estapa
-        self.SelectedPoles.place(x=0,y=100)
-
-        
-        
+        self.SelectedPoles = Listbox(self.side_toolbar,height=15) #Aca muestro polos para hacer estapa
+        self.SelectedPoles.grid(row=3,column=0)
+  
         #-----Seleccion de Ceros-----------------------------------
-        self.comboZeros = ttk.Combobox(self.side_toolbar,width=10)
-        self.comboZeros.place(x=100,y=0)
+        self.comboZeros = ttk.Combobox(self.side_toolbar)
+        self.comboZeros.grid(row=0,column=1)
         
         self.Zeros = np.array(np.around(zeros, decimals=5)).tolist()
         self.ZerosAux = [] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑOself.ZerosAux.extend(self.Zeros)
@@ -975,16 +973,13 @@ class DesignFilter:
         self.ZerosSeleccionados = [] #Aca guardo polos para hacer etapa
 
         self.AddZeroButton = Button(self.side_toolbar,text="Add Zero",command=self.AddZero)
-        self.AddZeroButton.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.AddZeroButton.place(x=100,y=40)
-       
+        self.AddZeroButton.grid(row=1,column=1)
 
-        self.SelectedZeros = Listbox(self.side_toolbar,width=10) #Aca muestro polos para hacer estapa
-        self.SelectedZeros.place(x=100,y=100)
+        self.SelectedZeros = Listbox(self.side_toolbar,height=15) #Aca muestro polos para hacer estapa
+        self.SelectedZeros.grid(row=3,column=1)
 
         self.RemoveSelected = Button(self.side_toolbar,text="Del Selection", command=self.Remove)
-        self.RemoveSelected.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.RemoveSelected.place(x=0,y=270)
+        self.RemoveSelected.grid(row=5,column=0, sticky=W, padx=4)
 
         print(self.poles)
         print(self.Zeros)
@@ -1059,8 +1054,7 @@ class DesignFilter:
         #----------Generate Stage-----------------------------------------
 
         self.GenerateStage = Button(self.side_toolbar,text="Generate Stage",command=self.GenerateStage)
-        self.GenerateStage.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.GenerateStage.place(x=0,y=300)
+        self.GenerateStage.grid(row=4,column=1, sticky=W, padx=4, pady=2)
         self.TransferList = [] #Voy a ir agregando Stages ej [Polos[] Zeros[], Polos[] Zeros[]] siendo estos poly1d
         self.GainOfStages = [] #guardo las ganancias de cada etapa. que me ingresa el usuario
         self.ListaDePolosPasados = []
@@ -1068,14 +1062,12 @@ class DesignFilter:
         #---------Remove Stages--------------------------------------------
 
         self.DeleteStages = Button(self.side_toolbar,text="Delete Stages",command=self.DeleteStages)
-        self.DeleteStages.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.DeleteStages.place(x=0,y=330)
+        self.DeleteStages.grid(row=4,column=0, sticky=W, padx=4, pady=2)
 
         #--------Automatic Cascade Stages-------------------------------------------
 
         self.AutoStages = Button(self.side_toolbar,text="Automatic Cascade Stages",command=self.AutoStages)
-        self.AutoStages.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.AutoStages.place(x=0,y=360)
+        self.AutoStages.grid(row=5,column=1, sticky=W, padx=4)
   
     #Function plots current filter's phase in current subplot
      def plot_phase(self):
