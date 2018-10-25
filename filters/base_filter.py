@@ -24,9 +24,25 @@ class base_filter(metaclass=ABCMeta):
         elif self.name=='HighPass':
             self.wan=self.wpl/self.wal
         elif self.name=='BandPass':
-            self.wan=(self.wah-self.wal)/(self.wph-self.wpl)
+            if(self.wpl*self.wph==self.wal*self.wah):
+                self.wan=(self.wah-self.wal)/(self.wph-self.wpl)
+            else:
+                wanLP=self.wah/self.wph
+                wanHP=self.wpl/self.wal
+                if wanLP<wanHP:
+                    self.wan=wanLP
+                else:
+                    self.wan=wanHP
         elif self.name=='StopBand':
-            self.wan=(self.wph-self.wpl)/(self.wah-self.wal)
+            if(self.wpl*self.wph==self.wal*self.wah):
+                self.wan=(self.wph-self.wpl)/(self.wah-self.wal)
+            else:
+                wanLP=self.wal/self.wpl
+                wanHP=self.wph/self.wah
+                if wanLP<wanHP:
+                    self.wan=wanLP
+                else:
+                    self.wan=wanHP
         elif self.name=='Group Delay':
             self.wrgn=self.wrg*self.tao0
 
