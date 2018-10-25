@@ -1062,6 +1062,7 @@ class DesignFilter:
         self.GenerateStage.grid(row=4,column=1, sticky=W, padx=4, pady=2)
         self.TransferList = [] #Voy a ir agregando Stages ej [Polos[] Zeros[], Polos[] Zeros[]] siendo estos poly1d
         self.GainOfStages = [] #guardo las ganancias de cada etapa. que me ingresa el usuario
+        self.GainOfStagesVeces = []
         self.ListaDePolosPasados = []
         self.ListaDeCerosPasados = []
         #---------Remove Stages--------------------------------------------
@@ -1076,6 +1077,23 @@ class DesignFilter:
         self.AutoStages.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         self.AutoStages.grid(row=5,column=1, sticky=W, padx=4)
   
+        #-------Calculo de Rango Dinamico-------------------------------------------
+        self.RDT = StringVar()
+        self.RDT.set("RD:")
+        self.RD_label = Label(self.forStages, textvariable=self.RDT,background='skyblue3',font='Helvetica 9 bold')
+        self.RD_label.grid(row=3,column=0,sticky=W)
+        
+        self.RD_unit = Label(self.forStages, text="[dB]",background='skyblue3',font='Helvetica 9 bold')
+        self.RD_unit.grid(row=3,column=1)
+
+        self.RD_label2 = Label(self.forStages, text="Vsat = 14V",background='skyblue3',font='Helvetica 6')
+        self.RD_label2.grid(row=4,column=0,sticky=W)
+        self.RD_entry = Entry(self.forStages,width=5)
+
+        self.RD_labe3l = Label(self.forStages, text="Vmin = 10mV",background='skyblue3',font='Helvetica 6')
+        self.RD_labe3l.grid(row=5,column=0,sticky=W)
+        self.RD_entry = Entry(self.forStages,width=5)
+
     #Function plots current filter's phase in current subplot
      def plot_phase(self):
         if self.filter_ready is True:
@@ -1343,6 +1361,7 @@ class DesignFilter:
            self.GainOfStages.clear()                #borro todo para solamente tener las etapas actuales
            for i in range(0,len(self.TransferList)):
                 self.GainOfStages.append(0)         #todas mis etapas arrancan con ganancia 0dB
+                self.GainOfStagesVeces.append(1) 
            self.SelectedStage.insert(END, ["Stage", len(self.TransferList), "->", "Gain:", self.GainOfStages[len(self.TransferList)-1], "dB"])
           
          
@@ -1372,6 +1391,10 @@ class DesignFilter:
          self.data_plot.draw()
 
      def AutoStages(self):
+         
+         if(len(self.TransferList)!=0):
+            print("AutoGen ya Realizado, Delete Stages antes")
+            return
          #tengo que limpiar el combo box
          self.comboPolos['values'] = ['']
          self.comboZeros['values'] = ['']
@@ -1386,6 +1409,8 @@ class DesignFilter:
          self.polesAux.extend(self.poles)
          self.ZerosAux = []
          self.ZerosAux.extend(self.Zeros)
+         self.ListaDeCerosPasados.extend(self.Zeros)
+         self.ListaDePolosPasados.extend(self.poles)
 
          self.den = []
          self.num = []
@@ -1400,7 +1425,7 @@ class DesignFilter:
             if np.iscomplexobj(i):
                 self.polesAux.remove(np.conjugate(i))
          
-         self.MisPolos = sorted(self.polesAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=False)       
+         self.MisPolos = sorted(self.polesAux,key=lambda x: ((np.sqrt(x.imag**2+x.real**2))/np.absolute(2*x.real)),reverse=True)       
          
 
          for i in range(len(self.ZerosAux)):
@@ -1411,7 +1436,7 @@ class DesignFilter:
             if np.iscomplexobj(i):
                 self.ZerosAux.remove(np.conjugate(i))
          
-         self.MisCeros = sorted(self.ZerosAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=False)       
+         self.MisCeros = sorted(self.ZerosAux,key=lambda x:((np.sqrt(x.imag**2+x.real**2))/np.absolute(2*x.real)),reverse=True)       
             
          self.HdeStage = []
          self.TransferList.clear() 
@@ -1476,7 +1501,8 @@ class DesignFilter:
              self.HdeStage = []
 
          print(self.TransferList)
-         self.GainOfStages.clear()                #borro todo para solamente tener las etapas actuales
+         self.GainOfStages.clear()  
+         self.GainOfStagesVeces.clear()
          for i in range(0,len(self.TransferList)): 
              self.GainOfStages.append(0)         #todas mis etapas arrancan con ganancia 0dB
              self.SelectedStage.insert(END, ["Stage", i+1 , "->" ,"Gain:", self.GainOfStages[i], "dB"])
@@ -1484,6 +1510,7 @@ class DesignFilter:
         #----------------Buttons functions----------------------------
      
      def TransferOfStage(self):
+        self.GainOfStagesVeces.clear()
         self.detectStage = self.SelectedStage.curselection()
         for i in self.detectStage:
             self.stageIs = self.TransferList[i]
@@ -1527,6 +1554,13 @@ class DesignFilter:
         self.group_delay= gd/(180/np.pi)
         self.w=self.w/(2*np.pi)
         self.filter_ready=True
+        for i in range(0,len(self.GainOfStages)) : 
+            kveces = np.power(10,float(self.GainOfStages[i])/20)
+            self.GainOfStagesVeces.append(kveces)   
+        self.CalcRD(self.GainOfStagesVeces)
+        #Actualizo valor de RD
+        print(str(self.RD))
+        self.RDT.set("RD:" + str(self.RD))
 
      def onselect(self,evt):
         # Note here that Tkinter passes an event object to onselect()
@@ -1535,7 +1569,30 @@ class DesignFilter:
         value = w.get(index)
         self.TransferOfStage()
         self.plot_atten()
+      
+      
+     def CalcRD(self,ListaDeConstantes):
 
+        Vsat = 14
+        Vmin = 0.01 
+        #armo un arreglo1 lleno de Vmax de cantidad dependinedo de la cantidad de etapas
+        self.arreglo1= [Vsat for number in range(len(ListaDeConstantes))]
+        #armo un arreglo2 lleno de vmin de cantidad dependiendo de la cantidad de etapas
+        self.arreglo2 = [Vmin for number in range(len(ListaDeConstantes))]
+        ConstantesDeGanancia= []
+        ConstantesDeGanancia = ListaDeConstantes
+        for i in range(len(ConstantesDeGanancia)) :
+           for k in range(0,i) : 
+               self.arreglo1[i]=self.arreglo1[i]/ConstantesDeGanancia[k]
+
+        for i in range(len(ConstantesDeGanancia)):
+            for k in range(0,i): 
+               self.arreglo2[i]=self.arreglo2[i]/ConstantesDeGanancia[k]
+
+        Vmax= min(self.arreglo1)
+        Vmin = max(self.arreglo2)    
+        self.RD = round(20*np.log10(Vmax/Vmin),2)
+        print(ConstantesDeGanancia)
 
 
 
