@@ -854,6 +854,7 @@ class TP4:
         nav._message_label.config(background='firebrick4')
         self.data_plot._tkcanvas.pack(side=LEFT, fill=X, expand=True)
 
+
         self.aprox_string.trace_add('write',self.set_aproxs)
         self.filter_string.trace_add('write',self.set_entry_buttons)
         #-------------------------------------------------------------------------------
@@ -891,9 +892,7 @@ class DesignFilter:
         
         self.SelectedPoles = Listbox(self.side_toolbar,height=15) #Aca muestro polos para hacer estapa
         self.SelectedPoles.grid(row=3,column=0)
-
-        
-        
+  
         #-----Seleccion de Ceros-----------------------------------
         self.comboZeros = ttk.Combobox(self.side_toolbar)
         self.comboZeros.grid(row=0,column=1)
@@ -905,7 +904,6 @@ class DesignFilter:
 
         self.AddZeroButton = Button(self.side_toolbar,text="Add Zero",command=self.AddZero)
         self.AddZeroButton.grid(row=1,column=1)
-       
 
         self.SelectedZeros = Listbox(self.side_toolbar,height=15) #Aca muestro polos para hacer estapa
         self.SelectedZeros.grid(row=3,column=1)
