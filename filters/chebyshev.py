@@ -43,18 +43,11 @@ class Chebyshev(base_filter):
             self.input_qmax=args[9]
             self.denorm_percent=args[10]/100
         if self.name:
-            if (self.name == 'BandPass') or (self.name =='StopBand'):#Order limit for fix order (Max denormalized order)
-                self.nmax=16
-            else:
-                self.nmax=18
+            self.nmax=1000
             if self.check_4_infs_and_nans(args) is False:
                 self.errormsg=self.check_input()
                 if self.n !=None:
                     self.set_fix_order()
-                if (self.name == 'BandPass') or (self.name =='StopBand'):#Order limit for normalized approximation (taking into account that denormalized limits are not met)
-                    self.nmax=8
-                else:
-                    self.nmax=18
                 if self.errormsg == '':
                     while True:
                         self.q=0

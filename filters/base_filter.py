@@ -164,16 +164,17 @@ class base_filter(metaclass=ABCMeta):
         K=np.power(10,self.gain/20)
         self.num=self.num*K*self.aprox_gain
         self.denorm_n=len(self.den)
+        self.den=np.real(self.den)
         self.denorm_sys = signal.TransferFunction(self.num,self.den) #Denormalized system is obtained
 
     # Function returns current denormalized filter step response
     def get_step(self):
-        a=signal.step(self.denorm_sys,N=3000)
-        return signal.step(self.denorm_sys,N=3000)
+        a=signal.step(self.denorm_sys)
+        return signal.step2(self.denorm_sys,N=3000)
 
     # Function returns current denormalized filter impulse response
     def get_impulse(self):
-        return signal.impulse(self.denorm_sys,N=5000)
+        return signal.impulse2(self.denorm_sys,N=3000)
 
     # Function returns current filter frequency response (frec,magnitude,phase)
     def get_bode(self):

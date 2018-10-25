@@ -15,7 +15,7 @@ class Bessel(base_filter):
             self.palm=args[4]/100
             self.n=args[5]
             self.input_qmax=args[6]
-            self.nmax=20
+            self.nmax=400
             if self.check_4_infs_and_nans(args) is False:
                 self.errormsg=self.check_input()
                 if self.errormsg == '':

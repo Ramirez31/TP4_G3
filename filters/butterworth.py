@@ -42,22 +42,12 @@ class Butterworth(base_filter):
             self.input_qmax=args[9]
             self.denorm_percent=args[10]/100
         if self.name:
-            if self.name == 'BandPass':#Order limit for fix order (Max denormalized order)
-                self.nmax=18
-            elif self.name == 'StopBand':
-                self.nmax=10
-            else:
-                self.nmax=20
+            self.nmax=1000
             if self.check_4_infs_and_nans(args) is False:
                 self.errormsg=self.check_input()
                 if self.n !=None:
                     self.set_fix_order()
-                if self.name == 'BandPass':#Order limit for normalized approximation (taking into account that denormalized limits are not met)
-                    self.nmax=10
-                elif self.name == 'StopBand':
-                    self.nmax=10
-                else:
-                    self.nmax=20
+                self.nmax=1000
                 if self.errormsg == '':
                     while True:
                         self.q=0
@@ -94,6 +84,7 @@ class Butterworth(base_filter):
                     self.poles.append(root)
                     pol= np.poly1d([-1/root, 1])
                     self.den= self.den*pol
+            self.den=np.real(self.den)
             self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
             self.denormalize_range()# Denormalize normalized template meeting required denormalization range.
             self.aprox_gain=1
