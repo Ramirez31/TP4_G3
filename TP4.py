@@ -433,7 +433,7 @@ class TP4:
                 if (np.absolute(self.phase[i]-self.phase[i+1])>40):
                     #arrows.append(matplotlib.patches.Arrow(self.w[i],))
                     j=i
-                    while (np.absolute(self.group_delay[j]-self.group_delay[i])<0.1) and (j<(len(self.phase)-1)):
+                    while (np.absolute(self.group_delay[j]-self.group_delay[i])<0.01) and (j<(len(self.phase)-1)):
                         self.group_delay[j]=self.group_delay[i-1]
                         j=j+1
                     self.group_delay[j]=self.group_delay[i-1]
@@ -441,7 +441,7 @@ class TP4:
                 elif ((self.phase[i]-self.phase[i+1])<-40):
                     #arrows.append(matplotlib.patches.Arrow(self.w[i],))
                     j=i
-                    while np.absolute(self.group_delay[j]-self.group_delay[i])<0.1:
+                    while (np.absolute(self.group_delay[j]-self.group_delay[i])<0.01) and (j<(len(self.phase)-1)):
                         self.group_delay[j]=self.group_delay[i-1]
                         j=j+1
                     self.group_delay[j]=self.group_delay[i-1]
@@ -958,6 +958,7 @@ class DesignFilter:
         self.PolosSeleccionados = [] #Aca guardo polos para hacer etapa
 
         self.AddPoleButton = Button(self.side_toolbar,text="Add Pole",command=self.AddPole)
+        self.AddPoleButton.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         self.AddPoleButton.grid(row=1,column=0)
         
         self.SelectedPoles = Listbox(self.side_toolbar,height=15) #Aca muestro polos para hacer estapa
@@ -974,12 +975,14 @@ class DesignFilter:
         self.ZerosSeleccionados = [] #Aca guardo polos para hacer etapa
 
         self.AddZeroButton = Button(self.side_toolbar,text="Add Zero",command=self.AddZero)
+        self.AddZeroButton.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         self.AddZeroButton.grid(row=1,column=1)
 
         self.SelectedZeros = Listbox(self.side_toolbar,height=15) #Aca muestro polos para hacer estapa
         self.SelectedZeros.grid(row=3,column=1)
 
         self.RemoveSelected = Button(self.side_toolbar,text="Del Selection", command=self.Remove)
+        self.RemoveSelected.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         self.RemoveSelected.grid(row=5,column=0, sticky=W, padx=4)
 
         print(self.poles)
@@ -1055,6 +1058,7 @@ class DesignFilter:
         #----------Generate Stage-----------------------------------------
 
         self.GenerateStage = Button(self.side_toolbar,text="Generate Stage",command=self.GenerateStage)
+        self.GenerateStage.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         self.GenerateStage.grid(row=4,column=1, sticky=W, padx=4, pady=2)
         self.TransferList = [] #Voy a ir agregando Stages ej [Polos[] Zeros[], Polos[] Zeros[]] siendo estos poly1d
         self.GainOfStages = [] #guardo las ganancias de cada etapa. que me ingresa el usuario
@@ -1063,11 +1067,13 @@ class DesignFilter:
         #---------Remove Stages--------------------------------------------
 
         self.DeleteStages = Button(self.side_toolbar,text="Delete Stages",command=self.DeleteStages)
+        self.DeleteStages.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         self.DeleteStages.grid(row=4,column=0, sticky=W, padx=4, pady=2)
 
         #--------Automatic Cascade Stages-------------------------------------------
 
         self.AutoStages = Button(self.side_toolbar,text="Automatic Cascade Stages",command=self.AutoStages)
+        self.AutoStages.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         self.AutoStages.grid(row=5,column=1, sticky=W, padx=4)
   
     #Function plots current filter's phase in current subplot
