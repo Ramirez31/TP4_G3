@@ -1511,7 +1511,7 @@ class DesignFilter:
         #----------------Buttons functions----------------------------
      
      def TransferOfStage(self):
-        a,b=self.getMax()
+        #a,b=self.getMax()
         self.GainOfStagesVeces.clear()
         self.detectStage = self.SelectedStage.curselection()
         for i in self.detectStage:
@@ -1562,7 +1562,7 @@ class DesignFilter:
         self.CalcRD(self.GainOfStagesVeces)
         #Actualizo valor de RD
         print(str(self.RD))
-        self.RDT.set("RD:" + str(self.RD))
+        self.RDT.set("RD: " + str(self.RD))
 
      def onselect(self,evt):
         # Note here that Tkinter passes an event object to onselect()
@@ -1574,8 +1574,13 @@ class DesignFilter:
       
       
      def CalcRD(self,ListaDeConstantes):
-
+        Maximos = self.getMax()
+        MaximosVeces = []
+        for i in range(len(Maximos)) :
+            M = np.power(10,float(Maximos[i])/20)
+            MaximosVeces.append(M)
         Vsat = 14
+         
         Vmin = 0.01 
         #armo un arreglo1 lleno de Vmax de cantidad dependinedo de la cantidad de etapas
         self.arreglo1= [Vsat for number in range(len(ListaDeConstantes))]
@@ -1584,17 +1589,23 @@ class DesignFilter:
         ConstantesDeGanancia= []
         ConstantesDeGanancia = ListaDeConstantes
         for i in range(len(ConstantesDeGanancia)) :
-           for k in range(0,i) : 
-               self.arreglo1[i]=self.arreglo1[i]/ConstantesDeGanancia[k]
+           for k in range(0,i+1) : 
+               self.arreglo1[i]=self.arreglo1[i]/(ConstantesDeGanancia[k]*MaximosVeces[k])
 
         for i in range(len(ConstantesDeGanancia)):
-            for k in range(0,i): 
+            for k in range(0,i+1): 
                self.arreglo2[i]=self.arreglo2[i]/ConstantesDeGanancia[k]
 
         Vmax= min(self.arreglo1)
         Vmin = max(self.arreglo2)    
         self.RD = round(20*np.log10(Vmax/Vmin),2)
+        print("valores Maximos")
+        print(MaximosVeces)
         print(ConstantesDeGanancia)
+        print("Arreglo de Ganancias")
+        print(self.arreglo1)
+        print("Arreglo de Atenuaciones")
+        print(self.arreglo2)
 
      def getMax(self):
         maxs=[]
