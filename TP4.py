@@ -1394,11 +1394,11 @@ class DesignFilter:
                         self.MisPolos.remove(k)
                         self.MisCeros.remove(i)
                         break
-            
-            self.HdeStage.append(self.den) 
-            self.HdeStage.append(self.num)        
+            if(len(self.den)!=0 or len(self.num)!=0):
+                self.HdeStage.append(self.den) 
+                self.HdeStage.append(self.num)        
        
-            self.TransferList.append(self.HdeStage)
+                self.TransferList.append(self.HdeStage)
             self.HdeStage = []
 
          while (len(self.MisPolos) != 0) or (len(self.MisCeros) != 0):  
