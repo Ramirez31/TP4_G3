@@ -941,7 +941,7 @@ class DesignFilter:
         #self.side_toolbar.pack(side=LEFT)
 
         self.texto=StringVar()
-        self.texto.set("Poles & Zeroes Selected:")
+        self.texto.set("Poles & Zeroes Selected: ")
        
         self.etiqueta=Label(self.side_toolbar,textvariable=self.texto,background='skyblue3',font='Helvetica 9 bold')
         self.etiqueta.grid(row=2,column=0,columnspan=2)
