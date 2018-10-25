@@ -230,7 +230,7 @@ class TP4:
                 heightc=100000
                 self.axis.clear()
                 self.axis.set_xlim(self.template_params[5]/5,self.template_params[6]*5)
-                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[5]+5)
+                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[7]+5)
             elif self.filter_type == 'StopBand':
                 xl=-100000
                 yl=self.template_params[0]-self.template_params[7]
@@ -246,7 +246,7 @@ class TP4:
                 heightc=np.absolute(yc)+self.template_params[1]-self.template_params[7]
                 self.axis.clear()
                 self.axis.set_xlim(self.template_params[3]/5,self.template_params[4]*5)
-                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[5]+5)
+                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[7]+5)
             elif self.filter_type == 'Group Delay':
                 xl=0
                 yl=0
@@ -1442,10 +1442,16 @@ class DesignFilter:
         self.den=np.poly1d([1])
         self.num=np.poly1d([1])
         for i in range(0,len(self.polesOfStage)):
-            pol = np.poly1d([-1/(self.polesOfStage[i]), 1])
+            if self.zerosOfStage[i] !=0:
+                pol = np.poly1d([-1/(self.polesOfStage[i]), 1])
+            else:
+                pol = np.poly1d([1,0])
             self.den= self.den*pol
         for i in range(0,len(self.zerosOfStage)):
-            pol = np.poly1d([1/(self.zerosOfStage[i]), 1])
+            if self.zerosOfStage[i] !=0:
+                pol = np.poly1d([1/(self.zerosOfStage[i]), 1])
+            else:
+                pol = np.poly1d([1,0])
             self.num= self.num*pol
         self.num = self.num*K    
         self.TFofStage = signal.TransferFunction(self.num,self.den)
