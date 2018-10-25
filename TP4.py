@@ -38,6 +38,7 @@ class TP4:
                 entries.append(float(entry.get()))
             else:
                 error = True
+            entry.delete(0,END)
         a=self.nvar.get()
         if (self.nvar.get() == 1) and (self.qvar.get() == 0):
             if self.is_int(self.n_entry.get()):
@@ -46,6 +47,7 @@ class TP4:
                 error = True
         else:
             entries.append(None)
+        self.n_entry.delete(0,END)
         if (self.qvar.get() == 1) and (self.nvar.get() == 0):
             if self.is_float(self.q_entry.get()):
                 entries.append(float(self.q_entry.get()))
@@ -53,14 +55,12 @@ class TP4:
                 error = True
         else:
             entries.append(None)
+        self.q_entry.delete(0,END)
         if self.filter_string.get()!='Group Delay':
-            if self.denormvar.get()==1:
-                if self.is_float(self.denorm_entry.get()):
-                    entries.append(float(self.denorm_entry.get()))
-                else:
-                    error = True
+            if self.is_float(self.denorm_entry.get()):
+                entries.append(float(self.denorm_entry.get()))
             else:
-                entries.append(0)
+                error = True
         return error,entries,aprox
 
     #Function creates filter according to user input
@@ -112,10 +112,7 @@ class TP4:
                 self.q_filter_data.grid(row=3,column=2)
 
                 self.filter_data.grid(row=14,columnspan=3,sticky=W)
-                if self.filter_type == 'Group Delay':
-                    self.plot_group_delay()
-                else:
-                    self.plot_atten()
+    
             else:
                 messagebox.showerror("Input Error", self.filter_instance.error_was())
         else:
@@ -132,7 +129,6 @@ class TP4:
     def plot_phase(self):
         if self.filter_ready is True:
             self.axis.clear()
-            self.axis.set_title('Bode Diagram phase plot')
             self.axis.semilogx(self.w,self.phase)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("Frequency [Hz]$")
@@ -162,14 +158,11 @@ class TP4:
                 yr=-100
                 widthr=100
                 heightr=100+self.template_params[1]
-            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
-            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=True,color='orange',alpha=0.5)#template is plotted
+            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
+            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
             self.axis.clear()
-            self.axis.set_title('Bode Diagram Normalized Attenuation plot')
             self.axis.add_patch(l_rect)
             self.axis.add_patch(r_rect)
-            self.axis.set_xlim(1/10,self.template_params[2]+5)
-            self.axis.set_ylim(-5,self.template_params[1]+10)
             self.axis.semilogx(self.wn,-self.magn)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("$Frequency [Hz]$")
@@ -182,69 +175,57 @@ class TP4:
     def plot_atten(self):
         if self.filter_ready is True:
             if self.filter_type == 'LowPass':
-                xl=-100000
+                xl=-100
                 yl=self.template_params[0]-self.template_params[5]
                 widthl=np.absolute(xl)+self.template_params[3]
-                heightl=100000
+                heightl=100
                 xr=self.template_params[4]
-                yr=-100000
-                widthr=100000
-                heightr=100000+self.template_params[1]-self.template_params[5]
+                yr=-100
+                widthr=100
+                heightr=100+self.template_params[1]-self.template_params[5]
                 xc=0
                 yc=0
                 widthc=0
                 heightc=0
-                self.axis.clear()
-                self.axis.set_xlim(self.template_params[3]/10,self.template_params[4]*2)
-                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[5]+5)
             elif self.filter_type == 'HighPass':
-                xl=-100000
-                yl=-100000
+                xl=-100
+                yl=-100
                 widthl=-xl + self.template_params[4]
                 heightl=np.absolute(yl) + self.template_params[1]-self.template_params[5]
                 xr=self.template_params[3]
                 yr=self.template_params[0]-self.template_params[5]
-                widthr=100000
-                heightr=100000
+                widthr=100
+                heightr=100
                 xc=0
                 yc=0
                 widthc=0
                 heightc=0
-                self.axis.clear()
-                self.axis.set_xlim(self.template_params[4]/10,self.template_params[3]*2)
-                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[5]+5)
             elif self.filter_type == 'BandPass':
-                xl=-100000
-                yl=-100000
+                xl=-100
+                yl=-100
                 widthl=np.absolute(xl)+self.template_params[5]
                 heightl=np.absolute(yl)+self.template_params[1]-self.template_params[7]
                 xr=self.template_params[6]
-                yr=-100000
-                widthr=100000
+                yr=-100
+                widthr=100
                 heightr=np.absolute(yr)+self.template_params[1]-self.template_params[7]
                 xc=self.template_params[3]
                 yc=self.template_params[0]-self.template_params[7]
                 widthc=self.template_params[4]-self.template_params[3]
-                heightc=100000
-                self.axis.clear()
-                self.axis.set_xlim(self.template_params[5]/5,self.template_params[6]*5)
-                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[7]+5)
+                heightc=100
             elif self.filter_type == 'StopBand':
-                xl=-100000
+                xl=-100
                 yl=self.template_params[0]-self.template_params[7]
                 widthl=np.absolute(xl)+self.template_params[3]
-                heightl=100000
+                heightl=100
                 xr=self.template_params[4]
                 yr=self.template_params[0]-self.template_params[7]
-                widthr=100000
-                heightr=100000
+                widthr=100
+                heightr=100
                 xc=self.template_params[5]
-                yc=-100000
+                yc=-100
                 widthc=self.template_params[6]-self.template_params[5]
                 heightc=np.absolute(yc)+self.template_params[1]-self.template_params[7]
-                self.axis.clear()
-                self.axis.set_xlim(self.template_params[3]/5,self.template_params[4]*5)
-                self.axis.set_ylim(-5-self.template_params[0],self.template_params[1]+self.template_params[7]+5)
             elif self.filter_type == 'Group Delay':
                 xl=0
                 yl=0
@@ -258,10 +239,10 @@ class TP4:
                 yc=0
                 widthc=0
                 heightc=0
-            c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=True,color='orange',alpha=0.5)#template is plotted
-            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
-            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=True,color='orange',alpha=0.5)#template is plotted
-            self.axis.set_title('Bode Diagram Denormalized Attenuation plot')
+            c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
+            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
+            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
+            self.axis.clear()
             self.axis.add_patch(l_rect)
             self.axis.add_patch(r_rect)
             self.axis.add_patch(c_rect)
@@ -277,69 +258,57 @@ class TP4:
     def plot_gain(self):
         if self.filter_ready is True:
             if self.filter_type == 'LowPass':
-                xl=-100000
-                yl=-100000
+                xl=-100
+                yl=-100
                 widthl=np.absolute(xl)+self.template_params[3]
                 heightl=np.absolute(yl)-self.template_params[0]+self.template_params[5]
                 xr=self.template_params[4]
                 yr=-self.template_params[1]+self.template_params[5]
-                widthr=self.template_params[4]*1000
-                heightr=100000
+                widthr=100
+                heightr=100
                 xc=0
                 yc=0
                 widthc=0
                 heightc=0
-                self.axis.clear()
-                self.axis.set_xlim(self.template_params[3]/100,self.template_params[4]*100)
-                self.axis.set_ylim(-5-self.template_params[1],self.template_params[0]+self.template_params[5]+5)
             elif self.filter_type == 'HighPass':
-                xl=-100000
+                xl=-100
                 yl=-self.template_params[1]+self.template_params[5]
                 widthl=np.absolute(xl)+self.template_params[4]
-                heightl=100000
+                heightl=100
                 xr=self.template_params[3]
-                yr=-100000
-                widthr=self.template_params[3]*1000
+                yr=-100
+                widthr=100
                 heightr=np.absolute(yr)-self.template_params[0]+self.template_params[5]
                 xc=0
                 yc=0
                 widthc=0
                 heightc=0
-                self.axis.clear()
-                self.axis.set_xlim(self.template_params[4]/100,self.template_params[3]*100)
-                self.axis.set_ylim(-5-self.template_params[1]+self.template_params[5],self.template_params[0]+self.template_params[5]+5)
             elif self.filter_type == 'BandPass':
-                xl=-100000
+                xl=-100
                 yl=-self.template_params[1]+self.template_params[7]
                 widthl=np.absolute(xl)+self.template_params[5]
-                heightl=100000
+                heightl=100
                 xr=self.template_params[6]
                 yr=-self.template_params[1]+self.template_params[7]
-                widthr=self.template_params[6]*1000
-                heightr=100000
+                widthr=100
+                heightr=100
                 xc=self.template_params[3]
-                yc=-100000
+                yc=-100
                 widthc=self.template_params[4]-self.template_params[3]
                 heightc=np.absolute(yc)-self.template_params[0]+self.template_params[7]
-                self.axis.clear()
-                self.axis.set_xlim(self.template_params[5]/100,self.template_params[6]*100)
-                self.axis.set_ylim(-5-self.template_params[1]+self.template_params[7],self.template_params[0]+self.template_params[7]+5)
             elif self.filter_type == 'StopBand':
-                xl=-100000
-                yl=-100000
+                xl=-100
+                yl=-100
                 widthl=np.absolute(xl)+self.template_params[3]
                 heightl=np.absolute(yl)-self.template_params[0]+self.template_params[7]
                 xr=self.template_params[4]
-                yr=-100000
-                widthr=self.template_params[4]*1000
+                yr=-100
+                widthr=100
                 heightr=np.absolute(yr)-self.template_params[0]+self.template_params[7]
                 xc=self.template_params[5]
                 yc=-self.template_params[1]+self.template_params[7]
                 widthc=self.template_params[6]-self.template_params[5]
-                heightc=100000
-                self.axis.clear()
-                self.axis.set_xlim(self.template_params[3]/100,self.template_params[4]*100)
-                self.axis.set_ylim(-5-self.template_params[1]+self.template_params[7],self.template_params[0]+self.template_params[7]+5)
+                heightc=100
             elif self.filter_type == 'Group Delay':
                 xl=0
                 yl=0
@@ -353,10 +322,10 @@ class TP4:
                 yc=0
                 widthc=0
                 heightc=0
-            self.axis.set_title('Bode Diagram Denormalized Gain plot')
-            c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=True,color='orange',alpha=0.5)#template is plotted
-            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
-            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=True,color='orange',alpha=0.5)#template is plotted
+            c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=False,color='red')#template is plotted
+            l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=False,color='red')#template is plotted
+            r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=False,color='red')#template is plotted
+            self.axis.clear()
             self.axis.add_patch(l_rect)
             self.axis.add_patch(r_rect)
             self.axis.add_patch(c_rect)
@@ -372,8 +341,6 @@ class TP4:
     def plot_step(self):
         if self.filter_ready is True:
             self.axis.clear()
-            self.axis.set_title('Filter\'s Step Response')
-            self.axis.set_aspect('auto',adjustable='box')
             self.axis.plot(self.stepT,self.step_mag)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("$Time [s]$")
@@ -386,8 +353,6 @@ class TP4:
     def plot_imp(self):
         if self.filter_ready is True:
             self.axis.clear()
-            self.axis.set_title('Filter\'s Impulse Response')
-            self.axis.set_aspect('auto',adjustable='box')
             self.axis.plot(self.impT,self.imp_mag)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("$Time [s]$")
@@ -425,7 +390,6 @@ class TP4:
     #Function creates filter according to user input
     def plot_group_delay(self):
         if self.filter_ready is True:
-            arrows=[]
             self.axis.clear()
 
             self.axis.set_title('Filter\'s Group Delay')
@@ -732,7 +696,7 @@ class TP4:
         self.root.title("Tc Example")
         self.root.resizable(False, False)
         #------------------------------------------------------------------------
-        self.side_toolbar=Frame(self.root,width=330,borderwidth=7,relief=RAISED,background='firebrick3')
+        self.side_toolbar=Frame(self.root,width=310,borderwidth=7,relief=RAISED,background='firebrick3')
         self.side_toolbar.pack(side=LEFT,fill=BOTH,expand=True,padx=2,pady=4)
         self.side_toolbar.grid_propagate(0)
 
@@ -770,7 +734,7 @@ class TP4:
 
         self.gain_label = Label( self.side_toolbar, text="Gain:",background='firebrick3', font='Helvetica 9 bold')
         self.gain_label.grid(row=2,column=0,sticky=W)
-        self.gain_entry = Entry(self.side_toolbar,width=10)
+        self.gain_entry = Entry(self.side_toolbar,width=5)
         self.gain_entry.grid(row=2,column=1)
         self.gain_unit = Label( self.side_toolbar, text="[dB]",background='firebrick3', font='Helvetica 9 bold')
         self.gain_unit.grid(row=2,column=2)
@@ -779,7 +743,7 @@ class TP4:
 
         self.fpl_label = Label( self.side_toolbar, text="Passband Freq(Fp-):",background='firebrick3', font='Helvetica 9 bold')
         self.fpl_label.grid(row=3,column=0,sticky=W)
-        self.fpl_entry = Entry(self.side_toolbar,width=10)
+        self.fpl_entry = Entry(self.side_toolbar,width=5)
         self.fpl_entry.grid(row=3,column=1)
         self.fpl_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
         self.fpl_unit.grid(row=3,column=2)
@@ -787,13 +751,13 @@ class TP4:
         self.curr_buttons.append(self.fpl_entry)
 
         self.fph_label = Label( self.side_toolbar, text="Passband Freq(Fp+):",background='firebrick3', font='Helvetica 9 bold')
-        self.fph_entry = Entry(self.side_toolbar,width=10)
+        self.fph_entry = Entry(self.side_toolbar,width=5)
         self.fph_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.fph_label,self.fph_entry,self.fph_unit])
 
         self.fal_label = Label( self.side_toolbar, text="Attenuation Freq(Fa-):",background='firebrick3', font='Helvetica 9 bold')
         self.fal_label.grid(row=5,column=0,sticky=W)
-        self.fal_entry = Entry(self.side_toolbar,width=10)
+        self.fal_entry = Entry(self.side_toolbar,width=5)
         self.fal_entry.grid(row=5,column=1)
         self.fal_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
         self.fal_unit.grid(row=5,column=2)
@@ -801,13 +765,13 @@ class TP4:
         self.curr_buttons.append(self.fal_entry)
 
         self.fah_label = Label( self.side_toolbar, text="Attenuation Freq(Fa+):",background='firebrick3', font='Helvetica 9 bold')
-        self.fah_entry = Entry(self.side_toolbar,width=10)
+        self.fah_entry = Entry(self.side_toolbar,width=5)
         self.fah_unit = Label( self.side_toolbar, text="[Hz]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.fah_label,self.fah_entry,self.fah_unit])
 
         self.ap_label = Label( self.side_toolbar, text="Attenuation Atten.(Ap):",background='firebrick3', font='Helvetica 9 bold')
         self.ap_label.grid(row=7,column=0,sticky=W)
-        self.ap_entry = Entry(self.side_toolbar,width=10)
+        self.ap_entry = Entry(self.side_toolbar,width=5)
         self.ap_entry.grid(row=7,column=1)
         self.ap_unit = Label( self.side_toolbar, text="[dB]",background='firebrick3', font='Helvetica 9 bold')
         self.ap_unit.grid(row=7,column=2)
@@ -816,7 +780,7 @@ class TP4:
 
         self.aa_label = Label( self.side_toolbar, text="Stopband Atten(Aa):",background='firebrick3', font='Helvetica 9 bold')
         self.aa_label.grid(row=8,column=0,sticky=W)
-        self.aa_entry = Entry(self.side_toolbar,width=10)
+        self.aa_entry = Entry(self.side_toolbar,width=5)
         self.aa_entry.grid(row=8,column=1)
         self.aa_unit = Label( self.side_toolbar, text="[dB]",background='firebrick3', font='Helvetica 9 bold')
         self.aa_unit.grid(row=8,column=2)
@@ -824,7 +788,7 @@ class TP4:
         self.curr_buttons.append(self.aa_entry)
 
         self.gp_label = Label( self.side_toolbar, text="Group delay at 0 Hz:",background='firebrick3', font='Helvetica 9 bold')
-        self.gp_entry = Entry(self.side_toolbar,width=10)
+        self.gp_entry = Entry(self.side_toolbar,width=5)
         self.gp_unit = Label( self.side_toolbar, text="[ms]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.gp_label,self.gp_entry,self.gp_unit])
 
@@ -834,12 +798,12 @@ class TP4:
         self.entry_buttons.append([self.wrg_label,self.wrg_entry,self.wrg_unit])
 
         self.tol_label = Label( self.side_toolbar, text="Group delay Tolerance:",background='firebrick3', font='Helvetica 9 bold')
-        self.tol_entry = Entry(self.side_toolbar,width=10)
+        self.tol_entry = Entry(self.side_toolbar,width=5)
         self.tol_unit = Label( self.side_toolbar, text="[%]",background='firebrick3', font='Helvetica 9 bold')
         self.entry_buttons.append([self.tol_label,self.tol_entry,self.tol_unit])
 
         self.nvar = IntVar()
-        self.n_entry= Entry(self.side_toolbar,width=10)
+        self.n_entry= Entry(self.side_toolbar,width=5)
         self.n_entry.grid(row=9,column=1)
         self.n_check= Checkbutton(self.side_toolbar, text="Fixed  n order ", variable=self.nvar,background='firebrick3', font='Helvetica 9 bold')
         self.n_check.configure(activebackground = 'firebrick3')
@@ -847,31 +811,29 @@ class TP4:
         self.entry_buttons.append([self.n_check,0,self.n_entry])
 
         self.qvar = IntVar()
-        self.q_entry= Entry(self.side_toolbar,width=10)
+        self.q_entry= Entry(self.side_toolbar,width=5)
         self.q_entry.grid(row=10,column=1)
         self.q_check=Checkbutton(self.side_toolbar, text="Maximum Q", variable=self.qvar,background='firebrick3', font='Helvetica 9 bold')
         self.q_check.configure(activebackground = 'firebrick3')
         self.q_check.grid(row=10,column=0,sticky=W)
         self.entry_buttons.append([self.q_check,0,self.q_entry])
 
-        self.denormvar=IntVar()
-        self.denorm_check = Checkbutton( self.side_toolbar, text="Denormalization Range:", variable=self.denormvar,background='firebrick3', font='Helvetica 9 bold')
-        self.denorm_check.grid(row=11,column=0)
-        self.denorm_check.configure(activebackground = 'firebrick3')
-        self.denorm_entry = Entry(self.side_toolbar,width=10)
+        self.denorm_label = Label( self.side_toolbar, text="Denormalization Range:",background='firebrick3', font='Helvetica 9 bold')
+        self.denorm_label.grid(row=11,column=0)
+        self.denorm_entry = Entry(self.side_toolbar,width=5)
         self.denorm_entry.grid(row=11,column=1)
         self.denorm_unit = Label( self.side_toolbar, text="[%]",background='firebrick3', font='Helvetica 9 bold')
         self.denorm_unit.grid(row=11,column=2)
-        self.entry_buttons.append([self.denorm_check,self.denorm_entry,self.denorm_unit])
+        self.entry_buttons.append([self.denorm_label,self.denorm_entry,self.denorm_unit])
 
 
         self.button_create_filter = Button(self.side_toolbar,text="Create Filter",command=self.create_filter)
         self.button_create_filter.grid(row=12,column=0,sticky=W,padx=5,pady=5)
-        self.button_create_filter.configure(highlightbackground='firebrick4',activebackground = 'brown1',bg = 'firebrick1')
+        self.button_create_filter.configure(highlightbackground='firebrick4',activebackground = 'firebrick1',bg = 'firebrick1')
         #button_create_filter = Button(side_toolbar,text="Create Filter",command=self.create_filter).grid(row=9)
         self.button_create_Stages = Button(self.side_toolbar,text="Create Stages",command=self.create_stages)
         self.button_create_Stages.grid(row=17,column=0,sticky=W,padx=5,pady=5)
-        self.button_create_Stages.configure(highlightbackground='firebrick4',activebackground = 'brown1',bg = 'firebrick1')
+        self.button_create_Stages.configure(highlightbackground='firebrick4',activebackground = 'firebrick1',bg = 'firebrick1')
 
         
         self.filter_data=Frame(self.side_toolbar,width=270,borderwidth=2,relief=RAISED,background='firebrick4')
@@ -883,28 +845,28 @@ class TP4:
         toolbar = Frame(graph_and_buttons,borderwidth=2,relief=RAISED,background='firebrick3')
         button_phase = Button(toolbar,text="Bode Phase",command=self.plot_phase)
         button_phase.pack(side=LEFT,padx=2,pady=2)
-        button_phase.configure(highlightbackground='firebrick4',activebackground = 'brown1',bg = 'firebrick1')
+        button_phase.configure(highlightbackground='firebrick4',activebackground = 'firebrick1',bg = 'firebrick1')
         button_mag = Button(toolbar,text="Bode Denorm Gain",command=self.plot_gain)
         button_mag.pack(side=LEFT,padx=2,pady=2)
-        button_mag.configure(highlightbackground='firebrick4',activebackground = 'brown1',bg = 'firebrick1')
+        button_mag.configure(highlightbackground='firebrick4',activebackground = 'firebrick1',bg = 'firebrick1')
         button_aten = Button(toolbar,text="Bode Denorm Atten.",command=self.plot_atten)
         button_aten.pack(side=LEFT,padx=2,pady=2)
-        button_aten.configure(highlightbackground='firebrick4',activebackground = 'brown1',bg = 'firebrick1')
+        button_aten.configure(highlightbackground='firebrick4',activebackground = 'firebrick1',bg = 'firebrick1')
         button_norm_aten = Button(toolbar,text="Bode Norm Atten.",command=self.plot_norm_atten)
         button_norm_aten.pack(side=LEFT,padx=2,pady=2)
-        button_norm_aten.configure(highlightbackground='firebrick4',activebackground = 'brown1',bg = 'firebrick1')
+        button_norm_aten.configure(highlightbackground='firebrick4',activebackground = 'firebrick1',bg = 'firebrick1')
         button_step = Button(toolbar,text="Step Response",command=self.plot_step)
         button_step.pack(side=LEFT,padx=2,pady=2)
-        button_step.configure(highlightbackground='firebrick4',activebackground = 'brown1',bg = 'firebrick1')
+        button_step.configure(highlightbackground='firebrick4',activebackground = 'firebrick1',bg = 'firebrick1')
         button_imp = Button(toolbar,text="Impulse response",command=self.plot_imp)
         button_imp.pack(side=LEFT,padx=2,pady=4)
-        button_imp.configure(highlightbackground='firebrick4',activebackground = 'brown1',bg = 'firebrick1')
+        button_imp.configure(highlightbackground='firebrick4',activebackground = 'firebrick1',bg = 'firebrick1')
         button_zeros_and_poles = Button(toolbar,text="Zeroes and Poles",command=self.plot_zeroes_and_poles)
         button_zeros_and_poles.pack(side=LEFT,padx=2,pady=4)
-        button_zeros_and_poles.configure(highlightbackground='firebrick4',activebackground = 'brown1',bg = 'firebrick1')
+        button_zeros_and_poles.configure(highlightbackground='firebrick4',activebackground = 'firebrick1',bg = 'firebrick1')
         button_group_delay = Button(toolbar,text="Group Delay",command=self.plot_group_delay)
         button_group_delay.pack(side=LEFT,padx=2,pady=4)
-        button_group_delay.configure(highlightbackground='firebrick4',activebackground = 'brown1',bg = 'firebrick1')
+        button_group_delay.configure(highlightbackground='firebrick4',activebackground = 'firebrick1',bg = 'firebrick1')
         toolbar.pack(side=TOP,fill=X)
         
         #-------------------------------------------------------------------------------
@@ -930,24 +892,22 @@ class DesignFilter:
      def __init__(self,master,poles,zeros,gain):
 
         self.master=master 
-        self.master.configure(background='skyblue4')
         self.master.title("Design Filters")
-        self.master.resizable(False, False)
        
-        self.side_toolbar=Frame(self.master,width=200,borderwidth=7,relief=RAISED,background='skyblue3')
+        self.side_toolbar=Frame(self.master,width=250)
         self.side_toolbar.pack(side=LEFT,fill=BOTH,padx=2,pady=4)
-        self.side_toolbar.grid_propagate(0)
+        #self.side_toolbar.grid_propagate(0)
         #self.side_toolbar.pack(side=LEFT)
 
         self.texto=StringVar()
         self.texto.set("Poles & Zeroes Selected:")
        
-        self.etiqueta=Label(self.side_toolbar,textvariable=self.texto,background='skyblue3',font='Helvetica 9 bold').place(x=0,y=70)
+        self.etiqueta=Label(self.side_toolbar,textvariable=self.texto).grid(row=2,column=0,columnspan=2)
        
         self.Gain = gain
        #-------Seleccion de Polos--------------------------------
-        self.comboPolos = ttk.Combobox(self.side_toolbar,width=10)
-        self.comboPolos.place(x=0,y=0)
+        self.comboPolos = ttk.Combobox(self.side_toolbar)
+        self.comboPolos.grid(row=0,column=0)
         self.poles = np.array(np.around(poles, decimals=5)).tolist() #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑO
         self.polesAux = []
         self.polesAux.extend(self.poles)
@@ -956,36 +916,32 @@ class DesignFilter:
         self.PolosSeleccionados = [] #Aca guardo polos para hacer etapa
 
         self.AddPoleButton = Button(self.side_toolbar,text="Add Pole",command=self.AddPole)
-        self.AddPoleButton.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.AddPoleButton.place(x=0,y=40)
+        self.AddPoleButton.grid(row=1,column=0)
         
-        self.SelectedPoles = Listbox(self.side_toolbar,width=10) #Aca muestro polos para hacer estapa
-        self.SelectedPoles.place(x=0,y=100)
+        self.SelectedPoles = Listbox(self.side_toolbar,height=15) #Aca muestro polos para hacer estapa
+        self.SelectedPoles.grid(row=3,column=0)
 
         
         
         #-----Seleccion de Ceros-----------------------------------
-        self.comboZeros = ttk.Combobox(self.side_toolbar,width=10)
-        self.comboZeros.place(x=100,y=0)
+        self.comboZeros = ttk.Combobox(self.side_toolbar)
+        self.comboZeros.grid(row=0,column=1)
         
         self.Zeros = np.array(np.around(zeros, decimals=5)).tolist()
         self.ZerosAux = [] #Aca cargo cada polo tmb OJO DEBEN SER ARREGLOS IGUALES EN ORDEN Y TAMAÑOself.ZerosAux.extend(self.Zeros)
-        self.ZerosAux.extend(self.Zeros)
         self.comboZeros['values'] = self.Zeros #Aca cargo cada polo
         self.ZerosSeleccionados = [] #Aca guardo polos para hacer etapa
 
         self.AddZeroButton = Button(self.side_toolbar,text="Add Zero",command=self.AddZero)
-        self.AddZeroButton.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.AddZeroButton.place(x=100,y=40)
+        self.AddZeroButton.grid(row=1,column=1)
        
 
-        self.SelectedZeros = Listbox(self.side_toolbar,width=10) #Aca muestro polos para hacer estapa
-        self.SelectedZeros.place(x=100,y=100)
+        self.SelectedZeros = Listbox(self.side_toolbar,height=15) #Aca muestro polos para hacer estapa
+        self.SelectedZeros.grid(row=3,column=1)
 
 
         self.RemoveSelected = Button(self.side_toolbar,text="Del Selection", command=self.Remove)
-        self.RemoveSelected.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.RemoveSelected.place(x=0,y=270)
+        self.RemoveSelected.grid(row=5,column=0, sticky=W, padx=4)
 
         print(self.poles)
         print(self.Zeros)
@@ -993,49 +949,43 @@ class DesignFilter:
        
         #-----------------stages---------------
        
-        self.forStages=Frame(self.master,width=100,borderwidth=5,relief=RAISED,background='skyblue3')
+        self.forStages=Frame(self.master,width=100)
         self.forStages.pack(side=LEFT,fill=BOTH,padx=2,pady=4)
         
         self.texto2=StringVar()
         self.texto2.set("Stages:")
-        self.etiqueta=Label(self.forStages,textvariable=self.texto2,background='skyblue3',font='Helvetica 9 bold')
+        self.etiqueta=Label(self.forStages,textvariable=self.texto2)
         self.etiqueta.grid(row=0,column=0,columnspan=3)
 
         self.SelectedStage = Listbox(self.forStages,width=22,height=25) #Aca muestro polos para hacer estapa
         self.SelectedStage.grid(row=1,column=0,columnspan=3)
         self.SelectedStage.bind('<<ListboxSelect>>', self.onselect)
 
-        self.gain_label = Label( self.forStages, text="Gain:",background='skyblue3',font='Helvetica 9 bold')
+        self.gain_label = Label( self.forStages, text="Gain:")
         self.gain_label.grid(row=2,column=0,sticky=W)
         self.gain_entry = Entry(self.forStages,width=5)
         self.gain_entry.grid(row=2,column=1)
-        self.gain_unit = Label( self.forStages, text="[dB]",background='skyblue3',font='Helvetica 9 bold')
+        self.gain_unit = Label( self.forStages, text="[dB]")
         self.gain_unit.grid(row=2,column=2)
         
 
         #-------------Botones---------
-        graph_and_buttons = Frame(self.master,borderwidth=7,relief=RAISED,background='skyblue3')
+        graph_and_buttons = Frame(self.master)
         graph_and_buttons.pack(side=LEFT,fill = BOTH)
         graph = Canvas(graph_and_buttons)
         graph.pack(side=TOP,fill=BOTH,expand=True,padx=2,pady=4)
-        toolbar = Frame(graph_and_buttons,borderwidth=2,relief=RAISED,background='skyblue3')
+        toolbar = Frame(graph_and_buttons)
         button_phase = Button(toolbar,text="Bode Phase", command = self.plot_phase)
-        button_phase.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         button_phase.pack(side=LEFT,padx=2,pady=2)
         button_mag = Button(toolbar,text="Bode Module", command = self.plot_atten)
-        button_mag.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         button_mag.pack(side=LEFT,padx=2,pady=2)
         button_step = Button(toolbar,text="Step Response", command = self.plot_step)
-        button_step.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         button_step.pack(side=LEFT,padx=2,pady=2)
         button_imp = Button(toolbar,text="Impulse response",command = self.plot_imp)
-        button_imp.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         button_imp.pack(side=LEFT,padx=2,pady=4)
         button_zeros_and_poles = Button(toolbar,text="Zeroes and Poles", command = self.plot_zeroes_and_poles)
-        button_zeros_and_poles.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         button_zeros_and_poles.pack(side=LEFT,padx=2,pady=4)
         button_group_delay = Button(toolbar,text="Group Delay", command = self.plot_group_delay)
-        button_group_delay.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
         button_group_delay.pack(side=LEFT,padx=2,pady=4)
         button_accumul = Button(toolbar,text="Accumulative",command = self.plot_accumul)
         button_accumul.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
@@ -1051,8 +1001,6 @@ class DesignFilter:
         self.data_plot.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
         nav = NavigationToolbar2Tk(self.data_plot, graph_and_buttons)
         nav.pack(side=TOP,fill=BOTH,expand=True,padx=2,pady=4)
-        nav.configure(background='skyblue4')
-        nav._message_label.config(background='skyblue4')
         nav.update()
         self.data_plot._tkcanvas.pack(side=LEFT, fill=X, expand=True)
         self.filter_ready=False
@@ -1060,23 +1008,19 @@ class DesignFilter:
         #----------Generate Stage-----------------------------------------
 
         self.GenerateStage = Button(self.side_toolbar,text="Generate Stage",command=self.GenerateStage)
-        self.GenerateStage.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.GenerateStage.place(x=0,y=300)
+        self.GenerateStage.grid(row=4,column=1, sticky=W, padx=4, pady=2)
         self.TransferList = [] #Voy a ir agregando Stages ej [Polos[] Zeros[], Polos[] Zeros[]] siendo estos poly1d
         self.GainOfStages = [] #guardo las ganancias de cada etapa. que me ingresa el usuario
-        self.ListaDePolosPasados = []
-        self.ListaDeCerosPasados = []
+
         #---------Remove Stages--------------------------------------------
 
         self.DeleteStages = Button(self.side_toolbar,text="Delete Stages",command=self.DeleteStages)
-        self.DeleteStages.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.DeleteStages.place(x=0,y=330)
+        self.DeleteStages.grid(row=4,column=0, sticky=W, padx=4, pady=2)
 
         #--------Automatic Cascade Stages-------------------------------------------
 
         self.AutoStages = Button(self.side_toolbar,text="Automatic Cascade Stages",command=self.AutoStages)
-        self.AutoStages.configure(highlightbackground='skyblue3',activebackground = 'lightskyblue1',bg = 'lightskyblue2')
-        self.AutoStages.place(x=0,y=360)
+        self.AutoStages.grid(row=5,column=1, sticky=W, padx=4)
   
     #Function plots current filter's phase in current subplot
      def plot_phase(self):
@@ -1208,9 +1152,7 @@ class DesignFilter:
      def AddPole(self):
 
         self.val=self.comboPolos.get()
-        if(len(self.val)==0):
-            print("Ingresar Valor")
-            return
+        
         self.val2=complex(self.val)
         if(self.val2.imag==0):
             self.val2=self.val2.real
@@ -1218,9 +1160,6 @@ class DesignFilter:
         if(self.val2 not in self.polesAux):
             print("Polo ya Seleccionado")
             return
-        if(self.val2 in self.ListaDePolosPasados):  
-            print("Polo ya Seleccionado")  
-            return    
         if len(self.PolosSeleccionados) == 0 :
             self.PolosSeleccionados.append(self.val2)
             self.SelectedPoles.insert(END,self.val2)
@@ -1254,18 +1193,12 @@ class DesignFilter:
      def AddZero(self):
 
         self.val=self.comboZeros.get()
-        if(len(self.val)==0):
-            print("Ingresar Valor")
-            return
         self.val2=complex(self.val)
         if(self.val2.imag==0):
             self.val2=self.val2.real
         if(self.val2 not in self.ZerosAux):
             print("Cero ya Seleccionado")
-            return
-        if(self.val2 in self.ListaDeCerosPasados):  
-            print("Polo ya Seleccionado")  
-            return      
+            return    
         if len(self.ZerosSeleccionados) == 0 :
             self.ZerosSeleccionados.append(self.val2)
             self.SelectedZeros.insert(END,self.val2)
@@ -1296,7 +1229,7 @@ class DesignFilter:
          self.PolosSeleccionados.clear()
          self.SelectedPoles.delete(0, END)
          self.SelectedZeros.delete(0,END)
-         #self.PolosNoEnStages = [item for item in temp1 if item not in temp2]   
+         self.PolosNoEnStages = [item for item in temp1 if item not in temp2]   
          
          self.comboPolos['values'] = self.poles
          self.comboZeros['values'] = self.Zeros
@@ -1310,8 +1243,6 @@ class DesignFilter:
            self.den = []
            self.num = []
 
-           if(len(self.PolosSeleccionados)<len(self.ZerosSeleccionados)) :
-               return
            if(len(self.PolosSeleccionados)==0 and len(self.ZerosSeleccionados)==0 ):
                return
            if(len(self.PolosSeleccionados)==0):
@@ -1328,12 +1259,8 @@ class DesignFilter:
            self.HdeStage = []
            self.HdeStage.append(self.den)
            self.HdeStage.append(self.num)
-           self.ListaDePolosPasados = self.ListaDePolosPasados + self.den
-           self.ListaDeCerosPasados = self.ListaDeCerosPasados + self.num
            self.TransferList.append(self.HdeStage)
            print(self.TransferList)
-           print(self.ListaDePolosPasados)
-           print(self.ListaDeCerosPasados)
            
            #Elimino los valores de la lsita y queda el combobox sin los valores de los polos seleccionados
            #Hago Clear de los polos y ceros seleccionados para que los proximos no acumulen los anteiores
@@ -1350,10 +1277,6 @@ class DesignFilter:
          
      def DeleteStages(self):
        
-         
-         self.ListaDeCerosPasados.clear()
-         self.ListaDePolosPasados.clear()
-         
          self.ZerosSeleccionados.clear()
          self.PolosSeleccionados.clear()
          self.SelectedPoles.delete(0,END)
@@ -1389,61 +1312,25 @@ class DesignFilter:
          self.ZerosAux = []
          self.ZerosAux.extend(self.Zeros)
 
-         self.den = []
-         self.num = []
-         
          print(self.polesAux) 
-         
-         for i in range(len(self.polesAux)) :
-                if self.polesAux[i].imag == 0 :
-                    self.polesAux[i]=self.polesAux[i].real
-         
          for i in self.polesAux:
             if np.iscomplexobj(i):
                 self.polesAux.remove(np.conjugate(i))
          
-         self.MisPolos = sorted(self.polesAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=False)       
+         self.MisPolos = sorted(self.polesAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=True)       
          
-
-         for i in range(len(self.ZerosAux)):
-                if self.ZerosAux[i].imag == 0 :
-                    self.ZerosAux[i]=self.ZerosAux[i].real
 
          for i in self.ZerosAux:
             if np.iscomplexobj(i):
                 self.ZerosAux.remove(np.conjugate(i))
          
-         self.MisCeros = sorted(self.ZerosAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=False)       
+         self.MisCeros = sorted(self.ZerosAux,key=lambda x:np.sqrt(x.imag**2+x.real**2),reverse=True)       
             
          self.HdeStage = []
          self.TransferList.clear() 
          
          print(self.MisPolos)
          print(self.MisCeros)
-         
-         for i in self.MisCeros :
-            if np.iscomplexobj(i) :
-                for k in self.MisPolos :
-                    if np.iscomplexobj(k) :
-                        self.den=[k,np.conjugate(k)]
-                        self.num=[i,np.conjugate(i)]
-                        self.MisPolos.remove(k)
-                        self.MisCeros.remove(i)
-                        break
-            else:
-                for k in self.MisPolos :
-                    if np.isrealobj(k) :
-                        self.den=[k]
-                        self.num=[i]
-                        self.MisPolos.remove(k)
-                        self.MisCeros.remove(i)
-                        break
-            if(len(self.den)!=0 or len(self.num)!=0):
-                self.HdeStage.append(self.den) 
-                self.HdeStage.append(self.num)        
-       
-                self.TransferList.append(self.HdeStage)
-            self.HdeStage = []
 
          while (len(self.MisPolos) != 0) or (len(self.MisCeros) != 0):  
              if len(self.MisPolos)==0 :
@@ -1512,10 +1399,7 @@ class DesignFilter:
                 pol = np.poly1d([1,0])
             self.den= self.den*pol
         for i in range(0,len(self.zerosOfStage)):
-            if self.zerosOfStage[i] !=0:
-                pol = np.poly1d([1/(self.zerosOfStage[i]), 1])
-            else:
-                pol = np.poly1d([1,0])
+            pol = np.poly1d([1/(self.zerosOfStage[i]), 1])
             self.num= self.num*pol
         self.num = self.num*K    
         self.TFofStage = signal.TransferFunction(self.num,self.den)
