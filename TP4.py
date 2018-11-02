@@ -258,6 +258,7 @@ class TP4:
                 yc=0
                 widthc=0
                 heightc=0
+                self.axis.clear()
             c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=True,color='orange',alpha=0.5)#template is plotted
             l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
             r_rect = matplotlib.patches.Rectangle( (xr,yr), width= widthr, height=heightr, fill=True,color='orange',alpha=0.5)#template is plotted
@@ -353,6 +354,7 @@ class TP4:
                 yc=0
                 widthc=0
                 heightc=0
+                self.axis.clear()
             self.axis.set_title('Bode Diagram Denormalized Gain plot')
             c_rect = matplotlib.patches.Rectangle( (xc,yc), width= widthc, height=heightc, fill=True,color='orange',alpha=0.5)#template is plotted
             l_rect = matplotlib.patches.Rectangle( (xl,yl), width= widthl, height=heightl, fill=True,color='orange',alpha=0.5)#template is plotted
@@ -428,6 +430,18 @@ class TP4:
             arrows=[]
             self.axis.clear()
             group_delay=self.group_delay
+            if self.filter_type =='Group Delay':
+                x=-100
+                y=0
+                width=np.abs(x)+self.template_params[1]
+                height=np.abs(y)+1000*self.template_params[0]*(1-self.template_params[2])
+            else:
+                x=0
+                y=0
+                width=0
+                height=0
+            rect = matplotlib.patches.Rectangle( (x,y), width= width, height=height, fill=True,color='orange',alpha=0.5)#template is plotted
+            self.axis.add_patch(rect)
             self.axis.set_title('Filter\'s Group Delay')
             for i in range(0,len(group_delay)-1):
                 if (np.absolute(group_delay[i]-group_delay[i+1])*1000>40):

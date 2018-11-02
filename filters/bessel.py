@@ -15,7 +15,7 @@ class Bessel(base_filter):
             self.palm=args[4]/100
             self.n=args[5]
             self.input_qmax=args[6]
-            self.nmax=400
+            self.nmax=26
             if self.check_4_infs_and_nans(args) is False:
                 self.errormsg=self.check_input()
                 if self.errormsg == '':
@@ -55,6 +55,10 @@ class Bessel(base_filter):
                 bess_coef=np.poly1d(self.bessel_coef(k))# K-th Bessel of N-th order is calculated
                 w, h = signal.freqs(np.poly1d(self.bessel_coef(0)),bess_coef,self.wrgn)#Transfer function is calculated for wrgn
                 Tn_Wrgn = 1-np.power(np.abs(h),2)*np.power(self.wrgn,2*self.n)/np.power(self.bessel_coef(0),2)#Group delay is calculated for wrgn
+            self.n+=1
+            k = np.linspace(0, self.n, num=(self.n + 1))  #vector of increasing integers from 0 to n is created
+            k=np.flip(k)
+            bess_coef=np.poly1d(self.bessel_coef(k))# K-th Bessel of N-th order is calculated
         else:
             k = np.linspace(0, self.n, num=(self.n + 1))  #vector of increasing integers from 0 to n is created
             k=np.flip(k)
