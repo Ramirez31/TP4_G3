@@ -44,10 +44,18 @@ class Butterworth(base_filter):
         if self.name:
             self.nmax=1000
             if self.check_4_infs_and_nans(args) is False:
+                if (self.name == 'LowPass') or (self.name == 'HighPass'):
+                    self.nmax=30
+                else:
+                    self.nmax=40
                 self.errormsg=self.check_input()
                 if self.n !=None:
+
                     self.set_fix_order()
-                self.nmax=1000
+                if (self.name == 'LowPass') or (self.name == 'HighPass'):
+                    self.nmax=30
+                else:
+                    self.nmax=20
                 if self.errormsg == '':
                     while True:
                         self.q=0
