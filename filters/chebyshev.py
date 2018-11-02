@@ -45,9 +45,17 @@ class Chebyshev(base_filter):
         if self.name:
             self.nmax=1000
             if self.check_4_infs_and_nans(args) is False:
+                if (self.name =='LowPass') or (self.name =='HighPass'):
+                    self.nmax=25
+                else:
+                    self.nmax=36
                 self.errormsg=self.check_input()
                 if self.n !=None:
                     self.set_fix_order()
+                    if (self.name =='LowPass') or (self.name =='HighPass'):
+                        self.nmax=25
+                    else:
+                        self.nmax=18
                 if self.errormsg == '':
                     while True:
                         self.q=0
@@ -96,6 +104,8 @@ class Chebyshev(base_filter):
            
            self.zeroes=np.roots(self.num)
            self.poles=np.roots(self.den)
+           self.den=np.real(self.den)
+           self.num=np.real(self.num)
            self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
            self.denormalize_range()
        else:

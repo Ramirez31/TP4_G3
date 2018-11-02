@@ -96,7 +96,7 @@ class base_filter(metaclass=ABCMeta):
             self.num=np.poly1d(np.zeros(len(self.poles)),r=True) #Zeroes created after doing HP denormalization to poles
             for i in range (0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
-                    if np.absolute(np.real(self.poles[i]))<0.01:
+                    if np.absolute(np.real(self.poles[i]))<0.0000001:
                         self.poles[i]=1j*np.imag(self.poles[i])
                     self.den=self.den*np.poly1d([-1/(wo*B*self.poles[i]), 1, -wo/(B*self.poles[i])])
                 else:
@@ -105,7 +105,7 @@ class base_filter(metaclass=ABCMeta):
             self.den=self.den*np.poly1d(np.zeros(len(self.zeroes)),r=True) #Zeroes created after doing HP denormalization to poles
             for i in range (0,len(self.zeroes)):
                 if self.zeroes[i] != 0:#If zero is not located in origin
-                    if np.absolute(np.real(self.zeroes[i]))<0.01:
+                    if np.absolute(np.real(self.zeroes[i]))<0.0000001:
                         self.zeroes[i]=1j*np.imag(self.zeroes[i])
                     self.num=self.num*np.poly1d([1/(wo*B*self.zeroes[i]), 1, wo/(B*self.zeroes[i])])
                 else:
@@ -119,8 +119,6 @@ class base_filter(metaclass=ABCMeta):
             #Denormalize poles
             for i in range (0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
-                    if np.absolute(np.real(self.poles[i]))<0.01:
-                        self.poles[i]=1j*np.imag(self.poles[i])
                     self.den=self.den*np.poly1d([1/wo, B/(-self.poles[i]), wo])
                 else:
                     self.den=self.den*np.poly1d([B,0])
@@ -128,8 +126,6 @@ class base_filter(metaclass=ABCMeta):
             #Denormalize zeroes
             for i in range (0,len(self.zeroes)):
                 if self.zeroes[i] != 0:#If pole is not zero
-                    if np.absolute(np.real(self.zeroes[i]))<0.01:
-                        self.zeroes[i]=1j*np.imag(self.zeroes[i])
                     self.num=self.num*np.poly1d([1/wo, B/(self.zeroes[i]), wo])
                 else:
                     self.num=self.num*np.poly1d([B,0])
@@ -155,6 +151,10 @@ class base_filter(metaclass=ABCMeta):
             self.poles=np.roots(self.den)
         else:
             pass
+        for i in range(0,len(self.poles)):
+            a=np.real(self.poles[i])
+            if np.real(self.poles[i])>0:
+                self.poles[i]=-np.real(self.poles[i])+1j*np.imag(self.poles[i])
         for sing_pole in self.poles:
             if np.real(sing_pole) !=0:
                 if (-np.absolute(sing_pole)/(2*np.real(sing_pole)))>self.q:
