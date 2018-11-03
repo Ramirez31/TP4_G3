@@ -27,22 +27,27 @@ class base_filter(metaclass=ABCMeta):
             if(self.wpl*self.wph==self.wal*self.wah):
                 self.wan=(self.wah-self.wal)/(self.wph-self.wpl)
             else:
-                wanLP=self.wah/self.wph
-                wanHP=self.wpl/self.wal
-                if wanLP<wanHP:
-                    self.wan=wanLP
-                else:
-                    self.wan=wanHP
+                tempwah=self.wpl*self.wph/self.wal
+                tempwal=self.wpl*self.wph/self.wah
+                if (tempwah<self.wah) and (tempwal>self.wal):
+                    self.wan=(tempwah-tempwal)/(self.wph-self.wpl)
+                elif(tempwah>self.wah) and (tempwal>self.wal):
+                    self.wan=(self.wah-tempwal)/(self.wph-self.wpl)
+                elif(tempwah<self.wah) and (tempwal<self.wal):
+                    self.wan=(tempwah-self.wal)/(self.wph-self.wpl)
+
         elif self.name=='StopBand':
             if(self.wpl*self.wph==self.wal*self.wah):
                 self.wan=(self.wph-self.wpl)/(self.wah-self.wal)
             else:
-                wanLP=self.wal/self.wpl
-                wanHP=self.wph/self.wah
-                if wanLP<wanHP:
-                    self.wan=wanLP
-                else:
-                    self.wan=wanHP
+                tempwph=self.wal*self.wah/self.wpl
+                tempwpl=self.wal*self.wah/self.wph
+                if (tempwph<self.wph) and (tempwpl>self.wpl):
+                    self.wan=(tempwph-tempwpl)/(self.wah-self.wal)
+                elif (tempwph>self.wph) and (tempwpl>self.wpl):
+                    self.wan=(self.wph-tempwpl)/(self.wah-self.wal)
+                elif (tempwph<self.wph) and (tempwpl<self.wpl):
+                    self.wan=(tempwph-self.wpl)/(self.wah-self.wal)
         elif self.name=='Group Delay':
             self.wrgn=self.wrg*self.tao0
 
@@ -114,7 +119,7 @@ class base_filter(metaclass=ABCMeta):
             self.zeroes=np.roots(self.num)
 
         elif self.name=='StopBand': #If required filter is SB
-            wo=np.sqrt(self.wpl*self.wph)
+            wo=np.sqrt(self.wal*self.wah)
             B=(self.wph-self.wpl)/wo
             #Denormalize poles
             for i in range (0,len(self.poles)):
