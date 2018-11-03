@@ -120,7 +120,16 @@ class base_filter(metaclass=ABCMeta):
 
         elif self.name=='StopBand': #If required filter is SB
             wo=np.sqrt(self.wal*self.wah)
-            B=(self.wph-self.wpl)/wo
+            tempwph=self.wal*self.wah/self.wpl
+            tempwpl=self.wal*self.wah/self.wph
+            if (tempwph<self.wph) and (tempwpl>self.wpl):
+                B=(tempwph-tempwpl)/wo
+            elif (tempwph>self.wph) and (tempwpl>self.wpl):
+                B=(self.wph-tempwpl)/wo
+            elif (tempwph<self.wph) and (tempwpl<self.wpl):
+                B=(tempwph-self.wpl)/wo            
+            else:
+                B=(self.wph-self.wpl)/wo
             #Denormalize poles
             for i in range (0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
