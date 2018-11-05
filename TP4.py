@@ -443,24 +443,24 @@ class TP4:
             rect = matplotlib.patches.Rectangle( (x,y), width= width, height=height, fill=True,color='orange',alpha=0.5)#template is plotted
             self.axis.add_patch(rect)
             self.axis.set_title('Filter\'s Group Delay')
-            for i in range(0,len(group_delay)-1):
-                if (np.absolute(group_delay[i]-group_delay[i+1])*1000>40):
-                    arrows.append(matplotlib.patches.Arrow(self.w[i],group_delay[i]*1000,0,-10,width=12))
-                    j=i
-                    while (np.absolute(group_delay[j]-group_delay[i])<0.01) and (j<(len(group_delay)-1)):
-                        group_delay[j]=group_delay[i-1]*0.9
-                        j=j+1
-                    group_delay[j]=group_delay[i-1]
-                    
-                elif ((group_delay[i]-group_delay[i+1])*1000<-40):
-                    arrows.append(matplotlib.patches.Arrow(self.w[i],group_delay[i]*1000,0,10,width=15))
-                    j=i
-                    while (np.absolute(group_delay[j]-group_delay[i])<0.01) and (j<(len(group_delay)-1)):
-                        group_delay[j]=group_delay[i-1]
-                        j=j+1
-                    group_delay[j]=group_delay[i-1]
-            for arr in arrows:
-                self.axis.add_patch(arr)
+           #for i in range(0,len(group_delay)-1):
+           #    if (np.absolute(group_delay[i]-group_delay[i+1])*1000>40):
+           #        arrows.append(matplotlib.patches.Arrow(self.w[i],group_delay[i]*1000,0,-10,width=12))
+           #        j=i
+           #        while (np.absolute(group_delay[j]-group_delay[i])<0.01) and (j<(len(group_delay)-1)):
+           #            group_delay[j]=group_delay[i-1]*0.9
+           #            j=j+1
+           #        group_delay[j]=group_delay[i-1]
+           #        
+           #    elif ((group_delay[i]-group_delay[i+1])*1000<-40):
+           #        arrows.append(matplotlib.patches.Arrow(self.w[i],group_delay[i]*1000,0,10,width=15))
+           #        j=i
+           #        while (np.absolute(group_delay[j]-group_delay[i])<0.01) and (j<(len(group_delay)-1)):
+           #            group_delay[j]=group_delay[i-1]
+           #            j=j+1
+           #        group_delay[j]=group_delay[i-1]
+           #for arr in arrows:
+           #    self.axis.add_patch(arr)
             self.axis.semilogx(self.w,group_delay*1000)
             self.axis.grid(color='grey',linestyle='-',linewidth=0.1)
             self.axis.set_xlabel("Frequency [Hz]$")

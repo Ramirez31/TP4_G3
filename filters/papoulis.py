@@ -44,7 +44,6 @@ class Papoulis(base_filter):
             self.input_qmax=args[9]
             self.denorm_percent=args[10]/100
         if self.name:
-            self.nmax=1000
             if self.check_4_infs_and_nans(args) is False:
                 if (self.name=='LowPass') or (self.name=='HighPass'):
                     self.nmax=21

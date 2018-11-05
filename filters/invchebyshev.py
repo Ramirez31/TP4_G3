@@ -44,9 +44,23 @@ class Invchebyshev(base_filter):
         if self.name:
             self.nmax=1000
             if self.check_4_infs_and_nans(args) is False:
+                if (self.name =='LowPass') or (self.name =='HighPass'):
+                    self.nmax=35
+                elif self.name == 'BandPass':
+                    self.nmax=30
+                else:
+                    self.nmax=18
                 self.errormsg=self.check_input()
                 if self.n !=None:
                     self.set_fix_order()
+                if (self.name =='LowPass'):
+                    self.nmax=35
+                elif self.name == 'HighPass':
+                    self.nmax=18
+                elif self.name == 'BandPass':
+                    self.nmax=10
+                else:
+                    self.nmax=5
                 if self.errormsg == '':
                     while True:
                         self.q=0
@@ -56,7 +70,8 @@ class Invchebyshev(base_filter):
                         self.num=np.poly1d([1])
                         self.normalize()#Normalizes current template
                         self.do_approximation()#Does normalized approximation and realizes
-                        self.denormalize()#Denormalizes the approximation to match desired template
+                        if self.errormsg == '':
+                            self.denormalize()#Denormalizes the approximation to match desired template
 
                         if(self.input_qmax==None) or (self.input_qmax>=self.q):
                             break
@@ -73,25 +88,30 @@ class Invchebyshev(base_filter):
        self.epsilon=1/np.sqrt(np.power(10,self.Ao/10)-1)
        if self.n == None:
            self.n = int(np.ceil(np.arccosh(1/(self.epsilon*np.sqrt(np.power(10,self.Ap/10)-1)))/np.arccosh(self.wan)))
-       for i in range(1,2*self.n+1):
-           alfa=(2*i-1)*np.pi/(2*self.n)
-           beta=np.absolute(np.arcsinh(1/self.epsilon)/self.n)
-           pole=self.wan/(np.sin(alfa)*np.sinh(beta)+1j*np.cos(alfa)*np.cosh(beta))
-           if np.real(pole)<=0:
-                pol= np.poly1d([-1/pole, 1])
-                self.den= self.den*pol
-           if i<=self.n:
-               if self.is_odd(self.n) and (i == (np.floor(self.n/2)+1)):
-                   pass
-               else:
-                zero=self.wan*1j/np.cos(alfa)
-                pol= np.poly1d([-1/zero, 1])
-                self.num= self.num*pol
-       self.zeroes=np.roots(self.num)
-       self.poles=np.roots(self.den) 
-       self.aprox_gain=1
-       self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained 
-       self.denormalize_range()
+       if (self.n>self.nmax) is False:       
+           for i in range(1,2*self.n+1):
+                alfa=(2*i-1)*np.pi/(2*self.n)
+                beta=np.absolute(np.arcsinh(1/self.epsilon)/self.n)
+                pole=self.wan/(np.sin(alfa)*np.sinh(beta)+1j*np.cos(alfa)*np.cosh(beta))
+                if np.real(pole)<=0:
+                     pol= np.poly1d([-1/pole, 1])
+                     self.den= self.den*pol
+                if i<=self.n:
+                    if self.is_odd(self.n) and (i == (np.floor(self.n/2)+1)):
+                        pass
+                    else:
+                     zero=self.wan*1j/np.cos(alfa)
+                     pol= np.poly1d([-1/zero, 1])
+                     self.num= self.num*pol
+           self.num=np.real(self.num)
+           self.den=np.real(self.den)
+           self.zeroes=np.roots(self.num)
+           self.poles=np.roots(self.den) 
+           self.aprox_gain=1
+           self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained 
+           self.denormalize_range()
+       else:
+           self.errormsg='Required order surpasses maximum order limit for this approximation type.\n'
 
     def is_odd(self,num):
         return num & 0x1

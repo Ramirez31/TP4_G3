@@ -43,7 +43,6 @@ class Chebyshev(base_filter):
             self.input_qmax=args[9]
             self.denorm_percent=args[10]/100
         if self.name:
-            self.nmax=1000
             if self.check_4_infs_and_nans(args) is False:
                 if (self.name =='LowPass') or (self.name =='HighPass'):
                     self.nmax=25
@@ -98,7 +97,7 @@ class Chebyshev(base_filter):
                     self.den= self.den*pol
            if np.mod(self.n,2) == 0:
                self.aprox_gain=1/np.power(10,self.Ap/20)
-               self.num=self.num*self.aprox_gain
+               self.num=self.num*1/np.power(10,self.Ap/20)
            else:
                self.aprox_gain=1
            

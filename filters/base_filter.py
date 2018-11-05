@@ -71,8 +71,6 @@ class base_filter(metaclass=ABCMeta):
                     self.num= self.num*np.poly1d([1/(self.wpl*self.zeroes[i]),1]) #Filter is denormalized by frequency scaling it S=Sn/wc
                 else:
                     self.num=self.num*np.poly1d([1/(self.wpl),0])
-            self.zeroes=np.roots(self.num)
-            self.poles=np.roots(self.den)
 
         elif self.name=='HighPass': #If required filter is HP
             #Denormalize poles
@@ -91,8 +89,6 @@ class base_filter(metaclass=ABCMeta):
                     self.num= self.num*np.poly1d([1,self.wpl/(self.zeroes[i])]) #Filter is denormalized by frequency scaling it S=wc/Sn
                 else:
                     self.num= self.num*np.poly1d([self.wpl]) #Filter is denormalized by frequency scaling it S=wc/Sn
-            self.zeroes=np.roots(self.num)
-            self.poles=np.roots(self.den)
 
         elif self.name=='BandPass': #If required filter is BP
             wo=np.sqrt(self.wpl*self.wph)
@@ -115,8 +111,6 @@ class base_filter(metaclass=ABCMeta):
                     self.num=self.num*np.poly1d([1/(wo*B*self.zeroes[i]), 1, wo/(B*self.zeroes[i])])
                 else:
                     self.num=self.num*np.poly1d([1/(wo*B), 0, wo/B])
-            self.poles=np.roots(self.den)
-            self.zeroes=np.roots(self.num)
 
         elif self.name=='StopBand': #If required filter is SB
             wo=np.sqrt(self.wal*self.wah)
@@ -133,6 +127,8 @@ class base_filter(metaclass=ABCMeta):
             #Denormalize poles
             for i in range (0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
+                    if np.absolute(np.real(self.poles[i]))<0.001:
+                        self.poles[i]=1j*np.imag(self.poles[i])
                     self.den=self.den*np.poly1d([1/wo, B/(-self.poles[i]), wo])
                 else:
                     self.den=self.den*np.poly1d([B,0])
@@ -143,10 +139,7 @@ class base_filter(metaclass=ABCMeta):
                     self.num=self.num*np.poly1d([1/wo, B/(self.zeroes[i]), wo])
                 else:
                     self.num=self.num*np.poly1d([B,0])
-                self.den=self.den*np.poly1d([1/wo,0,wo])
-            self.zeroes=np.roots(self.num)
-            self.poles=np.roots(self.den)
-
+                self.den=self.den*np.poly1d([1/wo,0.01,wo])
 
         elif self.name=='Group Delay':
             #Denormalize poles
@@ -161,12 +154,13 @@ class base_filter(metaclass=ABCMeta):
                     self.num= self.num*np.poly1d([self.tao0/self.zeroes[i],1]) #Filter is denormalized by frequency scaling it S=Sn/wc
                 else:
                     self.num=self.num*np.poly1d([self.tao0,0])
-            self.zeroes=np.roots(self.num)
-            self.poles=np.roots(self.den)
         else:
             pass
+        self.den=np.real(self.den)
+        self.num=np.real(self.num)
+        self.zeroes=np.roots(self.num)
+        self.poles=np.roots(self.den)
         for i in range(0,len(self.poles)):
-            a=np.real(self.poles[i])
             if np.real(self.poles[i])>0:
                 self.poles[i]=-np.real(self.poles[i])+1j*np.imag(self.poles[i])
         for sing_pole in self.poles:
@@ -175,20 +169,22 @@ class base_filter(metaclass=ABCMeta):
                     self.q=(-np.absolute(sing_pole)/(2*np.real(sing_pole)))
             else:
                 self.q=float('inf')
-        K=np.power(10,self.gain/20)
+        K=np.power(10,self.gain/20)*self.aprox_gain
         self.num=self.num*K*self.aprox_gain
-        self.denorm_n=len(self.den)
-        self.den=np.real(self.den)
-        self.denorm_sys = signal.TransferFunction(self.num,self.den) #Denormalized system is obtained
+        self.denorm_n=len(self.den)-1
+        if self.name== 'StopBand':
+            self.denorm_sys=signal.ZerosPolesGain.to_tf(signal.ZerosPolesGain(self.zeroes,self.poles,K))
+        else:
+            self.denorm_sys = signal.TransferFunction(self.num,self.den) #Denormalized system is obtained
 
     # Function returns current denormalized filter step response
     def get_step(self):
         a=signal.step(self.denorm_sys)
-        return signal.step2(self.denorm_sys,N=3000)
+        return signal.step2(self.denorm_sys)
 
     # Function returns current denormalized filter impulse response
     def get_impulse(self):
-        return signal.impulse2(self.denorm_sys,N=3000)
+        return signal.impulse2(self.denorm_sys)
 
     # Function returns current filter frequency response (frec,magnitude,phase)
     def get_bode(self):
