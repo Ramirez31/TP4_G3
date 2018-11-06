@@ -1345,6 +1345,7 @@ class DesignFilter:
                return
            if(len(self.PolosSeleccionados)==0 and len(self.ZerosSeleccionados)==0 ):
                return
+           if(len(sel))    
            if(len(self.PolosSeleccionados)==0):
                 self.den=[]
                 self.num.extend(self.ZerosSeleccionados)
@@ -1441,7 +1442,8 @@ class DesignFilter:
                 self.polesAux.remove(np.conjugate(i))
          
          self.MisPolos = sorted(self.polesAux,key=lambda x: ((np.sqrt(x.imag**2+x.real**2))/np.absolute(2*x.real)),reverse=True)       
-         
+         self.PolosAuxAux = []
+         self.PolosAuxAux.extend(self.MisPolos)  
 
          for i in range(len(self.ZerosAux)):
                 if self.ZerosAux[i].imag == 0 :
@@ -1452,15 +1454,20 @@ class DesignFilter:
                 self.ZerosAux.remove(np.conjugate(i))
          
          self.MisCeros = sorted(self.ZerosAux,key=lambda x:((np.sqrt(x.imag**2+x.real**2))/np.absolute(2*x.real)),reverse=True)       
-            
+         self.CerosAuxAux = []
+         self.CerosAuxAux.extend(self.MisCeros)   
          self.HdeStage = []
          self.TransferList.clear() 
          
          print(self.MisPolos)
          print(self.MisCeros)
+
          
-         for i in self.MisCeros :
+         for i in self.CerosAuxAux :
+            self.den = []
+            self.num = []
             if np.iscomplexobj(i) :
+            #Si tengo un cero conjugado lo asocio a un par de polos conjugados
                 for k in self.MisPolos :
                     if np.iscomplexobj(k) :
                         self.den=[k,np.conjugate(k)]
@@ -1469,6 +1476,7 @@ class DesignFilter:
                         self.MisCeros.remove(i)
                         break
             else:
+            #Si tengo un cero simple lo asocio a un polo simple
                 for k in self.MisPolos :
                     if np.isrealobj(k) :
                         self.den=[k]
@@ -1476,12 +1484,51 @@ class DesignFilter:
                         self.MisPolos.remove(k)
                         self.MisCeros.remove(i)
                         break
+            print("Transfers del Primer For")
+            print(self.den)
+            print(self.num)
+
+
             if(len(self.den)!=0 or len(self.num)!=0):
                 self.HdeStage.append(self.den) 
                 self.HdeStage.append(self.num)        
        
                 self.TransferList.append(self.HdeStage)
             self.HdeStage = []
+
+        #Si tengo un par de polos conjugados le asocio dos ceros reales
+        #Notar ya no quedn ceros conjugados, y quedan tantos polos simples como PolosSimplesTotales - CerosSimples
+        #Notar que si quedan ceros simples no quedan polos simples por lo que asocio esos ceros a conjugados en el codigo este
+         for i in self.PolosAuxAux :
+            self.den = []
+            self.num = []
+
+            if np.iscomplexobj(i) :
+            #Si tengo un cero conjugado lo asocio a un par de polos conjugados
+                for k in range (len(self.MisCeros)) :
+                        if (len(self.MisCeros) > 1) :
+                            self.den=[i,np.conjugate(i)]
+                            self.num=[self.MisCeros[k],self.MisCeros[k+1]]
+                            self.MisCeros.remove(self.num[0])
+                            self.MisCeros.remove(self.num[1])
+                            self.MisPolos.remove(i)
+                            
+                            break
+                        elif len(self.MisCeros) == 1 :
+                            self.den=[i,np.conjugate(i)]
+                            self.num=[self.MisCeros[k]]
+                            self.MisCeros.remove(self.num[0])
+                            self.MisPolos.remove(i)
+                            break
+                print("Transfers del Segundo For")
+                print(self.den)
+                print(self.num)
+                if(len(self.den)!=0 or len(self.num)!=0):
+                    self.HdeStage.append(self.den) 
+                    self.HdeStage.append(self.num)        
+       
+                    self.TransferList.append(self.HdeStage)
+                self.HdeStage = []
 
          while (len(self.MisPolos) != 0) or (len(self.MisCeros) != 0):  
              if len(self.MisPolos)==0 :
@@ -1508,6 +1555,9 @@ class DesignFilter:
                     self.MisCeros.remove(i)
                     break
                 break    
+             print("Transfers del While")
+             print(self.den)
+             print(self.num)
              
              self.HdeStage.append(self.den) 
              self.HdeStage.append(self.num)        
