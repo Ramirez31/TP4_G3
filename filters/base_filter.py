@@ -55,6 +55,8 @@ class base_filter(metaclass=ABCMeta):
     def denormalize(self):
         self.den=np.poly1d([1])
         self.num=np.poly1d([1])
+        tempPoles=[]
+        tempZeros=[]
 
         if self.name=='LowPass': #If required filter is LP
             #Denormalize poles
@@ -63,54 +65,90 @@ class base_filter(metaclass=ABCMeta):
                     pol=np.poly1d([-1/(self.wpl*self.poles[i]),1])
                     if np.real(np.roots(pol))<=0:
                         self.den= self.den*pol #Filter is denormalized by frequency scaling it S=Sn/wc
+                        tempPoles.append(np.roots(pol)[0])
                 else:
-                    self.den=self.den*np.poly1d([1/(self.wpl),0])
+                    pol=np.poly1d([1/(self.wpl),0])
+                    self.den=self.den*pol
+                    tempPoles.append(np.roots(pol)[0])
             #Denormalize zeroes
             for i in range(0,len(self.zeroes)):#For each zero denormalization is realized
                 if self.zeroes[i] != 0:#If zero is not located in origin
-                    self.num= self.num*np.poly1d([1/(self.wpl*self.zeroes[i]),1]) #Filter is denormalized by frequency scaling it S=Sn/wc
+                    pol=np.poly1d([1/(self.wpl*self.zeroes[i]),1])
+                    self.num= self.num*pol #Filter is denormalized by frequency scaling it S=Sn/wc
+                    tempZeros.append(np.roots(pol)[0])
                 else:
-                    self.num=self.num*np.poly1d([1/(self.wpl),0])
+                    pol=np.poly1d([1/(self.wpl),0])
+                    self.num=self.num*pol
+                    tempZeros.append(np.roots(pol)[0])
 
         elif self.name=='HighPass': #If required filter is HP
             #Denormalize poles
             self.num=np.poly1d(np.zeros(len(self.poles)),r=True) #Zeroes created after doing HP denormalization to poles
+            for i in range(0,len(np.roots(self.num))):
+                tempZeros.append(np.roots(self.num)[i])
             for i in range(0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
                     pol=np.poly1d([1,-self.wpl/(self.poles[i])])
                     if np.real(np.roots(pol))<=0:
                         self.den= self.den*pol #Filter is denormalized by frequency scaling it S=wc/Sn
+                        tempPoles.append(np.roots(pol)[0])
                 else:
-                    self.den= self.den*np.poly1d([-self.wpl]) #Filter is denormalized by frequency scaling it S=wc/Sn
+                    pol=np.poly1d([-self.wpl])
+                    self.den= self.den*pol #Filter is denormalized by frequency scaling it S=wc/Sn
+                    #tempPoles.append(np.roots(pol)[0])
             #Denormalize zeroes
-            self.den=self.den*np.poly1d(np.zeros(len(self.zeroes)),r=True) #Poles created after doing HP denormalization to zeroes
+            pol=np.poly1d(np.zeros(len(self.zeroes)),r=True)
+            self.den=self.den*pol #Poles created after doing HP denormalization to zeroes
+            for i in range(0,len(np.roots(pol))):
+                tempPoles.append(np.roots(pol)[i])
             for i in range(0,len(self.zeroes)):
                 if self.zeroes[i] != 0:#If zero is not located in origin
-                    self.num= self.num*np.poly1d([1,self.wpl/(self.zeroes[i])]) #Filter is denormalized by frequency scaling it S=wc/Sn
+                    pol=np.poly1d([1,self.wpl/(self.zeroes[i])])
+                    self.num= self.num*pol #Filter is denormalized by frequency scaling it S=wc/Sn
+                    tempZeros.append(np.roots(pol)[0])
                 else:
-                    self.num= self.num*np.poly1d([self.wpl]) #Filter is denormalized by frequency scaling it S=wc/Sn
+                    pol=np.poly1d([self.wpl])
+                    self.num= self.num*pol #Filter is denormalized by frequency scaling it S=wc/Sn
+                    tempZeros.append(np.roots(pol)[0])
 
         elif self.name=='BandPass': #If required filter is BP
             wo=np.sqrt(self.wpl*self.wph)
             B=(self.wph-self.wpl)/wo
             #Denormalize poles
             self.num=np.poly1d(np.zeros(len(self.poles)),r=True) #Zeroes created after doing HP denormalization to poles
+            for i in range(0,len(np.roots(self.num))):
+                tempZeros.append(np.roots(self.num)[i])
             for i in range (0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
                     if np.absolute(np.real(self.poles[i]))<0.0000001:
                         self.poles[i]=1j*np.imag(self.poles[i])
-                    self.den=self.den*np.poly1d([-1/(wo*B*self.poles[i]), 1, -wo/(B*self.poles[i])])
+                    pol=np.poly1d([-1/(wo*B*self.poles[i]), 1, -wo/(B*self.poles[i])])
+                    self.den=self.den*pol
+                    tempPoles.append(np.roots(pol)[0])
+                    tempPoles.append(np.roots(pol)[1])
                 else:
-                    self.den=self.den*np.poly1d([-1/(wo*B), 0, -wo/B])
+                    pol=np.poly1d([-1/(wo*B), 0, -wo/B])
+                    self.den=self.den*pol
+                    tempPoles.append(np.roots(pol)[0])
+                    tempPoles.append(np.roots(pol)[1])
             #Denormalize zeroes
-            self.den=self.den*np.poly1d(np.zeros(len(self.zeroes)),r=True) #Zeroes created after doing HP denormalization to poles
+            pol=np.poly1d(np.zeros(len(self.zeroes)),r=True)
+            self.den=self.den*pol #Zeroes created after doing HP denormalization to poles
+            for i in range(0,len(np.roots(pol))):
+                tempPoles.append(np.roots(pol)[i])
             for i in range (0,len(self.zeroes)):
                 if self.zeroes[i] != 0:#If zero is not located in origin
                     if np.absolute(np.real(self.zeroes[i]))<0.0000001:
                         self.zeroes[i]=1j*np.imag(self.zeroes[i])
-                    self.num=self.num*np.poly1d([1/(wo*B*self.zeroes[i]), 1, wo/(B*self.zeroes[i])])
+                    pol=np.poly1d([1/(wo*B*self.zeroes[i]), 1, wo/(B*self.zeroes[i])])
+                    self.num=self.num*pol
+                    tempZeros.append(np.roots(pol)[0])
+                    tempZeros.append(np.roots(pol)[1])
                 else:
-                    self.num=self.num*np.poly1d([1/(wo*B), 0, wo/B])
+                    pol=np.poly1d([1/(wo*B), 0, wo/B])
+                    self.num=self.num*pol
+                    tempZeros.append(np.roots(pol)[0])
+                    tempZeros.append(np.roots(pol)[1])
 
         elif self.name=='StopBand': #If required filter is SB
             wo=np.sqrt(self.wal*self.wah)
@@ -127,19 +165,36 @@ class base_filter(metaclass=ABCMeta):
             #Denormalize poles
             for i in range (0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
-                    if np.absolute(np.real(self.poles[i]))<0.001:
+                    if np.absolute(np.real(self.poles[i]))<0.0001:
                         self.poles[i]=1j*np.imag(self.poles[i])
-                    self.den=self.den*np.poly1d([1/wo, B/(-self.poles[i]), wo])
+                    pol=np.poly1d([1/wo, B/(-self.poles[i]), wo])
+                    self.den=self.den*pol
+                    tempPoles.append(np.roots(pol)[0])
+                    tempPoles.append(np.roots(pol)[1])
                 else:
-                    self.den=self.den*np.poly1d([B,0])
-                self.num=self.num*np.poly1d([1/wo,0,wo])
+                    pol=np.poly1d([B,0])
+                    self.den=self.den*pol
+                    tempPoles.append(np.roots(pol)[0])
+                pol=np.poly1d([1/wo,0,wo])
+                self.num=self.num*pol
+                tempZeros.append(np.roots(pol)[0])
+                tempZeros.append(np.roots(pol)[1])
+
             #Denormalize zeroes
             for i in range (0,len(self.zeroes)):
                 if self.zeroes[i] != 0:#If pole is not zero
-                    self.num=self.num*np.poly1d([1/wo, B/(self.zeroes[i]), wo])
+                    pol=np.poly1d([1/wo, B/(self.zeroes[i]), wo])
+                    self.num=self.num*pol
+                    tempZeros.append(np.roots(pol)[0])
+                    tempZeros.append(np.roots(pol)[1])
                 else:
-                    self.num=self.num*np.poly1d([B,0])
-                self.den=self.den*np.poly1d([1/wo,0.01,wo])
+                    pol=np.poly1d([B,0])
+                    self.num=self.num*pol
+                    tempZeros.append(np.roots(pol)[0])
+                pol=np.poly1d([1/wo,0.01,wo])
+                self.den=self.den*pol
+                tempPoles.append(np.roots(pol)[0])
+                tempPoles.append(np.roots(pol)[1])
 
         elif self.name=='Group Delay':
             #Denormalize poles
@@ -156,10 +211,11 @@ class base_filter(metaclass=ABCMeta):
                     self.num=self.num*np.poly1d([self.tao0,0])
         else:
             pass
+        self.zeroes=tempZeros
+        self.poles=tempPoles
         self.den=np.real(self.den)
         self.num=np.real(self.num)
-        self.zeroes=np.roots(self.num)
-        self.poles=np.roots(self.den)
+
         for i in range(0,len(self.poles)):
             if np.real(self.poles[i])>0:
                 self.poles[i]=-np.real(self.poles[i])+1j*np.imag(self.poles[i])
@@ -169,13 +225,13 @@ class base_filter(metaclass=ABCMeta):
                     self.q=(-np.absolute(sing_pole)/(2*np.real(sing_pole)))
             else:
                 self.q=float('inf')
-        K=np.power(10,self.gain/20)*self.aprox_gain
-        self.num=self.num*K*self.aprox_gain
+        self.K=np.power(10,self.gain/20)*self.aprox_gain
+        self.num=self.num*self.K
         self.denorm_n=len(self.den)-1
-        if self.name== 'StopBand':
-            self.denorm_sys=signal.ZerosPolesGain.to_tf(signal.ZerosPolesGain(self.zeroes,self.poles,K))
-        else:
-            self.denorm_sys = signal.TransferFunction(self.num,self.den) #Denormalized system is obtained
+#        if self.name== 'StopBand':
+#            self.denorm_sys=signal.ZerosPolesGain.to_tf(signal.ZerosPolesGain(self.zeroes,self.poles,K))
+#        else:
+        self.denorm_sys = signal.TransferFunction(self.num,self.den) #Denormalized system is obtained
 
     # Function returns current denormalized filter step response
     def get_step(self):
@@ -341,7 +397,7 @@ class base_filter(metaclass=ABCMeta):
             self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained
     
     def get_gain(self):
-        return self.aprox_gain
+        return self.K
 
     def check_4_infs_and_nans(*args):
         for input in args[1]:

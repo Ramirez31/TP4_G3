@@ -1344,8 +1344,7 @@ class DesignFilter:
            if(len(self.PolosSeleccionados)<len(self.ZerosSeleccionados)) :
                return
            if(len(self.PolosSeleccionados)==0 and len(self.ZerosSeleccionados)==0 ):
-               return
-           if(len(sel))    
+               return 
            if(len(self.PolosSeleccionados)==0):
                 self.den=[]
                 self.num.extend(self.ZerosSeleccionados)
