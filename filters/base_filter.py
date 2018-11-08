@@ -176,6 +176,8 @@ class base_filter(metaclass=ABCMeta):
                     pol=np.poly1d([B,0])
                     self.den=self.den*pol
                     tempPoles.append(np.roots(pol)[0])
+                if (len(self.zeroes)!=0) and np.mod(self.n,2)==0:
+                    bool=False
                 if bool==True: 
                     pol=np.poly1d([1/wo,0,wo])
                     self.num=self.num*pol
@@ -195,10 +197,6 @@ class base_filter(metaclass=ABCMeta):
                     pol=np.poly1d([B,0])
                     self.num=self.num*pol
                     tempZeros.append(np.roots(pol)[0])
-            #   pol=np.poly1d([1/wo,0.01,wo])
-            #   self.den=self.den*pol
-            #   tempPoles.append(np.roots(pol)[0])
-            #   tempPoles.append(np.roots(pol)[1])
 
         elif self.name=='Group Delay':
             #Denormalize poles
