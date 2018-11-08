@@ -1460,7 +1460,26 @@ class DesignFilter:
          
          print(self.MisPolos)
          print(self.MisCeros)
+         
+         counter = 0
+         for i in self.MisCeros :
+            if i == 0 :
+                counter = counter +1 
 
+         
+         for i in range(int(counter/2)):
+             if (0 in self.MisPolos) :
+                self.den=[0,0]
+                self.num=[0,0]
+                self.MisCeros.remove(self.num[0])
+                self.MisCeros.remove(self.num[0])
+                self.MisPolos.remove(self.den[0])
+                self.MisPolos.remove(self.den[0]) 
+                self.HdeStage.append(self.den) 
+                self.HdeStage.append(self.num)        
+        
+                self.TransferList.append(self.HdeStage)
+                self.HdeStage = []
          
          for i in self.CerosAuxAux :
             self.den = []
