@@ -57,6 +57,7 @@ class base_filter(metaclass=ABCMeta):
         self.num=np.poly1d([1])
         tempPoles=[]
         tempZeros=[]
+        self.denorm_gain=1
 
         if self.name=='LowPass': #If required filter is LP
             #Denormalize poles
@@ -89,11 +90,13 @@ class base_filter(metaclass=ABCMeta):
             for i in range(0,len(self.poles)):
                 if self.poles[i] != 0:#If pole is not zero
                     pol=np.poly1d([1,-self.wpl/(self.poles[i])])
+                    self.denorm_gain=(-(self.poles[i])/self.wpl)*self.denorm_gain
                     if np.real(np.roots(pol))<=0:
                         self.den= self.den*pol #Filter is denormalized by frequency scaling it S=wc/Sn
                         tempPoles.append(np.roots(pol)[0])
                 else:
                     pol=np.poly1d([-self.wpl])
+                    self.denorm_gain=self.denorm_gain*-self.wpl
                     self.den= self.den*pol #Filter is denormalized by frequency scaling it S=wc/Sn
                     #tempPoles.append(np.roots(pol)[0])
             #Denormalize zeroes
@@ -106,10 +109,12 @@ class base_filter(metaclass=ABCMeta):
                     pol=np.poly1d([1,self.wpl/(self.zeroes[i])])
                     self.num= self.num*pol #Filter is denormalized by frequency scaling it S=wc/Sn
                     tempZeros.append(np.roots(pol)[0])
+                    self.denorm_gain=self.denorm_gain*(self.zeroes[i])/self.wpl
                 else:
                     pol=np.poly1d([self.wpl])
                     self.num= self.num*pol #Filter is denormalized by frequency scaling it S=wc/Sn
                     tempZeros.append(np.roots(pol)[0])
+                    self.denorm_gain=self.denorm_gain*1/self.wpl
 
         elif self.name=='BandPass': #If required filter is BP
             wo=np.sqrt(self.wpl*self.wph)
@@ -126,11 +131,13 @@ class base_filter(metaclass=ABCMeta):
                     self.den=self.den*pol
                     tempPoles.append(np.roots(pol)[0])
                     tempPoles.append(np.roots(pol)[1])
+                    self.denorm_gain=self.denorm_gain*1*(-B*self.poles[i]/(wo))
                 else:
                     pol=np.poly1d([-1/(wo*B), 0, -wo/B])
                     self.den=self.den*pol
                     tempPoles.append(np.roots(pol)[0])
                     tempPoles.append(np.roots(pol)[1])
+                    self.denorm_gain=self.denorm_gain*1*(-B/(wo))
             #Denormalize zeroes
             pol=np.poly1d(np.zeros(len(self.zeroes)),r=True)
             self.den=self.den*pol #Zeroes created after doing HP denormalization to poles
@@ -144,11 +151,13 @@ class base_filter(metaclass=ABCMeta):
                     self.num=self.num*pol
                     tempZeros.append(np.roots(pol)[0])
                     tempZeros.append(np.roots(pol)[1])
+                    self.denorm_gain=self.denorm_gain*1/(-B*self.poles[i]/(wo))
                 else:
                     pol=np.poly1d([1/(wo*B), 0, wo/B])
                     self.num=self.num*pol
                     tempZeros.append(np.roots(pol)[0])
                     tempZeros.append(np.roots(pol)[1])
+                    self.denorm_gain=self.denorm_gain*1/(B/(wo))
 
         elif self.name=='StopBand': #If required filter is SB
             wo=np.sqrt(self.wal*self.wah)
@@ -238,6 +247,7 @@ class base_filter(metaclass=ABCMeta):
         self.K=np.power(10,self.gain/20)*self.aprox_gain
         self.num=self.num*self.K
         self.denorm_n=len(self.den)-1
+        self.K=np.power(10,self.gain/20)*self.aprox_gain*self.denorm_gain
         #if self.name== 'StopBand':
         #    self.denorm_sys=signal.ZerosPolesGain.to_tf(signal.ZerosPolesGain(self.zeroes,self.poles,self.K))
         #else:

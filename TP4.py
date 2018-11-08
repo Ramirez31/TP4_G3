@@ -1221,6 +1221,7 @@ class DesignFilter:
                         num=num*np.poly1d([1/zero,1])
                     else:
                         num=num*np.poly1d([1,0])
+            num=num*self.Gain
             w,mag,phase=signal.bode(signal.TransferFunction(num,den))
             self.axis.clear()
             self.axis.set_title('Accumulative\'s Attenuation plot')
@@ -1344,7 +1345,7 @@ class DesignFilter:
            if(len(self.PolosSeleccionados)<len(self.ZerosSeleccionados)) :
                return
            if(len(self.PolosSeleccionados)==0 and len(self.ZerosSeleccionados)==0 ):
-               return 
+               return
            if(len(self.PolosSeleccionados)==0):
                 self.den=[]
                 self.num.extend(self.ZerosSeleccionados)
@@ -1620,15 +1621,19 @@ class DesignFilter:
         for i in self.detectStage:
             self.stageIs = self.TransferList[i]
             #polos de la stage
-        aux=self.gain_entry.get()   #aca guardo lo que ingreso el usuario
-        self.gain_entry.delete(0, END) #una vez que lo tome lo elimino
-        if len(aux) > 0:        #si el usuario introdujo algo
-            #aca deberia parsear
-            self.GainOfStages[i]=aux
-            self.SelectedStage.delete(i)    #elimino la stage con ganancia vieja
-            self.SelectedStage.insert(i, ["Stage", i+1 , "->" ,"Gain:", self.GainOfStages[i], "dB"]) #nueva stage con nueva ganancia
-
-        K=np.power(10,float(self.GainOfStages[i])/20) #constante para obtener la ganancia en dB que pide el usuario    
+        if len(self.gain_entry.get())!=0:
+            aux=self.gain_entry.get()   #aca guardo lo que ingreso el usuario
+            self.gain_entry.delete(0, END) #una vez que lo tome lo elimino
+            if len(aux) > 0:        #si el usuario introdujo algo
+                #aca deberia parsear
+                self.GainOfStages[i]=aux
+                self.SelectedStage.delete(i)    #elimino la stage con ganancia vieja
+                self.SelectedStage.insert(i, ["Stage", i+1 , "->" ,"Gain:", self.GainOfStages[i], "dB"]) #nueva stage con nueva ganancia
+                K=np.power(10,float(self.GainOfStages[i])/20) #constante para obtener la ganancia en dB que pide el usuario 
+        else:
+            self.GainOfStages[i]=np.power(self.Gain,1/len(self.TransferList))
+            K=self.GainOfStages[i]
+           
         self.polesOfStage = self.stageIs[0] #siempre el primer elemento son los polos
         #ceros de la stage
         self.zerosOfStage = self.stageIs[1] #siempre el segundo elemento son los ceros
