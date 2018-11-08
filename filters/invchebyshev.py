@@ -49,7 +49,7 @@ class Invchebyshev(base_filter):
                 elif self.name == 'BandPass':
                     self.nmax=30
                 else:
-                    self.nmax=18
+                    self.nmax=26
                 self.errormsg=self.check_input()
                 if self.n !=None:
                     self.set_fix_order()
@@ -60,7 +60,7 @@ class Invchebyshev(base_filter):
                 elif self.name == 'BandPass':
                     self.nmax=10
                 else:
-                    self.nmax=5
+                    self.nmax=13
                 if self.errormsg == '':
                     while True:
                         self.q=0
@@ -96,17 +96,19 @@ class Invchebyshev(base_filter):
                 if np.real(pole)<=0:
                      pol= np.poly1d([-1/pole, 1])
                      self.den= self.den*pol
+                     self.poles.append(np.roots(pol)[0])
                 if i<=self.n:
                     if self.is_odd(self.n) and (i == (np.floor(self.n/2)+1)):
                         pass
                     else:
                      zero=self.wan*1j/np.cos(alfa)
                      pol= np.poly1d([-1/zero, 1])
+                     self.zeroes.append(np.roots(pol)[0])
                      self.num= self.num*pol
            self.num=np.real(self.num)
            self.den=np.real(self.den)
-           self.zeroes=np.roots(self.num)
-           self.poles=np.roots(self.den) 
+           #self.zeroes=np.roots(self.num)
+           #self.poles=np.roots(self.den) 
            self.aprox_gain=1
            self.norm_sys = signal.TransferFunction(self.num,self.den) #Filter system is obtained 
            self.denormalize_range()
@@ -134,10 +136,9 @@ class Invchebyshev(base_filter):
             else:
                 self.errormsg=self.errormsg+'Required filter cannot be realized with the specified order\n'
         elif (self.name=='StopBand'):
-            if np.mod(self.n,8)==0:
-                self.n=int(self.n/4)
-            elif np.mod(self.n-2,8)==0:
-                self.n=int((self.n+2)/4)
+            if np.mod(self.n,2)==0:
+                self.n=int(self.n/2)
+
             else:
                 self.errormsg=self.errormsg+'Required filter cannot be realized with the specified order\n'
 
